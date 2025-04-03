@@ -1,0 +1,61 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+// Custom variables
+:root {
+  --primary-color: #047857;
+  --secondary-color: #065f46;
+  --accent-color: #10b981;
+  --text-color: #1f2937;
+  --light-gray: #f3f4f6;
+}
+
+// Global styles
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+// Utility classes
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+// Transitions
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// Custom components
+.btn {
+  @apply px-4 py-2 rounded font-medium transition-colors;
+
+  &-primary {
+    @apply bg-green-600 text-white hover:bg-green-700;
+  }
+
+  &-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+}
+
+.section-title {
+  @apply text-3xl font-bold text-center mb-8;
+}
+
+// Responsive helpers
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+} 

@@ -1,0 +1,51 @@
+// Colors
+$primary: #047857;  // green-700
+$primary-light: #10b981;  // green-500
+$primary-dark: #065f46;  // green-800
+
+$secondary: #4b5563;  // gray-600
+$secondary-light: #9ca3af;  // gray-400
+$secondary-dark: #1f2937;  // gray-800
+
+$white: #ffffff;
+$black: #000000;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+
+// Typography
+$font-family-base: 'system-ui', '-apple-system', 'sans-serif';
+$font-size-base: 1rem;
+$line-height-base: 1.5;
+
+// Spacing
+$spacing-1: 0.25rem;
+$spacing-2: 0.5rem;
+$spacing-3: 0.75rem;
+$spacing-4: 1rem;
+$spacing-6: 1.5rem;
+$spacing-8: 2rem;
+$spacing-12: 3rem;
+$spacing-16: 4rem;
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Border radius
+$border-radius-sm: 0.125rem;
+$border-radius: 0.25rem;
+$border-radius-lg: 0.5rem;
+$border-radius-xl: 1rem;
+
+// Box shadow
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Transitions
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.15s ease;
+$transition-slow: all 0.45s ease; 
