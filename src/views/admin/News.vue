@@ -1,300 +1,309 @@
 <template>
-  <div class="news-management">
-    <!-- Page Title -->
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Quản lý bảng tin</h1>
-      <button 
-        @click="openAddModal"
-        class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
-      >
-        <i class="fas fa-plus"></i>
-        Thêm bài viết mới
-      </button>
-    </div>
+  <div class="news-management admin-dashboard bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <AdminHeader />
     
-    <!-- Actions Bar -->
-    <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
-      <div class="flex items-center gap-4 flex-grow">
-        <div class="relative flex-grow max-w-md">
-          <input 
-            type="text" 
-            v-model="searchQuery"
-            placeholder="Tìm kiếm bài viết..." 
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+    <!-- Main Content -->
+    <main class="py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Title -->
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold text-gray-800">Quản lý bảng tin</h1>
+          <button 
+            @click="openAddModal"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
           >
-          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <i class="fas fa-plus"></i>
+            Thêm bài viết mới
+          </button>
         </div>
-        <div class="flex-shrink-0">
-          <select 
-            v-model="categoryFilter"
-            class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          >
-            <option value="all">Tất cả danh mục</option>
-            <option value="news">Tin tức</option>
-            <option value="events">Sự kiện</option>
-            <option value="promotions">Khuyến mãi</option>
-            <option value="knowledge">Kiến thức</option>
-          </select>
+        
+        <!-- Actions Bar -->
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
+          <div class="flex items-center gap-4 flex-grow">
+            <div class="relative flex-grow max-w-md">
+              <input 
+                type="text" 
+                v-model="searchQuery"
+                placeholder="Tìm kiếm bài viết..." 
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <div class="flex-shrink-0">
+              <select 
+                v-model="categoryFilter"
+                class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="all">Tất cả danh mục</option>
+                <option value="news">Tin tức</option>
+                <option value="events">Sự kiện</option>
+                <option value="promotions">Khuyến mãi</option>
+                <option value="knowledge">Kiến thức</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- News Table -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              BÀI VIẾT
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              DANH MỤC
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              NGÀY ĐĂNG
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              TRẠNG THÁI
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-              THAO TÁC
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="article in filteredArticles" :key="article.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 mr-3">
-                  <img 
-                    :src="article.image" 
-                    alt="Thumbnail" 
-                    class="w-full h-full object-cover"
-                  >
-                </div>
-                <div class="max-w-xs">
-                  <div class="text-sm font-medium text-gray-900 truncate">{{ article.title }}</div>
-                  <div class="text-sm text-gray-500 line-clamp-1">{{ article.summary }}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 text-xs font-medium rounded-full" :class="getCategoryClass(article.category)">
-                {{ getCategoryName(article.category) }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ formatDate(article.publishDate) }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 text-xs font-medium rounded-full" :class="article.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
-                {{ article.published ? 'Đã đăng' : 'Bản nháp' }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <div class="flex gap-3 items-center px-2">
-                <button 
-                  @click="editArticle(article)"
-                  class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shadow-sm"
-                  title="Chỉnh sửa"
-                  type="button"
-                >
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button 
-                  @click="togglePublish(article)"
-                  class="w-9 h-9 flex items-center justify-center rounded-full shadow-sm transition-colors"
-                  :class="article.published ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' : 'bg-green-50 text-green-600 hover:bg-green-100'"
-                  :title="article.published ? 'Ẩn bài viết' : 'Đăng bài viết'"
-                  type="button"
-                >
-                  <i :class="article.published ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                </button>
-                <button 
-                  @click="confirmDelete(article.id)"
-                  class="w-9 h-9 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors shadow-sm"
-                  title="Xóa"
-                  type="button"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="filteredArticles.length === 0">
-            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-              Không tìm thấy bài viết nào
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mt-6">
-      <div class="text-sm text-gray-500">
-        Hiển thị {{ filteredArticles.length }} trên tổng số {{ articles.length }} bài viết
-      </div>
-      <div class="flex gap-2">
-        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="px-3 py-1 border border-gray-300 rounded-md bg-green-600 text-white">1</button>
-        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">2</button>
-        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">3</button>
-        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Add/Edit Article Modal -->
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ isEditMode ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới' }}
-          </h3>
-        </div>
-        <div class="p-6">
-          <form @submit.prevent="saveArticle">
-            <div class="grid gap-6">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề <span class="text-red-500">*</span></label>
-                <input 
-                  type="text" 
-                  v-model="articleForm.title"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                >
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục <span class="text-red-500">*</span></label>
-                  <select 
-                    v-model="articleForm.category"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="news">Tin tức</option>
-                    <option value="events">Sự kiện</option>
-                    <option value="promotions">Khuyến mãi</option>
-                    <option value="knowledge">Kiến thức</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-                  <select 
-                    v-model="articleForm.published"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option :value="true">Đăng ngay</option>
-                    <option :value="false">Lưu nháp</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện</label>
-                <div class="flex items-center gap-4">
-                  <div class="flex-1">
-                    <label class="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                      <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
-                      <span class="text-sm text-gray-500">Chọn file hoặc kéo thả vào đây</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        class="hidden" 
-                        @change="handleImageUpload"
-                      />
-                    </label>
+        
+        <!-- News Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  BÀI VIẾT
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  DANH MỤC
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  NGÀY ĐĂNG
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  TRẠNG THÁI
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                  THAO TÁC
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="article in filteredArticles" :key="article.id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 mr-3">
+                      <img 
+                        :src="article.image" 
+                        alt="Thumbnail" 
+                        class="w-full h-full object-cover"
+                      >
+                    </div>
+                    <div class="max-w-xs">
+                      <div class="text-sm font-medium text-gray-900 truncate">{{ article.title }}</div>
+                      <div class="text-sm text-gray-500 line-clamp-1">{{ article.summary }}</div>
+                    </div>
                   </div>
-                  <div v-if="articleForm.image" class="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
-                    <img :src="articleForm.image" alt="Preview" class="w-full h-full object-cover">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full" :class="getCategoryClass(article.category)">
+                    {{ getCategoryName(article.category) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ formatDate(article.publishDate) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full" :class="article.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
+                    {{ article.published ? 'Đã đăng' : 'Bản nháp' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div class="flex gap-3 items-center px-2">
                     <button 
-                      @click="removeImage" 
-                      type="button" 
-                      class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs"
+                      @click="editArticle(article)"
+                      class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shadow-sm"
+                      title="Chỉnh sửa"
+                      type="button"
                     >
-                      <i class="fas fa-times"></i>
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button 
+                      @click="togglePublish(article)"
+                      class="w-9 h-9 flex items-center justify-center rounded-full shadow-sm transition-colors"
+                      :class="article.published ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' : 'bg-green-50 text-green-600 hover:bg-green-100'"
+                      :title="article.published ? 'Ẩn bài viết' : 'Đăng bài viết'"
+                      type="button"
+                    >
+                      <i :class="article.published ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                    </button>
+                    <button 
+                      @click="confirmDelete(article.id)"
+                      class="w-9 h-9 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors shadow-sm"
+                      title="Xóa"
+                      type="button"
+                    >
+                      <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
-                </div>
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tóm tắt</label>
-                <textarea 
-                  v-model="articleForm.summary"
-                  rows="2"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                ></textarea>
-              </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung <span class="text-red-500">*</span></label>
-                <textarea 
-                  v-model="articleForm.content"
-                  rows="10"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                ></textarea>
-              </div>
+                </td>
+              </tr>
+              <tr v-if="filteredArticles.length === 0">
+                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                  Không tìm thấy bài viết nào
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-6">
+          <div class="text-sm text-gray-500">
+            Hiển thị {{ filteredArticles.length }} trên tổng số {{ articles.length }} bài viết
+          </div>
+          <div class="flex gap-2">
+            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md bg-green-600 text-white">1</button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">2</button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">3</button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Add/Edit Article Modal -->
+        <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-lg font-medium text-gray-900">
+                {{ isEditMode ? 'Chỉnh sửa bài viết' : 'Thêm bài viết mới' }}
+              </h3>
             </div>
-            
-            <div class="mt-6 flex justify-end gap-3">
+            <div class="p-6">
+              <form @submit.prevent="saveArticle">
+                <div class="grid gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề <span class="text-red-500">*</span></label>
+                    <input 
+                      type="text" 
+                      v-model="articleForm.title"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required
+                    >
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục <span class="text-red-500">*</span></label>
+                      <select 
+                        v-model="articleForm.category"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="news">Tin tức</option>
+                        <option value="events">Sự kiện</option>
+                        <option value="promotions">Khuyến mãi</option>
+                        <option value="knowledge">Kiến thức</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                      <select 
+                        v-model="articleForm.published"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option :value="true">Đăng ngay</option>
+                        <option :value="false">Lưu nháp</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện</label>
+                    <div class="flex items-center gap-4">
+                      <div class="flex-1">
+                        <label class="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                          <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                          <span class="text-sm text-gray-500">Chọn file hoặc kéo thả vào đây</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            class="hidden" 
+                            @change="handleImageUpload"
+                          />
+                        </label>
+                      </div>
+                      <div v-if="articleForm.image" class="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+                        <img :src="articleForm.image" alt="Preview" class="w-full h-full object-cover">
+                        <button 
+                          @click="removeImage" 
+                          type="button" 
+                          class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tóm tắt</label>
+                    <textarea 
+                      v-model="articleForm.summary"
+                      rows="2"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    ></textarea>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nội dung <span class="text-red-500">*</span></label>
+                    <textarea 
+                      v-model="articleForm.content"
+                      rows="10"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end gap-3">
+                  <button 
+                    type="button"
+                    @click="closeModal"
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Hủy
+                  </button>
+                  <button 
+                    type="submit"
+                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="text-center">
+              <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-xl"></i>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Xác nhận xóa</h3>
+              <p class="text-gray-500 mb-6">Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="flex justify-center gap-3">
               <button 
-                type="button"
-                @click="closeModal"
+                @click="showDeleteConfirm = false"
                 class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Hủy
               </button>
               <button 
-                type="submit"
-                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                @click="deleteArticle"
+                class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
               >
-                {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+                Xóa
               </button>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="text-center">
-          <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-exclamation-triangle text-xl"></i>
           </div>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Xác nhận xóa</h3>
-          <p class="text-gray-500 mb-6">Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.</p>
-        </div>
-        <div class="flex justify-center gap-3">
-          <button 
-            @click="showDeleteConfirm = false"
-            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          >
-            Hủy
-          </button>
-          <button 
-            @click="deleteArticle"
-            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-          >
-            Xóa
-          </button>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import AdminHeader from '@/components/admin/AdminHeader.vue'
 import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
 
 // Sample data - replace with API calls in production

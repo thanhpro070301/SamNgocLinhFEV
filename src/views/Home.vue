@@ -171,10 +171,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import ProductCard from '@/components/products/ProductCard.vue'
+import ProductCard from '@/components/ProductCard.vue'
 import Sidebar from '@/components/sidebar/Sidebar.vue'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import cart from '@/store/cart'
 
 // Import images
 import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
@@ -196,32 +197,35 @@ const featuredProducts = ref([
     price: 15000000,
     originalPrice: 18000000,
     rating: 5,
-    reviews: 124,
-    discount: 15
+    sold: 124,
+    category: 'sam-tuoi',
+    stock: 50
   },
   {
     id: 2,
     name: 'Cao Sâm Ngọc Linh',
-    image: samTuoiImage, // Temporarily using same image
+    image: samTuoiImage,
     price: 8000000,
     rating: 4,
-    reviews: 89
+    sold: 89,
+    category: 'cao-sam',
+    stock: 100
   },
   {
     id: 3,
     name: 'Rượu Sâm Ngọc Linh',
-    image: samTuoiImage, // Temporarily using same image
+    image: samTuoiImage,
     price: 5000000,
     originalPrice: 6000000,
     rating: 5,
-    reviews: 156,
-    discount: 10
+    sold: 156,
+    category: 'ruou-sam',
+    stock: 0
   }
 ])
 
 const addToCart = (product) => {
-  // TODO: Implement add to cart functionality
-  console.log('Adding to cart:', product)
+  console.log('Product added to cart:', product.name)
 }
 </script>
 

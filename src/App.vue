@@ -3,7 +3,9 @@
     <template v-if="!isAdminRoute">
       <TheHeader />
       <main class="main-content">
-        <router-view></router-view>
+        <router-view v-slot="{ Component }">
+          <component :is="Component" />
+        </router-view>
       </main>
       <TheFooter />
     </template>
