@@ -15,6 +15,8 @@ import AdminProducts from '@/views/admin/Products.vue'
 import AdminServices from '@/views/admin/Services.vue'
 import Users from '@/views/admin/Users.vue'
 import AdminNews from '@/views/admin/News.vue'
+import Categories from '@/views/admin/Categories.vue'
+import Orders from '@/views/admin/Orders.vue'
 import auth from '@/store/auth'
 
 const routes = [
@@ -109,6 +111,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/categories',
+    name: 'AdminCategories',
+    component: Categories,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: Users,
@@ -118,6 +126,12 @@ const routes = [
     path: '/admin/news',
     name: 'AdminNews',
     component: AdminNews,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/orders',
+    name: 'AdminOrders',
+    component: Orders,
     meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]

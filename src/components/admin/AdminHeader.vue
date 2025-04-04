@@ -1,63 +1,61 @@
 <template>
-  <header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="bg-white shadow-md">
+    <div class="max-w-full mx-auto px-4">
       <div class="flex justify-between items-center h-16">
-        <!-- Logo và menu chính -->
+        <!-- Logo và tên admin panel -->
         <div class="flex items-center">
           <div class="flex-shrink-0 flex items-center">
-            <div class="w-10 h-10 bg-green-100 rounded-full overflow-hidden flex-shrink-0 mr-2">
+            <div class="w-10 h-10 bg-green-100 rounded-full overflow-hidden flex-shrink-0">
               <img :src="samTuoiImage" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
             </div>
-            <span class="text-lg font-semibold text-gray-900">Admin Panel</span>
+            <span class="text-lg font-bold text-gray-900 ml-3">Admin Panel</span>
           </div>
-          
-          <nav class="hidden md:ml-8 md:flex md:space-x-6">
-            <router-link 
-              v-for="item in menuItems" 
-              :key="item.path" 
-              :to="item.path" 
-              class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
-              :class="[
-                isActive(item.path) 
-                  ? 'text-green-700 bg-green-50' 
-                  : 'text-gray-700 hover:text-gray-900'
-              ]"
-            >
-              <i :class="[item.icon, 'mr-1.5']"></i>
-              {{ item.name }}
-            </router-link>
-          </nav>
+        </div>
+        
+        <!-- Menu items -->
+        <div class="hidden lg:flex items-center space-x-1">
+          <router-link 
+            v-for="item in menuItems" 
+            :key="item.path" 
+            :to="item.path" 
+            class="px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center"
+            :class="[
+              isActive(item.path) 
+                ? 'text-green-700 bg-green-50' 
+                : 'text-gray-700 hover:text-gray-900 hover:bg-green-50'
+            ]"
+          >
+            <i :class="[item.icon, 'mr-2 w-5 text-center']"></i>
+            {{ item.name }}
+          </router-link>
         </div>
         
         <!-- Các tính năng bên phải -->
         <div class="flex items-center">
           <!-- Thông báo -->
-          <button class="ml-4 p-2 rounded-full hover:bg-gray-100 relative">
+          <button class="p-2 rounded-full hover:bg-gray-100 relative">
             <i class="fas fa-bell text-gray-600"></i>
             <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
           
           <!-- Dropdown người dùng -->
-          <div class="ml-4 relative">
+          <div class="ml-3 relative">
             <div>
               <button 
                 @click="toggleUserMenu" 
                 class="flex items-center text-sm rounded-full focus:outline-none"
               >
-                <img 
-                  class="h-8 w-8 rounded-full bg-gray-200"
-                  src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" 
-                  alt="Avatar"
-                >
-                <span class="ml-2 hidden md:block text-gray-700">{{ currentUser?.name || 'Admin' }}</span>
-                <i class="fas fa-chevron-down ml-1 text-gray-500"></i>
+                <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                  AD
+                </div>
+                <span class="ml-2 hidden md:block text-gray-700 font-medium">Admin <i class="fas fa-chevron-down ml-1 text-gray-500"></i></span>
               </button>
             </div>
             
             <!-- Dropdown Menu -->
             <div 
               v-if="isUserMenuOpen" 
-              class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+              class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50"
             >
               <router-link 
                 to="/admin/profile" 
@@ -82,7 +80,7 @@
           </div>
           
           <!-- Menu bar cho điện thoại -->
-          <div class="ml-2 -mr-2 flex items-center md:hidden">
+          <div class="ml-3 flex items-center lg:hidden">
             <button 
               @click="toggleMobileMenu"
               class="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100"
@@ -94,8 +92,8 @@
       </div>
       
       <!-- Menu mobile -->
-      <div v-if="isMobileMenuOpen" class="md:hidden">
-        <div class="pt-2 pb-3 space-y-1">
+      <div v-if="isMobileMenuOpen" class="lg:hidden py-2 border-t border-gray-100">
+        <div class="space-y-1">
           <router-link 
             v-for="item in menuItems" 
             :key="item.path" 
@@ -108,7 +106,7 @@
             ]"
             @click="closeMobileMenu"
           >
-            <i :class="[item.icon, 'mr-2']"></i>
+            <i :class="[item.icon, 'mr-2 w-5 text-center']"></i>
             {{ item.name }}
           </router-link>
         </div>
@@ -116,6 +114,31 @@
     </div>
   </header>
 </template>
+
+<style lang="scss" scoped>
+.header {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Fix spacing between menu items */
+@media (min-width: 1024px) {
+  .hidden.lg\:flex {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Ensure mobile menu dropdown looks clean */
+.mobile-menu {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+</style>
 
 <script setup>
 import { ref, computed } from 'vue'
@@ -133,6 +156,7 @@ const currentUser = computed(() => auth.currentUser.value)
 const menuItems = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: 'fas fa-tachometer-alt' },
   { name: 'Sản phẩm', path: '/admin/products', icon: 'fas fa-box' },
+  { name: 'Danh mục', path: '/admin/categories', icon: 'fas fa-folder' },
   { name: 'Dịch vụ', path: '/admin/services', icon: 'fas fa-spa' },
   { name: 'Người dùng', path: '/admin/users', icon: 'fas fa-users' },
   { name: 'Đơn hàng', path: '/admin/orders', icon: 'fas fa-shopping-cart' },

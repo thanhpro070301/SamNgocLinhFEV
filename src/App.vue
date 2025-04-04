@@ -10,7 +10,9 @@
       <TheFooter />
     </template>
     <template v-else>
-      <router-view></router-view>
+      <div class="admin-layout">
+        <router-view></router-view>
+      </div>
     </template>
   </div>
 </template>
@@ -35,5 +37,9 @@ const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 .main-content {
   flex: 1;
   padding: 2rem 0;
+}
+
+.admin-layout {
+  min-height: 100vh;
 }
 </style> 
