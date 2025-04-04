@@ -33,11 +33,11 @@
         </div>
         
         <!-- User dropdown -->
-        <div class="relative ml-3">
+        <div class="flex items-center h-full relative ml-3 user-dropdown">
           <div>
             <button 
-              @click="isUserMenuOpen = !isUserMenuOpen"
-              class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-800"
+              @click="toggleUserMenu"
+              class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-800 rounded-full hover:bg-gray-100 p-1 transition-colors"
             >
               <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                 <i class="fas fa-user text-green-700"></i>
@@ -50,27 +50,40 @@
           <!-- Dropdown menu -->
           <div 
             v-if="isUserMenuOpen" 
-            class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+            class="absolute right-0 z-50 mt-3 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200"
+            style="top: 100%; right: -22px;"
           >
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-medium text-gray-900">{{ userName }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ userEmail }}</p>
+            </div>
             <router-link 
               to="/admin/profile" 
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               @click="isUserMenuOpen = false"
             >
-              <i class="fas fa-user-circle mr-2"></i> Tài khoản
+              <i class="fas fa-user-circle mr-2 w-5 text-center text-gray-500"></i> Tài khoản cá nhân
             </router-link>
             <router-link 
               to="/admin/settings" 
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               @click="isUserMenuOpen = false"
             >
-              <i class="fas fa-cog mr-2"></i> Cài đặt
+              <i class="fas fa-cog mr-2 w-5 text-center text-gray-500"></i> Cài đặt hệ thống
             </router-link>
+            <router-link 
+              to="/admin/sessions" 
+              class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              @click="isUserMenuOpen = false"
+            >
+              <i class="fas fa-key mr-2 w-5 text-center text-gray-500"></i> Quản lý phiên
+            </router-link>
+            <div class="border-t border-gray-100 my-1"></div>
             <button 
               @click="logout" 
-              class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
             >
-              <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+              <i class="fas fa-sign-out-alt mr-2 w-5 text-center"></i> Đăng xuất
             </button>
           </div>
         </div>
@@ -155,6 +168,9 @@ function toggleMobileMenu() {
 // Toggle user menu
 function toggleUserMenu() {
   isUserMenuOpen.value = !isUserMenuOpen.value
+  if (isUserMenuOpen.value) {
+    isMobileMenuOpen.value = false
+  }
 }
 
 // Check if route is active
