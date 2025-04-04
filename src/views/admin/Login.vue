@@ -128,54 +128,126 @@ async function login() {
   isLoading.value = true
   
   try {
-    // Demo credentials - sử dụng mock data thay vì gọi API thực
-    const demoAccounts = [
-      {
-        email: 'admin@example.com',
-        password: 'admin123',
-        id: 1,
-        name: 'Admin',
-        role: 'admin'
-      },
-      {
-        email: 'samngoclinh@gmail.com',
-        password: 'sam123',
-        id: 2,
-        name: 'Quản lý Sâm Ngọc Linh',
-        role: 'admin'
-      }
-    ]
+    // Gọi API đăng nhập
+    const axios = (await import('axios')).default
     
-    // Kiểm tra đăng nhập với tài khoản demo
-    const foundUser = demoAccounts.find(
-      account => account.email === form.email && account.password === form.password
-    )
-    
-    if (foundUser) {
-      const userInfo = {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/login', {
+        email: form.email,
+        password: form.password
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      // Token trả về là chuỗi text
+      const token = response.data
+      console.log('Đăng nhập thành công, nhận token:', token)
+      
+      if (token) {
+        // Lưu token vào localStorage
+        localStorage.setItem('admin_current_token', token)
+        
+        // Giải mã thông tin cơ bản từ token (giả lập vì token là UUID)
+        const userInfo = {
+          id: 1,
+          email: form.email,
+          name: form.email.split('@')[0],
+          role: 'admin'
+        }
+        
+        // Lưu thông tin đăng nhập
+        auth.currentUser.value = userInfo
+        auth.isAuthenticated.value = true
+        
+        if (rememberMe.value) {
+          // Lưu token session 
+          sessionToken.createToken(userInfo, rememberMe.value)
+        }
+        
+        // Chuyển hướng đến trang dashboard
+        router.push('/admin/dashboard')
+      } else {
+        errorMessage.value = 'Không nhận được token. Vui lòng thử lại'
       }
+    } catch (apiError) {
+      console.error('API Login error:', apiError)
       
-      // Lưu thông tin đăng nhập
-      auth.currentUser.value = userInfo
-      auth.isAuthenticated.value = true
-      
-      // Tạo token session
-      const tokenId = sessionToken.createToken(userInfo, rememberMe.value)
-      
-      // Chuyển hướng đến trang dashboard
-      router.push('/admin/dashboard')
-    } else {
-      errorMessage.value = 'Email hoặc mật khẩu không đúng'
+      if (apiError.response) {
+        if (apiError.response.status === 401) {
+          errorMessage.value = 'Email hoặc mật khẩu không đúng'
+        } else if (apiError.response.status === 403) {
+          errorMessage.value = 'Tài khoản của bạn không có quyền truy cập trang quản trị'
+        } else {
+          errorMessage.value = apiError.response.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại sau.'
+        }
+      } else {
+        errorMessage.value = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.'
+        
+        // Fallback login với tài khoản demo nếu không kết nối được API
+        fallbackLogin()
+      }
     }
   } catch (error) {
     console.error('Login error:', error)
     errorMessage.value = 'Đã xảy ra lỗi, vui lòng thử lại sau'
   } finally {
     isLoading.value = false
+  }
+}
+
+// Fallback login sử dụng dữ liệu mẫu (chỉ khi không kết nối được API)
+function fallbackLogin() {
+  // Demo credentials - sử dụng mock data thay vì gọi API thực
+  const demoAccounts = [
+    {
+      email: 'admin@example.com',
+      password: 'admin123',
+      id: 1,
+      name: 'Admin',
+      role: 'admin'
+    },
+    {
+      email: 'samngoclinh@gmail.com',
+      password: 'sam123',
+      id: 2,
+      name: 'Quản lý Sâm Ngọc Linh',
+      role: 'admin'
+    }
+  ]
+  
+  // Kiểm tra đăng nhập với tài khoản demo
+  const foundUser = demoAccounts.find(
+    account => account.email === form.email && account.password === form.password
+  )
+  
+  if (foundUser) {
+    const userInfo = {
+      id: foundUser.id,
+      email: foundUser.email,
+      name: foundUser.name,
+      role: foundUser.role
+    }
+    
+    // Tạo mock token
+    const mockToken = 'demo-' + Math.random().toString(36).substring(2, 15)
+    localStorage.setItem('admin_current_token', mockToken)
+    
+    // Lưu thông tin đăng nhập
+    auth.currentUser.value = userInfo
+    auth.isAuthenticated.value = true
+    
+    // Tạo token session
+    const tokenId = sessionToken.createToken(userInfo, rememberMe.value)
+    
+    // Chuyển hướng đến trang dashboard
+    router.push('/admin/dashboard')
+    
+    // Thông báo sử dụng chế độ demo
+    console.log('Đang sử dụng chế độ demo (offline)')
+  } else {
+    errorMessage.value = 'Email hoặc mật khẩu không đúng'
   }
 }
 </script> 

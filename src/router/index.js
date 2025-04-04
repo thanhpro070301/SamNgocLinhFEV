@@ -160,37 +160,36 @@ router.beforeEach((to, from, next) => {
     auth.updateActivity()
   }
   
-  // Kiểm tra xem route yêu cầu đăng nhập không
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
-  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
-  
-  // Kiểm tra xác thực hiện tại
-  const isAuthenticated = auth.isAuthenticated.value
-  const isAdmin = auth.isAdmin.value
-  
-  // Kiểm tra token hợp lệ
-  if (isAuthenticated && !sessionToken.isCurrentTokenValid()) {
-    auth.logout(false) // Không cần xóa token vì đã hết hạn
-    return next({ path: '/admin/login' })
-  }
-  
-  // Nếu route yêu cầu đăng nhập nhưng chưa đăng nhập
-  if (requiresAuth && !isAuthenticated) {
-    next({ path: '/admin/login' })
-  } 
-  // Nếu route yêu cầu quyền admin nhưng không phải admin
-  else if (requiresAdmin && !isAdmin) {
-    next({ path: '/admin/login' })
-  }
-  // Nếu route chỉ dành cho khách (như trang đăng nhập) nhưng đã đăng nhập
-  else if (requiresGuest && isAuthenticated) {
-    next({ path: '/admin/dashboard' })
-  }
-  // Các trường hợp khác, cho phép tiếp tục
-  else {
+  // Kiểm tra nếu route yêu cầu xác thực
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // Kiểm tra token
+    const token = localStorage.getItem('admin_current_token')
+    
+    if (!token) {
+      // Không có token, chuyển hướng đến trang đăng nhập
+      next({
+        path: '/admin/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      // Có token, cho phép truy cập
+      next()
+    }
+  } else {
+    // Route không yêu cầu xác thực
     next()
   }
+})
+
+// Cập nhật meta cho các route admin để yêu cầu xác thực
+const adminRoutes = router.getRoutes().filter(route => 
+  route.path.startsWith('/admin') && 
+  !route.path.includes('/login') && 
+  !route.path.includes('/register')
+)
+
+adminRoutes.forEach(route => {
+  route.meta.requiresAuth = true
 })
 
 export default router 

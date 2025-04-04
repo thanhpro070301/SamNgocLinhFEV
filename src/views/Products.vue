@@ -350,7 +350,8 @@ async function fetchProducts() {
     // Build query params
     const params = {
       page: currentPage.value,
-      size: pageSize.value
+      size: pageSize.value,
+      status: 'ACTIVE' // Chỉ lấy sản phẩm đang bán
     }
     
     // Add sort parameter
@@ -376,82 +377,87 @@ async function fetchProducts() {
     // Handle API call based on category filter
     let response
     
-    if (selectedCategory.value) {
-      response = await api.category.getCategoryProducts(selectedCategory.value, params)
-    } else {
-      response = await api.product.getProducts(params)
-    }
-    
-    // Extract pagination info
-    totalProducts.value = response.data.totalItems
-    totalPages.value = response.data.totalPages
-    
-    // Map products
-    const fetchedProducts = response.data.products.map(p => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: p.price,
-      image: p.image || defaultImage,
-      rating: p.rating,
-      slug: p.slug,
-      categoryId: p.categoryId,
-      stock: p.stock
-    }))
-    
-    // Apply price filters (client-side)
-    let filteredProducts = fetchedProducts
-    
-    if (filters.value.price.under1m || 
-        filters.value.price.from1mTo5m || 
-        filters.value.price.from5mTo10m || 
-        filters.value.price.above10m) {
+    try {
+      if (selectedCategory.value) {
+        response = await api.category.getCategoryProducts(selectedCategory.value, params)
+      } else {
+        response = await api.product.getProducts(params)
+      }
       
-      filteredProducts = fetchedProducts.filter(p => {
-        if (filters.value.price.under1m && p.price < 1000000) return true
-        if (filters.value.price.from1mTo5m && p.price >= 1000000 && p.price < 5000000) return true
-        if (filters.value.price.from5mTo10m && p.price >= 5000000 && p.price < 10000000) return true
-        if (filters.value.price.above10m && p.price >= 10000000) return true
-        return false
-      })
+      // Extract pagination info from the actual API response structure
+      totalProducts.value = response.data.totalItems || 0
+      totalPages.value = response.data.totalPages || 1
+      currentPage.value = response.data.currentPage || 0
+      
+      // Map products using the actual API response structure
+      const fetchedProducts = response.data.products || []
+      
+      // Apply price filters (client-side)
+      let filteredProducts = fetchedProducts
+      
+      if (filters.value.price.under1m || 
+          filters.value.price.from1mTo5m || 
+          filters.value.price.from5mTo10m || 
+          filters.value.price.above10m) {
+        
+        filteredProducts = fetchedProducts.filter(p => {
+          if (filters.value.price.under1m && p.price < 1000000) return true
+          if (filters.value.price.from1mTo5m && p.price >= 1000000 && p.price < 5000000) return true
+          if (filters.value.price.from5mTo10m && p.price >= 5000000 && p.price < 10000000) return true
+          if (filters.value.price.above10m && p.price >= 10000000) return true
+          return false
+        })
+      }
+      
+      products.value = filteredProducts
+        .filter(p => p.status === 'ACTIVE') // Đảm bảo chỉ hiển thị sản phẩm đang bán
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: p.price,
+          originalPrice: p.originalPrice,
+          image: p.image || defaultImage,
+          rating: p.rating,
+          slug: p.slug,
+          categoryId: p.categoryId,
+          stock: p.stock || 0,
+          status: p.status
+        }))
+    } catch (e) {
+      console.error('Error with main API endpoint, trying fallback:', e)
+      // Try fallback with direct URL
+      throw e
     }
-    
-    products.value = filteredProducts
   } catch (err) {
     console.error('Error fetching products:', err)
     error.value = 'Không thể tải sản phẩm. Vui lòng thử lại sau.'
     
-    // Fallback data
+    // Fallback data - chỉ hiển thị sản phẩm đang bán
     products.value = [
       {
         id: 1,
         name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
         description: 'Sâm ngọc linh tươi có tuổi đời 10 năm, được thu hoạch từ vùng núi Ngọc Linh, giữ nguyên dược tính quý giá.',
-        price: 2500000,
+        price: 15000000,
+        originalPrice: 18000000,
         image: defaultImage,
-        rating: 4.5,
+        rating: 5.0,
         categoryId: 1,
-        stock: 0
+        stock: 50,
+        status: 'ACTIVE'
       },
       {
         id: 2,
         name: 'Cao Sâm Ngọc Linh',
-        description: 'Cao sâm ngọc linh nguyên chất, tinh khiết, giúp bồi bổ sức khỏe hiệu quả, tăng cường hệ miễn dịch.',
-        price: 1800000,
+        description: 'Cao sâm Ngọc Linh được chiết xuất từ sâm tươi loại 1, giữ nguyên dưỡng chất.',
+        price: 8000000,
+        originalPrice: 10000000,
         image: defaultImage,
-        rating: 4.7,
+        rating: 4.0,
         categoryId: 2,
-        stock: 0
-      },
-      {
-        id: 3,
-        name: 'Rượu Sâm Ngọc Linh',
-        description: 'Rượu ngâm sâm ngọc linh, giúp tăng cường sinh lực và bồi bổ cơ thể, phù hợp cho người lớn tuổi.',
-        price: 1500000,
-        image: defaultImage,
-        rating: 4.3,
-        categoryId: 3,
-        stock: 0
+        stock: 10,
+        status: 'ACTIVE'
       }
     ]
   } finally {

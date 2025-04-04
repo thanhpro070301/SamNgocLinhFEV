@@ -33,60 +33,58 @@
         </div>
         
         <!-- User dropdown -->
-        <div class="ml-6 flex items-center">
-          <div class="relative">
-            <div>
-              <button 
-                @click="toggleUserMenu" 
-                class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                <span class="sr-only">Open user menu</span>
-                <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <span class="text-green-700 font-semibold text-sm">
-                    {{ userInitials }}
-                  </span>
-                </div>
-              </button>
-            </div>
-            
-            <!-- Dropdown menu -->
-            <div 
-              v-if="isUserMenuOpen"
-              class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-10"
-            >
-              <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                <div>{{ userName }}</div>
-                <div class="text-xs text-gray-500">{{ userEmail }}</div>
-              </div>
-              <router-link
-                to="/admin/sessions"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <i class="fas fa-shield-alt mr-2"></i>
-                Phiên đăng nhập
-              </router-link>
-              <a 
-                href="#" 
-                @click.prevent="logout"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <i class="fas fa-sign-out-alt mr-2"></i>
-                Đăng xuất
-              </a>
-            </div>
-          </div>
-
-          <!-- Mobile menu button -->
-          <div class="ml-2 -mr-2 flex items-center md:hidden">
+        <div class="relative ml-3">
+          <div>
             <button 
-              @click="toggleMobileMenu"
-              type="button" 
-              class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+              @click="isUserMenuOpen = !isUserMenuOpen"
+              class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-800"
             >
-              <span class="sr-only">Open main menu</span>
-              <i class="fas fa-bars text-xl"></i>
+              <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fas fa-user text-green-700"></i>
+              </div>
+              <span class="ml-2 hidden md:block">{{ userName }}</span>
+              <i :class="[isUserMenuOpen ? 'fa-chevron-up' : 'fa-chevron-down', 'fas ml-1 text-xs']"></i>
             </button>
           </div>
+          
+          <!-- Dropdown menu -->
+          <div 
+            v-if="isUserMenuOpen" 
+            class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+          >
+            <router-link 
+              to="/admin/profile" 
+              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              @click="isUserMenuOpen = false"
+            >
+              <i class="fas fa-user-circle mr-2"></i> Tài khoản
+            </router-link>
+            <router-link 
+              to="/admin/settings" 
+              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              @click="isUserMenuOpen = false"
+            >
+              <i class="fas fa-cog mr-2"></i> Cài đặt
+            </router-link>
+            <button 
+              @click="logout" 
+              class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile menu button -->
+        <div class="ml-2 -mr-2 flex items-center md:hidden">
+          <button 
+            @click="toggleMobileMenu"
+            type="button" 
+            class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+          >
+            <span class="sr-only">Open main menu</span>
+            <i class="fas fa-bars text-xl"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -115,9 +113,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import auth from '@/store/auth'
+import sessionToken from '@/store/sessionToken'
+import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
 const route = useRoute()
@@ -162,20 +162,78 @@ function isActive(path) {
   return route.path.startsWith(path)
 }
 
-// Logout function
-async function logout() {
-  try {
-    await auth.logout()
-    router.push('/admin/login')
-  } catch (error) {
-    console.error('Error logging out:', error)
+// Đóng dropdown khi click ra ngoài
+function closeDropdownOnOutsideClick(event) {
+  if (isUserMenuOpen.value && !event.target.closest('.user-dropdown')) {
+    isUserMenuOpen.value = false
   }
 }
 
-// Close user menu when clicking outside
-window.addEventListener('click', (event) => {
-  if (isUserMenuOpen.value && !event.target.closest('.relative')) {
+// Đăng xuất
+async function logout() {
+  try {
     isUserMenuOpen.value = false
+    
+    const token = localStorage.getItem('admin_current_token')
+    if (!token) {
+      handleLogoutSuccess()
+      return
+    }
+    
+    // Gọi API đăng xuất
+    const axios = (await import('axios')).default
+    
+    try {
+      await axios.post('http://localhost:8080/api/auth/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      console.log('Đăng xuất thành công từ API')
+    } catch (error) {
+      console.error('Không thể gọi API đăng xuất:', error)
+    }
+    
+    // Xử lý đăng xuất ở client
+    handleLogoutSuccess()
+    
+  } catch (error) {
+    console.error('Lỗi khi đăng xuất:', error)
+    notificationService.show('Đã xảy ra lỗi khi đăng xuất', {
+      title: 'Lỗi',
+      type: 'error'
+    })
   }
+}
+
+// Xử lý sau khi đăng xuất
+function handleLogoutSuccess() {
+  // Xóa token
+  localStorage.removeItem('admin_current_token')
+  
+  // Đặt lại trạng thái xác thực
+  auth.isAuthenticated.value = false
+  auth.currentUser.value = null
+  
+  // Xóa session token
+  sessionToken.resetAll()
+  
+  // Thông báo
+  notificationService.show('Đăng xuất thành công', {
+    title: 'Đăng xuất',
+    type: 'success'
+  })
+  
+  // Chuyển hướng về trang đăng nhập
+  router.push('/admin/login')
+}
+
+// Lắng nghe sự kiện click để đóng dropdown
+onMounted(() => {
+  document.addEventListener('click', closeDropdownOnOutsideClick)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdownOnOutsideClick)
 })
 </script> 

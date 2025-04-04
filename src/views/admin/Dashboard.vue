@@ -218,6 +218,8 @@ import { useRouter } from 'vue-router'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import auth from '@/store/auth'
 import api from '@/api'
+import sessionToken from '@/store/sessionToken'
+import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
 const isLoading = ref(false)
@@ -342,6 +344,63 @@ function getStatusName(status) {
 onMounted(() => {
   fetchDashboardData()
 })
+
+// Hàm đăng xuất
+async function logout() {
+  try {
+    const token = localStorage.getItem('admin_current_token')
+    if (!token) {
+      handleLogoutSuccess()
+      return
+    }
+    
+    // Gọi API đăng xuất
+    const axios = (await import('axios')).default
+    
+    try {
+      await axios.post('http://localhost:8080/api/auth/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      console.log('Đăng xuất thành công từ API')
+    } catch (error) {
+      console.error('Không thể gọi API đăng xuất:', error)
+    }
+    
+    // Dù API có thành công hay không, vẫn xử lý đăng xuất ở client
+    handleLogoutSuccess()
+    
+  } catch (error) {
+    console.error('Lỗi khi đăng xuất:', error)
+    notificationService.show('Đã xảy ra lỗi khi đăng xuất', {
+      title: 'Lỗi',
+      type: 'error'
+    })
+  }
+}
+
+// Xử lý sau khi đăng xuất
+function handleLogoutSuccess() {
+  // Xóa token
+  localStorage.removeItem('admin_current_token')
+  
+  // Đặt lại trạng thái xác thực
+  auth.isAuthenticated.value = false
+  auth.currentUser.value = null
+  
+  // Xóa session token
+  sessionToken.resetAll()
+  
+  // Thông báo
+  notificationService.show('Đăng xuất thành công', {
+    title: 'Đăng xuất',
+    type: 'success'
+  })
+  
+  // Chuyển hướng về trang đăng nhập
+  router.push('/admin/login')
+}
 </script>
 
 <style scoped>
