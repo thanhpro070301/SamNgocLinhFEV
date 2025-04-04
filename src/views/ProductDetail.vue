@@ -322,14 +322,29 @@
                     {{ relatedProduct.name }}
                   </h3>
                 </router-link>
-                <div class="text-green-600 font-bold">
+                
+                <!-- Price or "Hết hàng" text -->
+                <div v-if="relatedProduct.stock > 0" class="text-green-600 font-bold">
                   {{ formatPrice(relatedProduct.price) }}
                 </div>
+                <div v-else class="text-red-500 font-bold">
+                  Hết hàng
+                </div>
+                
+                <!-- Add to cart or contact button -->
                 <button 
+                  v-if="relatedProduct.stock > 0"
                   @click="addToCartQuick(relatedProduct)"
                   class="mt-3 w-full py-2 bg-gray-100 hover:bg-green-600 hover:text-white text-gray-700 rounded text-sm transition-colors"
                 >
                   <i class="fas fa-cart-plus mr-1"></i> Thêm vào giỏ
+                </button>
+                <button 
+                  v-else
+                  @click="contactUs"
+                  class="mt-3 w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm transition-colors"
+                >
+                  <i class="fas fa-phone mr-1"></i> Liên hệ đặt hàng
                 </button>
               </div>
             </div>
@@ -345,6 +360,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import AOS from 'aos'
+import notificationService from '@/utils/notificationService'
+import cart from '@/store/cart'
 
 const route = useRoute()
 const router = useRouter()
@@ -490,7 +507,8 @@ async function fetchRelatedProducts(categoryId) {
         id: p.id,
         name: p.name,
         price: p.price,
-        image: p.image || defaultImage
+        image: p.image || defaultImage,
+        stock: p.stock || 0
       }))
       .slice(0, 4) // Ensure we only have 4 products max
       
@@ -509,7 +527,8 @@ async function fetchRelatedProducts(categoryId) {
           id: p.id,
           name: p.name,
           price: p.price,
-          image: p.image || defaultImage
+          image: p.image || defaultImage,
+          stock: p.stock || 0
         }))
         
       relatedProducts.value = [...relatedProducts.value, ...moreProducts]
@@ -523,19 +542,22 @@ async function fetchRelatedProducts(categoryId) {
         id: 2,
         name: 'Cao Sâm Ngọc Linh',
         price: 1800000,
-        image: defaultImage
+        image: defaultImage,
+        stock: 5
       },
       {
         id: 3,
         name: 'Rượu Sâm Ngọc Linh',
         price: 1500000,
-        image: defaultImage
+        image: defaultImage,
+        stock: 0
       },
       {
         id: 4,
         name: 'Trà Sâm Ngọc Linh',
         price: 800000,
-        image: defaultImage
+        image: defaultImage,
+        stock: 10
       }
     ]
   } finally {
@@ -560,21 +582,46 @@ function decreaseQuantity() {
 function addToCart() {
   if (!product.value) return
   
-  // In a real app, this would call a store method to add to cart
-  alert(`Đã thêm ${quantity.value} sản phẩm "${product.value.name}" vào giỏ hàng!`)
+  // Add to cart and show notification
+  cart.addToCart(product.value, quantity.value)
+  notificationService.cart(product.value, quantity.value)
 }
 
 function addToCartQuick(relatedProduct) {
-  // In a real app, this would call a store method to add to cart
-  alert(`Đã thêm sản phẩm "${relatedProduct.name}" vào giỏ hàng!`)
+  // Add to cart and show notification
+  cart.addToCart(relatedProduct, 1)
+  notificationService.cart(relatedProduct)
 }
 
 function buyNow() {
   if (!product.value) return
   
-  // In a real app, this would add to cart then redirect to checkout
-  alert(`Đang chuyển đến trang thanh toán cho ${quantity.value} sản phẩm "${product.value.name}"`)
-  // router.push('/checkout')
+  // Add to cart and redirect to checkout
+  cart.addToCart(product.value, quantity.value)
+  notificationService.show(`Đang chuyển đến trang thanh toán cho ${quantity.value} sản phẩm "${product.value.name}"`, {
+    title: 'Thanh toán ngay'
+  })
+  
+  // Delay navigation slightly to allow notification to show
+  setTimeout(() => {
+    router.push('/checkout')
+  }, 800)
+}
+
+// Function to handle contact button
+function contactUs() {
+  notificationService.show(
+    'Vui lòng gọi đến số 0123.456.789 để đặt sản phẩm hoặc truy cập trang liên hệ.', 
+    { 
+      title: 'Thông tin liên hệ',
+      duration: 5000
+    }
+  )
+  
+  // Optional: Navigate to contact page after a delay
+  setTimeout(() => {
+    router.push('/contact')
+  }, 2000)
 }
 
 // Watch for route changes to reload the product when navigating between product pages

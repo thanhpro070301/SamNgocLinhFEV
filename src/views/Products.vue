@@ -160,8 +160,16 @@
                 </div>
                 <p class="product-description text-gray-600 mb-4 h-12 line-clamp-2">{{ product.description }}</p>
                 <div class="flex flex-col mt-auto">
-                  <span class="product-price text-xl font-bold text-green-600 mb-2">{{ formatPrice(product.price) }}</span>
-                  <div class="flex space-x-2">
+                  <!-- Price or "Hết hàng" text -->
+                  <span v-if="product.stock > 0" class="product-price text-xl font-bold text-green-600 mb-2">
+                    {{ formatPrice(product.price) }}
+                  </span>
+                  <span v-else class="product-price text-xl font-bold text-red-500 mb-2">
+                    Hết hàng
+                  </span>
+                  
+                  <!-- Buttons based on stock -->
+                  <div v-if="product.stock > 0" class="flex space-x-2">
                     <button 
                       @click="addToCart(product)" 
                       class="btn-add-cart h-10 px-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
@@ -173,6 +181,14 @@
                       class="btn-buy-now h-10 px-2 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
                     >
                       <i class="fas fa-bolt mr-1"></i> Mua ngay
+                    </button>
+                  </div>
+                  <div v-else>
+                    <button 
+                      @click="contactUs" 
+                      class="w-full h-10 px-2 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center"
+                    >
+                      <i class="fas fa-phone mr-1"></i> Liên hệ đặt hàng
                     </button>
                   </div>
                 </div>
@@ -236,6 +252,7 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 import AOS from 'aos'
 import cart from '@/store/cart'
+import notificationService from '@/utils/notificationService'
 
 // Default image
 const defaultImage = '/assets/images/products/sam-tuoi.png'
@@ -378,7 +395,8 @@ async function fetchProducts() {
       image: p.image || defaultImage,
       rating: p.rating,
       slug: p.slug,
-      categoryId: p.categoryId
+      categoryId: p.categoryId,
+      stock: p.stock
     }))
     
     // Apply price filters (client-side)
@@ -412,7 +430,8 @@ async function fetchProducts() {
         price: 2500000,
         image: defaultImage,
         rating: 4.5,
-        categoryId: 1
+        categoryId: 1,
+        stock: 0
       },
       {
         id: 2,
@@ -421,7 +440,8 @@ async function fetchProducts() {
         price: 1800000,
         image: defaultImage,
         rating: 4.7,
-        categoryId: 2
+        categoryId: 2,
+        stock: 0
       },
       {
         id: 3,
@@ -430,7 +450,8 @@ async function fetchProducts() {
         price: 1500000,
         image: defaultImage,
         rating: 4.3,
-        categoryId: 3
+        categoryId: 3,
+        stock: 0
       }
     ]
   } finally {
@@ -480,14 +501,35 @@ function goToPage(page) {
 // Cart functionality
 function addToCart(product) {
   cart.addToCart(product, 1)
-  alert(`Đã thêm ${product.name} vào giỏ hàng!`)
+  notificationService.cart(product)
 }
 
 // Buy now functionality
 function buyNow(product) {
   cart.addToCart(product, 1)
-  alert(`Đang chuyển đến trang thanh toán cho sản phẩm: ${product.name}`)
-  router.push('/checkout')
+  notificationService.show(`Đang chuyển đến trang thanh toán cho sản phẩm: ${product.name}`, {
+    title: 'Thanh toán ngay'
+  })
+  
+  setTimeout(() => {
+    router.push('/checkout')
+  }, 800)
+}
+
+// Contact functionality
+function contactUs() {
+  notificationService.show(
+    'Vui lòng gọi đến số 0123.456.789 để đặt sản phẩm hoặc truy cập trang liên hệ.', 
+    { 
+      title: 'Thông tin liên hệ',
+      duration: 5000
+    }
+  )
+  
+  // Optional: Navigate to contact page after a delay
+  setTimeout(() => {
+    router.push('/contact')
+  }, 2000)
 }
 
 // Watch for filter changes

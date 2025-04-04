@@ -125,6 +125,23 @@
         </div>
       </div>
     </div>
+    
+    <!-- Confirm Dialogs -->
+    <ConfirmDialog
+      :show="showRemoveItemDialog"
+      title="Xoá sản phẩm"
+      message="Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?"
+      @confirm="confirmRemoveItem"
+      @cancel="cancelRemoveItem"
+    />
+    
+    <ConfirmDialog
+      :show="showClearCartDialog"
+      title="Xoá tất cả sản phẩm"
+      message="Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?"
+      @confirm="confirmClearCart"
+      @cancel="cancelClearCart"
+    />
   </div>
 </template>
 
@@ -132,6 +149,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import cart from '@/store/cart'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const router = useRouter()
 
@@ -139,23 +157,51 @@ const cartItems = computed(() => cart.cartItems.value)
 const cartTotal = computed(() => cart.cartTotal.value)
 const cartItemCount = computed(() => cart.cartItemCount.value)
 
+// Confirm dialog states
+const showRemoveItemDialog = ref(false)
+const showClearCartDialog = ref(false)
+const itemToRemove = ref(null)
+
 // Cập nhật số lượng sản phẩm
 function updateQuantity(productId, newQuantity) {
   cart.updateCartItemQuantity(productId, newQuantity)
 }
 
-// Xóa sản phẩm khỏi giỏ hàng
+// Xóa sản phẩm khỏi giỏ hàng - open dialog
 function removeItem(productId) {
-  if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
-    cart.removeFromCart(productId)
-  }
+  itemToRemove.value = productId
+  showRemoveItemDialog.value = true
 }
 
-// Xóa tất cả sản phẩm khỏi giỏ hàng
-function clearCart() {
-  if (confirm("Bạn có chắc chắn muốn xóa tất cả sản phẩm khỏi giỏ hàng?")) {
-    cart.clearCart()
+// Confirm remove item
+function confirmRemoveItem() {
+  if (itemToRemove.value !== null) {
+    cart.removeFromCart(itemToRemove.value)
+    itemToRemove.value = null
   }
+  showRemoveItemDialog.value = false
+}
+
+// Cancel remove item
+function cancelRemoveItem() {
+  itemToRemove.value = null
+  showRemoveItemDialog.value = false
+}
+
+// Xóa tất cả sản phẩm - open dialog
+function clearCart() {
+  showClearCartDialog.value = true
+}
+
+// Confirm clear cart
+function confirmClearCart() {
+  cart.clearCart()
+  showClearCartDialog.value = false
+}
+
+// Cancel clear cart
+function cancelClearCart() {
+  showClearCartDialog.value = false
 }
 
 // Tiến hành thanh toán

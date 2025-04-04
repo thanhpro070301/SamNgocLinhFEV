@@ -33,8 +33,9 @@
         <div class="flex items-center space-x-4">
           <!-- Giỏ hàng -->
           <router-link to="/cart" class="p-2 text-gray-500 hover:text-gray-900 relative">
-            <i class="fas fa-shopping-cart"></i>
-            <span v-if="cartItemCount > 0" class="absolute top-0 right-0 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+            <i class="fas fa-shopping-cart" :class="{ 'animate-cart-bounce': showCartAnimation }"></i>
+            <span v-if="cartItemCount > 0" class="absolute top-0 right-0 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"
+                  :class="{ 'animate-pulse': showCartAnimation }">
               {{ cartItemCount }}
             </span>
           </router-link>
@@ -97,8 +98,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import cart from '@/store/cart'
+import eventBus from '@/utils/eventBus'
 
 const route = useRoute()
 const router = useRouter()
@@ -107,7 +110,8 @@ const router = useRouter()
 const isMobileMenuOpen = ref(false)
 const isSearchOpen = ref(false)
 const searchQuery = ref('')
-const cartItemCount = ref(0) // Giả lập số lượng sản phẩm trong giỏ hàng
+const cartItemCount = computed(() => cart.cartItemCount.value)
+const showCartAnimation = ref(false)
 
 // Menu chính
 const mainMenu = [
@@ -162,4 +166,56 @@ function submitSearch() {
     isSearchOpen.value = false
   }
 }
-</script> 
+
+// Lắng nghe sự kiện khi sản phẩm được thêm vào giỏ hàng
+function onProductAddedToCart() {
+  showCartAnimation.value = true
+  
+  // Tắt animation sau 1.5 giây
+  setTimeout(() => {
+    showCartAnimation.value = false
+  }, 1500)
+}
+
+onMounted(() => {
+  eventBus.on('product-added-to-cart', onProductAddedToCart)
+})
+
+onUnmounted(() => {
+  eventBus.off('product-added-to-cart', onProductAddedToCart)
+})
+</script>
+
+<style scoped>
+@keyframes cart-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-4px) rotate(-10deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(5deg);
+  }
+}
+
+.animate-cart-bounce {
+  animation: cart-bounce 0.8s ease;
+}
+
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+</style> 

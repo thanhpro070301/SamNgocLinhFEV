@@ -14,6 +14,15 @@
         <router-view></router-view>
       </div>
     </template>
+    
+    <!-- Modern Notification -->
+    <NotificationPopup 
+      :show="notificationService.showNotification.value"
+      :title="notificationService.notificationData.value.title"
+      :message="notificationService.notificationData.value.message"
+      :duration="notificationService.notificationData.value.duration"
+      @close="notificationService.hide"
+    />
   </div>
 </template>
 
@@ -22,6 +31,8 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import TheHeader from '@/components/layout/TheHeader.vue'
 import TheFooter from '@/components/layout/TheFooter.vue'
+import NotificationPopup from '@/components/NotificationPopup.vue'
+import notificationService from '@/utils/notificationService'
 
 const route = useRoute()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))

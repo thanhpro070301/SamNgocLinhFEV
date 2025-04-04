@@ -32,21 +32,28 @@
         </p>
         
         <div class="mt-auto">
+          <!-- Price or "Hết hàng" text -->
           <div v-if="product.stock > 0" class="flex items-baseline mb-4">
             <span class="text-xl font-bold text-green-600">{{ formatPrice(product.price) }}</span>
             <span v-if="product.originalPrice" class="text-sm text-gray-500 line-through ml-2">
               {{ formatPrice(product.originalPrice) }}
             </span>
           </div>
+          <div v-else class="mb-4">
+            <span class="text-xl font-bold text-red-500">Hết hàng</span>
+          </div>
           
           <div class="product-actions">
             <div v-if="product.stock > 0" class="button-container">
               <button 
                 @click="addToCartAction"
-                class="btn-cart"
+                class="btn-cart relative"
               >
                 <span class="icon"><i class="fas fa-cart-plus"></i></span>
                 <span class="label">Thêm vào giỏ</span>
+                <span v-if="showAddedAnimation" class="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
+                  +1
+                </span>
               </button>
               <button 
                 @click="navigateToProduct"
@@ -76,9 +83,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import cart from '@/store/cart'
+import eventBus from '@/utils/eventBus'
+import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
 const props = defineProps({
@@ -89,6 +98,7 @@ const props = defineProps({
 })
 
 const emits = defineEmits(['add-to-cart'])
+const showAddedAnimation = ref(false)
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { 
@@ -119,6 +129,20 @@ const addToCartAction = (event) => {
   if (props.product.stock > 0) {
     cart.addToCart(props.product, 1)
     emits('add-to-cart', props.product)
+    
+    // Show animation
+    showAddedAnimation.value = true
+    
+    // Hide animation after 1.5 seconds
+    setTimeout(() => {
+      showAddedAnimation.value = false
+    }, 1500)
+    
+    // Emit global event
+    eventBus.emit('product-added-to-cart', props.product)
+    
+    // Show notification
+    notificationService.cart(props.product)
   }
 }
 
@@ -256,5 +280,18 @@ const contactUs = () => {
 
 .btn-contact:active {
   transform: translateY(0);
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 0.8s ease infinite;
 }
 </style> 
