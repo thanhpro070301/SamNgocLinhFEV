@@ -211,6 +211,34 @@ INSERT INTO reviews (product_id, user_id, rating, comment, status, created_at) V
 (4, 4, 4, 'Trà thơm, dễ uống, có tác dụng tốt.', 'approved', '2023-09-12 16:15:00'),
 (5, 3, 5, 'Sâm khô chất lượng, đóng gói cẩn thận.', 'approved', '2023-09-11 09:30:00');
 
+-- Create user_sessions table for managing user login sessions
+CREATE TABLE user_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_id VARCHAR(36) NOT NULL UNIQUE,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    device_type VARCHAR(100),
+    platform VARCHAR(100),
+    browser VARCHAR(100),
+    last_activity TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_remember_me BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Create index for faster session lookup
+CREATE INDEX idx_user_sessions_token ON user_sessions(token_id);
+CREATE INDEX idx_user_sessions_user ON user_sessions(user_id);
+CREATE INDEX idx_user_sessions_expires ON user_sessions(expires_at);
+
+-- Insert sample data for user_sessions
+INSERT INTO user_sessions (user_id, token_id, ip_address, user_agent, device_type, platform, browser, last_activity, expires_at, created_at, is_remember_me) VALUES
+(1, 'f47ac10b-58cc-4372-a567-0e02b2c3d479', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', 'Desktop', 'Windows', 'Chrome', NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), NOW(), TRUE),
+(1, '38a52be4-9352-453e-af97-5c3b448652b8', '192.168.1.1', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1', 'Mobile', 'iOS', 'Safari', NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), FALSE),
+(2, '7d793789-f3ab-45c9-8c0c-b1c0e1ac83fd', '10.0.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36', 'Desktop', 'MacOS', 'Chrome', NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), TRUE);
+
 -- Create trigger to update product rating when a new review is approved
 DELIMITER //
 CREATE TRIGGER update_product_rating AFTER INSERT ON reviews
@@ -244,5 +272,70 @@ BEGIN
         )
         WHERE p.id = NEW.product_id;
     END IF;
+END //
+DELIMITER ;
+
+-- Create stored procedures for session management
+
+-- Procedure to clean expired sessions
+DELIMITER //
+CREATE PROCEDURE cleanup_expired_sessions()
+BEGIN
+    DELETE FROM user_sessions
+    WHERE expires_at < NOW();
+END //
+DELIMITER ;
+
+-- Procedure to get user's active sessions
+DELIMITER //
+CREATE PROCEDURE get_user_sessions(IN p_user_id INT)
+BEGIN
+    SELECT * 
+    FROM user_sessions
+    WHERE user_id = p_user_id
+    AND expires_at > NOW()
+    ORDER BY last_activity DESC;
+END //
+DELIMITER ;
+
+-- Procedure to logout from specific session
+DELIMITER //
+CREATE PROCEDURE logout_session(IN p_token_id VARCHAR(36))
+BEGIN
+    DELETE FROM user_sessions
+    WHERE token_id = p_token_id;
+END //
+DELIMITER ;
+
+-- Procedure to logout from all sessions except current
+DELIMITER //
+CREATE PROCEDURE logout_other_sessions(IN p_user_id INT, IN p_current_token VARCHAR(36))
+BEGIN
+    DELETE FROM user_sessions
+    WHERE user_id = p_user_id
+    AND token_id != p_current_token;
+END //
+DELIMITER ;
+
+-- Procedure to update session activity
+DELIMITER //
+CREATE PROCEDURE update_session_activity(IN p_token_id VARCHAR(36))
+BEGIN
+    UPDATE user_sessions
+    SET last_activity = NOW()
+    WHERE token_id = p_token_id
+    AND expires_at > NOW();
+END //
+DELIMITER ;
+
+-- Procedure to get user info by token
+DELIMITER //
+CREATE PROCEDURE get_user_by_token(IN p_token_id VARCHAR(36))
+BEGIN
+    SELECT u.* 
+    FROM users u
+    JOIN user_sessions s ON u.id = s.user_id
+    WHERE s.token_id = p_token_id
+    AND s.expires_at > NOW();
 END //
 DELIMITER ; 

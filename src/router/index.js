@@ -17,7 +17,9 @@ import Users from '@/views/admin/Users.vue'
 import AdminNews from '@/views/admin/News.vue'
 import Categories from '@/views/admin/Categories.vue'
 import Orders from '@/views/admin/Orders.vue'
+import Sessions from '@/views/admin/Sessions.vue'
 import auth from '@/store/auth'
+import sessionToken from '@/store/sessionToken'
 
 const routes = [
   {
@@ -133,6 +135,12 @@ const routes = [
     name: 'AdminOrders',
     component: Orders,
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/sessions',
+    name: 'AdminSessions',
+    component: Sessions,
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -147,6 +155,11 @@ const router = createRouter({
 
 // Navigation Guards
 router.beforeEach((to, from, next) => {
+  // Cập nhật hoạt động khi chuyển trang nếu đã đăng nhập
+  if (auth.isAuthenticated.value) {
+    auth.updateActivity()
+  }
+  
   // Kiểm tra xem route yêu cầu đăng nhập không
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
@@ -155,6 +168,12 @@ router.beforeEach((to, from, next) => {
   // Kiểm tra xác thực hiện tại
   const isAuthenticated = auth.isAuthenticated.value
   const isAdmin = auth.isAdmin.value
+  
+  // Kiểm tra token hợp lệ
+  if (isAuthenticated && !sessionToken.isCurrentTokenValid()) {
+    auth.logout(false) // Không cần xóa token vì đã hết hạn
+    return next({ path: '/admin/login' })
+  }
   
   // Nếu route yêu cầu đăng nhập nhưng chưa đăng nhập
   if (requiresAuth && !isAuthenticated) {

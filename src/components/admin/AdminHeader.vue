@@ -64,6 +64,12 @@
                 <i class="fas fa-user mr-2"></i> Hồ sơ
               </router-link>
               <router-link 
+                to="/admin/sessions" 
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <i class="fas fa-mobile-alt mr-2"></i> Phiên đăng nhập
+              </router-link>
+              <router-link 
                 to="/admin/settings" 
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
@@ -161,6 +167,7 @@ const menuItems = [
   { name: 'Người dùng', path: '/admin/users', icon: 'fas fa-users' },
   { name: 'Đơn hàng', path: '/admin/orders', icon: 'fas fa-shopping-cart' },
   { name: 'Tin tức', path: '/admin/news', icon: 'fas fa-newspaper' },
+  { name: 'Phiên đăng nhập', path: '/admin/sessions', icon: 'fas fa-mobile-alt' },
 ]
 
 const isActive = (path) => {

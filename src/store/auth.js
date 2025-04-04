@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import sessionToken from './sessionToken'
 
 // Tạo store quản lý authentication
 const auth = {
@@ -8,18 +9,22 @@ const auth = {
   
   // Khởi tạo store từ localStorage nếu đã đăng nhập trước đó
   init() {
-    const authenticated = localStorage.getItem('admin_authenticated')
-    const userString = localStorage.getItem('admin_user')
-    
-    if (authenticated === 'true' && userString) {
-      try {
-        const user = JSON.parse(userString)
-        this.currentUser.value = user
+    // Kiểm tra token hiện tại có hợp lệ không
+    if (sessionToken.isCurrentTokenValid()) {
+      const session = sessionToken.getCurrentSession()
+      if (session) {
+        // Khôi phục thông tin người dùng từ session
+        this.currentUser.value = {
+          id: session.userId,
+          name: session.userName,
+          email: session.userEmail,
+          role: session.userRole
+        }
         this.isAuthenticated.value = true
-      } catch (error) {
-        console.error('Error parsing user from localStorage:', error)
-        this.logout()
       }
+    } else {
+      // Nếu token không hợp lệ, đăng xuất
+      this.logout(false) // false để không xóa token (đã được xóa trong sessionToken)
     }
   },
   
@@ -66,11 +71,8 @@ const auth = {
         this.currentUser.value = user
         this.isAuthenticated.value = true
         
-        // Lưu vào localStorage nếu chọn ghi nhớ đăng nhập
-        if (rememberMe) {
-          localStorage.setItem('admin_authenticated', 'true')
-          localStorage.setItem('admin_user', JSON.stringify(user))
-        }
+        // Tạo token session
+        sessionToken.createToken(user, rememberMe)
         
         return true
       }
@@ -108,7 +110,7 @@ const auth = {
   },
   
   // Đăng xuất
-  async logout() {
+  async logout(removeToken = true) {
     this.isLoading.value = true
     
     try {
@@ -119,9 +121,10 @@ const auth = {
       this.currentUser.value = null
       this.isAuthenticated.value = false
       
-      // Xóa dữ liệu từ localStorage
-      localStorage.removeItem('admin_authenticated')
-      localStorage.removeItem('admin_user')
+      // Xóa token session nếu cần
+      if (removeToken) {
+        sessionToken.removeToken(sessionToken.currentToken.value)
+      }
       
       return true
     } catch (error) {
@@ -136,7 +139,39 @@ const auth = {
   isAdmin: computed(() => {
     if (!auth.isAuthenticated.value) return false
     return auth.currentUser.value?.role === 'admin'
-  })
+  }),
+  
+  // Cập nhật hoạt động của phiên hiện tại
+  updateActivity() {
+    if (this.isAuthenticated.value) {
+      sessionToken.updateActivity()
+    }
+  },
+  
+  // Lấy danh sách phiên đăng nhập của người dùng hiện tại
+  getUserSessions: computed(() => {
+    if (!auth.isAuthenticated.value) return []
+    return sessionToken.getCurrentUserSessions.value
+  }),
+  
+  // Xóa một phiên đăng nhập cụ thể
+  removeSession(tokenId) {
+    if (this.isAuthenticated.value) {
+      // Nếu xóa phiên hiện tại, thực hiện đăng xuất
+      if (tokenId === sessionToken.currentToken.value) {
+        this.logout()
+      } else {
+        sessionToken.removeToken(tokenId)
+      }
+    }
+  },
+  
+  // Xóa tất cả phiên đăng nhập ngoại trừ phiên hiện tại
+  removeOtherSessions() {
+    if (this.isAuthenticated.value) {
+      sessionToken.removeOtherTokens()
+    }
+  }
 }
 
 // Khởi tạo store khi import
