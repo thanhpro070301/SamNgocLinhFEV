@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Tạo instance axios với cấu hình mặc định
 const apiClient = axios.create({
-  baseURL: '/api', // Change to relative URL to avoid CORS issues
+  baseURL: '/api', // Use relative URL with Vite proxy
   headers: {
     'Content-Type': 'application/json',
   },
@@ -63,7 +63,7 @@ export const authApi = {
   }
 };
 
-// API user
+// API users
 export const userApi = {
   getUsers() {
     return apiClient.get('/users');
@@ -76,18 +76,18 @@ export const userApi = {
   }
 };
 
-// API session
+// API sessions
 export const sessionApi = {
   getSessions() {
     return apiClient.get('/account/sessions');
   },
-  logoutSession(sessionId) {
+  removeSession(sessionId) {
     return apiClient.delete(`/account/sessions/${sessionId}`);
   },
-  logoutOtherDevices() {
+  removeOtherSessions() {
     return apiClient.delete('/account/sessions/other-devices');
   },
-  logoutAllDevices() {
+  removeAllSessions() {
     return apiClient.delete('/account/sessions/all');
   }
 };
@@ -100,11 +100,11 @@ export const productApi = {
   getProduct(id) {
     return apiClient.get(`/products/${id}`);
   },
-  createProduct(product) {
-    return apiClient.post('/products', product);
+  createProduct(productData) {
+    return apiClient.post('/products', productData);
   },
-  updateProduct(id, product) {
-    return apiClient.put(`/products/${id}`, product);
+  updateProduct(id, productData) {
+    return apiClient.put(`/products/${id}`, productData);
   },
   deleteProduct(id) {
     return apiClient.delete(`/products/${id}`);
@@ -122,11 +122,11 @@ export const categoryApi = {
   getCategoryProducts(id, params = {}) {
     return apiClient.get(`/categories/${id}/products`, { params });
   },
-  createCategory(category) {
-    return apiClient.post('/categories', category);
+  createCategory(categoryData) {
+    return apiClient.post('/categories', categoryData);
   },
-  updateCategory(id, category) {
-    return apiClient.put(`/categories/${id}`, category);
+  updateCategory(id, categoryData) {
+    return apiClient.put(`/categories/${id}`, categoryData);
   },
   deleteCategory(id) {
     return apiClient.delete(`/categories/${id}`);
@@ -156,7 +156,7 @@ export const orderApi = {
   cancelOrder(id) {
     return apiClient.post(`/orders/${id}/cancel`);
   },
-  getPublicOrderStatus(id) {
+  checkOrderStatus(id) {
     return apiClient.get(`/orders/public/${id}`);
   }
 };

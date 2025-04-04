@@ -75,24 +75,39 @@
           </p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Sản phẩm giả lập với animation -->
+        <div v-if="isLoading" class="flex justify-center items-center py-20">
+          <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-600"></div>
+        </div>
+        
+        <div v-else-if="error" class="text-center py-10">
+          <p class="text-red-500">{{ error }}</p>
+          <button @click="fetchFeaturedProducts" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            Thử lại
+          </button>
+        </div>
+        
+        <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Sản phẩm với animation -->
           <div 
             v-for="(product, index) in featuredProducts" 
-            :key="index" 
-            class="product-card group"
+            :key="product.id" 
+            class="product-card group flex flex-col h-full"
             data-aos="fade-up"
             :data-aos-delay="index * 100"
           >
-            <div class="product-image overflow-hidden rounded-t-lg bg-gray-100">
-              <img 
-                :src="product.image" 
-                :alt="product.name" 
-                class="w-full h-64 object-contain transform group-hover:scale-105 transition-transform duration-500"
-              >
+            <div class="product-image overflow-hidden rounded-t-lg bg-gray-100 h-64 flex items-center justify-center">
+              <router-link :to="`/product/${product.id}`" class="w-full h-full flex items-center justify-center">
+                <img 
+                  :src="product.image" 
+                  :alt="product.name" 
+                  class="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
+                >
+              </router-link>
             </div>
-            <div class="product-info p-6 bg-white rounded-b-lg shadow-md group-hover:shadow-xl transition-shadow">
-              <h3 class="product-title text-xl font-semibold text-gray-800 mb-2">{{ product.name }}</h3>
+            <div class="product-info p-6 bg-white rounded-b-lg shadow-md group-hover:shadow-xl transition-shadow flex flex-col h-60">
+              <router-link :to="`/product/${product.id}`">
+                <h3 class="product-title text-xl font-semibold text-gray-800 mb-2 h-14 line-clamp-2">{{ product.name }}</h3>
+              </router-link>
               <div class="flex items-center mb-2">
                 <div class="flex text-yellow-400">
                   <i class="fas fa-star"></i>
@@ -103,12 +118,23 @@
                 </div>
                 <span class="text-sm text-gray-500 ml-2">(4.5)</span>
               </div>
-              <p class="product-description text-gray-600 mb-4 line-clamp-2">{{ product.description }}</p>
-              <div class="flex justify-between items-center">
-                <span class="product-price text-xl font-bold text-green-600">{{ formatPrice(product.price) }}</span>
-                <button class="btn-add-cart px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                  <i class="fas fa-shopping-cart mr-1"></i> Thêm vào giỏ
-                </button>
+              <p class="product-description text-gray-600 mb-4 h-12 line-clamp-2">{{ product.description }}</p>
+              <div class="flex flex-col mt-auto">
+                <span class="product-price text-xl font-bold text-green-600 mb-2">{{ formatPrice(product.price) }}</span>
+                <div class="flex space-x-2">
+                  <button 
+                    @click="addToCart(product)" 
+                    class="btn-add-cart h-10 px-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
+                  >
+                    <i class="fas fa-shopping-cart mr-1"></i> Thêm
+                  </button>
+                  <button 
+                    @click="buyNow(product)" 
+                    class="btn-buy-now h-10 px-2 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
+                  >
+                    <i class="fas fa-bolt mr-1"></i> Mua ngay
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -257,31 +283,20 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import AOS from 'aos'
+import api from '@/api'
+import cart from '@/store/cart'
+import { useRouter } from 'vue-router'
+
+// Initialize router
+const router = useRouter()
 
 // Fix image path by using public path instead of relative import
 const samTuoiImage = '/assets/images/products/sam-tuoi.png'
 
-// Sản phẩm nổi bật giả lập
-const featuredProducts = [
-  {
-    name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
-    description: 'Sâm ngọc linh tươi có tuổi đời 10 năm, được thu hoạch từ vùng núi Ngọc Linh, giữ nguyên dược tính quý giá.',
-    price: 2500000,
-    image: samTuoiImage
-  },
-  {
-    name: 'Cao Sâm Ngọc Linh',
-    description: 'Cao sâm ngọc linh nguyên chất, tinh khiết, giúp bồi bổ sức khỏe hiệu quả, tăng cường hệ miễn dịch.',
-    price: 1800000,
-    image: samTuoiImage
-  },
-  {
-    name: 'Rượu Sâm Ngọc Linh',
-    description: 'Rượu ngâm sâm ngọc linh, giúp tăng cường sinh lực và bồi bổ cơ thể, phù hợp cho người lớn tuổi.',
-    price: 1500000,
-    image: samTuoiImage
-  }
-]
+// State for products
+const featuredProducts = ref([])
+const isLoading = ref(true)
+const error = ref(null)
 
 // Format giá tiền
 function formatPrice(price) {
@@ -291,9 +306,82 @@ function formatPrice(price) {
   }).format(price).replace('₫', 'VNĐ')
 }
 
-// Refresh AOS on component mount
+// Fetch featured products from API
+async function fetchFeaturedProducts() {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    // Fetch products with limit=3 to get only featured ones
+    const response = await api.product.getProducts({
+      page: 0,
+      size: 3,
+      sort: 'sold',
+      direction: 'desc'
+    })
+    
+    // Map API response to our format - updated to match actual API structure
+    featuredProducts.value = response.data.products.map(product => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.image || samTuoiImage, // Use default image if none provided
+      slug: product.slug
+    }))
+  } catch (err) {
+    console.error('Error fetching products:', err)
+    error.value = 'Không thể tải sản phẩm. Vui lòng thử lại sau.'
+    
+    // Fallback to sample data if API fails
+    featuredProducts.value = [
+      {
+        id: 1,
+        name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
+        description: 'Sâm ngọc linh tươi có tuổi đời 10 năm, được thu hoạch từ vùng núi Ngọc Linh, giữ nguyên dược tính quý giá.',
+        price: 2500000,
+        image: samTuoiImage,
+        slug: 'sam-ngoc-linh-tuoi-10-nam-tuoi'
+      },
+      {
+        id: 2,
+        name: 'Cao Sâm Ngọc Linh',
+        description: 'Cao sâm ngọc linh nguyên chất, tinh khiết, giúp bồi bổ sức khỏe hiệu quả, tăng cường hệ miễn dịch.',
+        price: 1800000,
+        image: samTuoiImage,
+        slug: 'cao-sam-ngoc-linh'
+      },
+      {
+        id: 3,
+        name: 'Rượu Sâm Ngọc Linh',
+        description: 'Rượu ngâm sâm ngọc linh, giúp tăng cường sinh lực và bồi bổ cơ thể, phù hợp cho người lớn tuổi.',
+        price: 1500000,
+        image: samTuoiImage,
+        slug: 'ruou-sam-ngoc-linh'
+      }
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Handle add to cart functionality
+function addToCart(product) {
+  cart.addToCart(product, 1)
+  alert(`Đã thêm ${product.name} vào giỏ hàng!`)
+}
+
+// Handle buy now functionality
+function buyNow(product) {
+  cart.addToCart(product, 1)
+  alert(`Đang chuyển đến trang thanh toán cho sản phẩm: ${product.name}`)
+  router.push('/checkout')
+}
+
+// Fetch data and initialize AOS on component mount
 onMounted(() => {
-  AOS.refresh();
+  fetchFeaturedProducts()
+  AOS.refresh()
 })
 </script>
 
@@ -345,8 +433,56 @@ onMounted(() => {
 
 .product-card {
   transition: all 0.3s ease;
+  background-color: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
   &:hover {
     transform: translateY(-8px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .product-image {
+    height: 16rem;
+    background-color: #f9fafb;
+  }
+  
+  .product-info {
+    height: auto;
+    min-height: 15rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .btn-add-cart, .btn-buy-now {
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+  
+  .btn-add-cart {
+    background-color: #16a34a;
+    &:hover {
+      background-color: #15803d;
+    }
+  }
+  
+  .btn-buy-now {
+    background-color: #f97316;
+    &:hover {
+      background-color: #ea580c;
+    }
   }
 }
 

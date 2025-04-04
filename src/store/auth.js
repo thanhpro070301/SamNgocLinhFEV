@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import sessionToken from './sessionToken'
+import api from '@/api'
 
 // Tạo store quản lý authentication
 const auth = {
@@ -40,51 +41,32 @@ const auth = {
     this.isLoading.value = true
     
     try {
-      // Mô phỏng gọi API đăng nhập
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Gọi API đăng nhập
+      const response = await api.auth.login({
+        email,
+        password
+      })
       
-      // Demo credentials
-      const demoAccounts = [
-        {
-          email: 'admin@example.com',
-          password: 'admin123',
-          id: 1,
-          name: 'Admin',
-          role: 'admin'
-        },
-        {
-          email: 'samngoclinh@gmail.com',
-          password: 'sam123',
-          id: 2,
-          name: 'Quản lý Sâm Ngọc Linh',
-          role: 'admin'
-        }
-      ]
+      // Lấy token từ response
+      const token = response.data
       
-      // Kiểm tra đăng nhập với tài khoản demo
-      const foundUser = demoAccounts.find(
-        account => account.email === email && account.password === password
-      )
-      
-      if (foundUser) {
-        const user = {
-          id: foundUser.id,
-          email: foundUser.email,
-          name: foundUser.name,
-          role: foundUser.role
-        }
-        
-        // Lưu thông tin đăng nhập
-        this.currentUser.value = user
-        this.isAuthenticated.value = true
-        
-        // Tạo token session
-        sessionToken.createToken(user, rememberMe)
-        
-        return true
+      // Giả lập dữ liệu user từ token
+      // Thực tế sẽ decode token hoặc gọi API get profile
+      const user = {
+        id: 1, // Giả lập ID
+        email: email,
+        name: email.split('@')[0], // Lấy tên từ email 
+        role: email.includes('admin') ? 'admin' : 'user'
       }
       
-      return false
+      // Lưu thông tin đăng nhập
+      this.currentUser.value = user
+      this.isAuthenticated.value = true
+      
+      // Tạo token session
+      sessionToken.createToken(user, rememberMe)
+      
+      return true
     } catch (error) {
       console.error('Login error:', error)
       return false
@@ -98,15 +80,14 @@ const auth = {
     this.isLoading.value = true
     
     try {
-      // Mô phỏng gọi API đăng ký
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Gọi API đăng ký
+      await api.auth.register({
+        name,
+        email,
+        password
+      })
       
-      // Kiểm tra email đã tồn tại
-      if (email === 'admin@example.com') {
-        return false
-      }
-      
-      // Mô phỏng đăng ký thành công
+      // Trả về true khi đăng ký thành công
       return true
     } catch (error) {
       console.error('Register error:', error)
@@ -121,8 +102,15 @@ const auth = {
     this.isLoading.value = true
     
     try {
-      // Mô phỏng gọi API đăng xuất
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Gọi API đăng xuất nếu đã đăng nhập và cần xóa token
+      if (this.isAuthenticated.value && removeToken) {
+        try {
+          await api.auth.logout()
+        } catch (error) {
+          console.error('Error calling logout API:', error)
+          // Tiếp tục quá trình logout dù API có lỗi
+        }
+      }
       
       // Xóa dữ liệu người dùng
       this.currentUser.value = null

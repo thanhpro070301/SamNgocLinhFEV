@@ -39,6 +39,13 @@ export default defineConfig({
     cors: true,
     hmr: {
       overlay: true
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      }
     }
   }
 }) 
