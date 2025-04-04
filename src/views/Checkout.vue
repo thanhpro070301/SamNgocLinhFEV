@@ -106,11 +106,65 @@
         </div>
       </div>
     </div>
+    
+    <!-- Order Success Modal -->
+    <transition name="fade">
+      <div v-if="showSuccessModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+          
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+          
+          <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white">
+              <div class="flex flex-col items-center p-6 pt-8">
+                <!-- Success animation -->
+                <div class="success-checkmark mb-4">
+                  <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                  </div>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-gray-900 mb-2" id="modal-title">Đặt hàng thành công!</h3>
+                <p class="text-gray-500 text-center mb-6">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận.</p>
+                
+                <div class="border border-gray-200 rounded-lg p-5 w-full mb-6 bg-gray-50">
+                  <div class="flex justify-between mb-3">
+                    <span class="text-gray-600">Mã đơn hàng:</span>
+                    <span class="font-semibold">#{{ orderId }}</span>
+                  </div>
+                  <div class="flex justify-between mb-3">
+                    <span class="text-gray-600">Tổng tiền:</span>
+                    <span class="font-semibold">{{ formatPrice(cartTotal + shippingFee) }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Phương thức thanh toán:</span>
+                    <span class="font-semibold">{{ getPaymentMethod(paymentMethod) }}</span>
+                  </div>
+                </div>
+                
+                <div class="flex flex-col gap-2 w-full">
+                  <button @click="closeSuccessModal" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-3 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Tiếp tục mua sắm
+                  </button>
+                  <button @click="viewOrders" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Xem đơn hàng của tôi
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import cart from '@/store/cart'
 
@@ -130,6 +184,9 @@ const customerInfo = ref({
 })
 
 const paymentMethod = ref('cod')
+const showSuccessModal = ref(false)
+const orderId = ref(Math.floor(Math.random() * 1000000)) // Random order ID for demo
+let redirectTimeout = null
 
 // Format giá tiền
 const formatPrice = (price) => {
@@ -140,6 +197,16 @@ const formatPrice = (price) => {
   }).format(price)
 }
 
+// Get readable payment method
+const getPaymentMethod = (method) => {
+  switch(method) {
+    case 'cod': return 'Thanh toán khi nhận hàng (COD)'
+    case 'bank': return 'Chuyển khoản ngân hàng'
+    case 'card': return 'Thẻ tín dụng/Ghi nợ'
+    default: return 'Thanh toán khi nhận hàng (COD)'
+  }
+}
+
 // Đặt hàng
 const placeOrder = () => {
   if (cartItems.value.length === 0) {
@@ -148,8 +215,222 @@ const placeOrder = () => {
   }
   
   // TODO: Gửi thông tin đơn hàng đến server
-  alert('Đặt hàng thành công! Cảm ơn bạn đã mua hàng.')
+  // Hiển thị modal thành công
+  showSuccessModal.value = true
+  
+  // Xóa giỏ hàng
   cart.clearCart()
+  
+  // Set up auto-redirect after 8 seconds
+  redirectTimeout = setTimeout(() => {
+    closeSuccessModal()
+  }, 8000)
+}
+
+// Đóng modal và chuyển về trang chủ
+const closeSuccessModal = () => {
+  showSuccessModal.value = false
+  if (redirectTimeout) {
+    clearTimeout(redirectTimeout)
+  }
   router.push('/')
 }
-</script> 
+
+// Chuyển đến trang đơn hàng của tôi
+const viewOrders = () => {
+  showSuccessModal.value = false
+  if (redirectTimeout) {
+    clearTimeout(redirectTimeout)
+  }
+  router.push('/my-orders')
+}
+
+// Clean up timeout
+onBeforeUnmount(() => {
+  if (redirectTimeout) {
+    clearTimeout(redirectTimeout)
+  }
+})
+</script>
+
+<style scoped>
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Success Checkmark Animation */
+.success-checkmark {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.success-checkmark .check-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  border-radius: 50%;
+  box-sizing: content-box;
+  border: 4px solid #16a34a;
+}
+
+.success-checkmark .check-icon::before {
+  top: 3px;
+  left: -2px;
+  width: 30px;
+  transform-origin: 100% 50%;
+  border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+  top: 0;
+  left: 30px;
+  width: 60px;
+  transform-origin: 0 50%;
+  border-radius: 0 100px 100px 0;
+  animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon::before,
+.success-checkmark .check-icon::after {
+  content: '';
+  height: 100px;
+  position: absolute;
+  background: #FFFFFF;
+  transform: rotate(-45deg);
+}
+
+.success-checkmark .check-icon .icon-line {
+  height: 5px;
+  background-color: #16a34a;
+  display: block;
+  border-radius: 2px;
+  position: absolute;
+  z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+  top: 46px;
+  left: 14px;
+  width: 25px;
+  transform: rotate(45deg);
+  animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+  top: 38px;
+  right: 8px;
+  width: 47px;
+  transform: rotate(-45deg);
+  animation: icon-line-long 0.75s;
+}
+
+.success-checkmark .check-icon .icon-circle {
+  top: -4px;
+  left: -4px;
+  z-index: 10;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: absolute;
+  box-sizing: content-box;
+  border: 4px solid #16a34a;
+  opacity: 0.5;
+  animation: circle-fill-anim 1s;
+}
+
+.success-checkmark .check-icon .icon-fix {
+  top: 8px;
+  width: 5px;
+  left: 26px;
+  z-index: 1;
+  height: 85px;
+  position: absolute;
+  transform: rotate(-45deg);
+  background-color: white;
+}
+
+@keyframes rotate-circle {
+  0% {
+    transform: rotate(-45deg);
+  }
+  5% {
+    transform: rotate(-45deg);
+  }
+  12% {
+    transform: rotate(-405deg);
+  }
+  100% {
+    transform: rotate(-405deg);
+  }
+}
+
+@keyframes icon-line-tip {
+  0% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  54% {
+    width: 0;
+    left: 1px;
+    top: 19px;
+  }
+  70% {
+    width: 50px;
+    left: -8px;
+    top: 37px;
+  }
+  84% {
+    width: 17px;
+    left: 21px;
+    top: 48px;
+  }
+  100% {
+    width: 25px;
+    left: 14px;
+    top: 46px;
+  }
+}
+
+@keyframes icon-line-long {
+  0% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  65% {
+    width: 0;
+    right: 46px;
+    top: 54px;
+  }
+  84% {
+    width: 55px;
+    right: 0px;
+    top: 35px;
+  }
+  100% {
+    width: 47px;
+    right: 8px;
+    top: 38px;
+  }
+}
+
+@keyframes circle-fill-anim {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+}
+</style> 

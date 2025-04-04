@@ -2,12 +2,12 @@
   <div class="products-admin-page min-h-screen bg-gray-50">
     <AdminHeader />
     
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 mt-12">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Quản lý sản phẩm</h1>
         <button 
           @click="openAddProductModal"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center mt-1"
         >
           <i class="fas fa-plus mr-2"></i> Thêm sản phẩm
         </button>

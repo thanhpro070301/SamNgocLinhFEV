@@ -417,7 +417,7 @@ async function fetchProducts() {
           description: p.description || '',
           price: p.price,
           originalPrice: p.originalPrice,
-          image: p.image || defaultImage,
+          image: p.image ? (p.image.startsWith('http') ? p.image : `http://localhost:8080${p.image}`) : defaultImage,
           rating: p.rating,
           slug: p.slug,
           categoryId: p.categoryId,

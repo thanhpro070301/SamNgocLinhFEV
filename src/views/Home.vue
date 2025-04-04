@@ -326,7 +326,7 @@ async function fetchFeaturedProducts() {
       name: product.name,
       description: product.description,
       price: product.price,
-      image: product.image || samTuoiImage, // Use default image if none provided
+      image: product.image ? (product.image.startsWith('http') ? product.image : `http://localhost:8080${product.image}`) : samTuoiImage,
       slug: product.slug
     }))
   } catch (err) {

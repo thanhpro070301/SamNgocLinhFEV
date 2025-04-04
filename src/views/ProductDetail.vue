@@ -437,7 +437,7 @@ async function fetchProduct() {
       longDescription: response.data.longDescription,
       price: response.data.price,
       originalPrice: response.data.originalPrice,
-      image: response.data.image || defaultImage,
+      image: response.data.image ? (response.data.image.startsWith('http') ? response.data.image : `http://localhost:8080${response.data.image}`) : defaultImage,
       rating: response.data.rating || 4.5,
       sold: response.data.sold || 0,
       stock: response.data.stock || 10,
@@ -507,7 +507,7 @@ async function fetchRelatedProducts(categoryId) {
         id: p.id,
         name: p.name,
         price: p.price,
-        image: p.image || defaultImage,
+        image: p.image ? (p.image.startsWith('http') ? p.image : `http://localhost:8080${p.image}`) : defaultImage,
         stock: p.stock || 0
       }))
       .slice(0, 4) // Ensure we only have 4 products max
@@ -527,7 +527,7 @@ async function fetchRelatedProducts(categoryId) {
           id: p.id,
           name: p.name,
           price: p.price,
-          image: p.image || defaultImage,
+          image: p.image ? (p.image.startsWith('http') ? p.image : `http://localhost:8080${p.image}`) : defaultImage,
           stock: p.stock || 0
         }))
         
