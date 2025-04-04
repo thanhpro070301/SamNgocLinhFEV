@@ -9,22 +9,29 @@ const auth = {
   
   // Khởi tạo store từ localStorage nếu đã đăng nhập trước đó
   init() {
-    // Kiểm tra token hiện tại có hợp lệ không
-    if (sessionToken.isCurrentTokenValid()) {
-      const session = sessionToken.getCurrentSession()
-      if (session) {
-        // Khôi phục thông tin người dùng từ session
-        this.currentUser.value = {
-          id: session.userId,
-          name: session.userName,
-          email: session.userEmail,
-          role: session.userRole
+    try {
+      // Kiểm tra token hiện tại có hợp lệ không
+      if (sessionToken.isCurrentTokenValid()) {
+        const session = sessionToken.getCurrentSession()
+        if (session) {
+          // Khôi phục thông tin người dùng từ session
+          this.currentUser.value = {
+            id: session.userId,
+            name: session.userName,
+            email: session.userEmail,
+            role: session.userRole
+          }
+          this.isAuthenticated.value = true
         }
-        this.isAuthenticated.value = true
+      } else {
+        // Nếu token không hợp lệ, đăng xuất
+        this.logout(false) // false để không xóa token (đã được xóa trong sessionToken)
       }
-    } else {
-      // Nếu token không hợp lệ, đăng xuất
-      this.logout(false) // false để không xóa token (đã được xóa trong sessionToken)
+    } catch (error) {
+      console.error('Error initializing auth store:', error)
+      // Reset auth state on error
+      this.currentUser.value = null
+      this.isAuthenticated.value = false
     }
   },
   

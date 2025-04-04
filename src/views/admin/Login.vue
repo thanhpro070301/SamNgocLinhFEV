@@ -20,13 +20,13 @@
         <p>{{ errorMessage }}</p>
       </div>
       
-      <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
+      <form class="mt-8 space-y-6" @submit.prevent="login">
         <div class="rounded-md -space-y-px">
           <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input 
               id="email" 
-              v-model="email"
+              v-model="form.email"
               name="email" 
               type="email" 
               autocomplete="email" 
@@ -39,7 +39,7 @@
             <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
             <input 
               id="password" 
-              v-model="password"
+              v-model="form.password"
               name="password" 
               type="password" 
               autocomplete="current-password" 
@@ -92,39 +92,88 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/api'
 import auth from '@/store/auth'
-import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
+import sessionToken from '@/store/sessionToken'
 
 const router = useRouter()
-const email = ref('')
-const password = ref('')
-const rememberMe = ref(false)
-const isLoading = ref(false)
 const errorMessage = ref('')
+const isLoading = ref(false)
+const rememberMe = ref(false)
 
-const handleLogin = async () => {
-  isLoading.value = true
+// Form data
+const form = reactive({
+  email: '',
+  password: ''
+})
+
+const samTuoiImage = '/assets/images/products/sam-tuoi.png'
+
+// Validate form
+function validateForm() {
+  if (!form.email || !form.password) {
+    errorMessage.value = 'Vui lòng nhập email và mật khẩu'
+    return false
+  }
+  return true
+}
+
+// Login function
+async function login() {
+  if (!validateForm()) return
+  
   errorMessage.value = ''
+  isLoading.value = true
   
   try {
-    // Gọi phương thức login từ auth store
-    const success = await auth.login({
-      email: email.value,
-      password: password.value,
-      rememberMe: rememberMe.value
-    })
+    // Demo credentials - sử dụng mock data thay vì gọi API thực
+    const demoAccounts = [
+      {
+        email: 'admin@example.com',
+        password: 'admin123',
+        id: 1,
+        name: 'Admin',
+        role: 'admin'
+      },
+      {
+        email: 'samngoclinh@gmail.com',
+        password: 'sam123',
+        id: 2,
+        name: 'Quản lý Sâm Ngọc Linh',
+        role: 'admin'
+      }
+    ]
     
-    if (success) {
-      // Đăng nhập thành công, chuyển hướng đến trang Dashboard
+    // Kiểm tra đăng nhập với tài khoản demo
+    const foundUser = demoAccounts.find(
+      account => account.email === form.email && account.password === form.password
+    )
+    
+    if (foundUser) {
+      const userInfo = {
+        id: foundUser.id,
+        email: foundUser.email,
+        name: foundUser.name,
+        role: foundUser.role
+      }
+      
+      // Lưu thông tin đăng nhập
+      auth.currentUser.value = userInfo
+      auth.isAuthenticated.value = true
+      
+      // Tạo token session
+      const tokenId = sessionToken.createToken(userInfo, rememberMe.value)
+      
+      // Chuyển hướng đến trang dashboard
       router.push('/admin/dashboard')
     } else {
-      errorMessage.value = 'Email hoặc mật khẩu không chính xác'
+      errorMessage.value = 'Email hoặc mật khẩu không đúng'
     }
   } catch (error) {
-    errorMessage.value = 'Đã xảy ra lỗi, vui lòng thử lại'
     console.error('Login error:', error)
+    errorMessage.value = 'Đã xảy ra lỗi, vui lòng thử lại sau'
   } finally {
     isLoading.value = false
   }

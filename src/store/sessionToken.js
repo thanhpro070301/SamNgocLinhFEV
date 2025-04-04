@@ -32,11 +32,15 @@ const sessionToken = {
   
   // Lưu trạng thái hiện tại vào localStorage
   saveState() {
-    localStorage.setItem('admin_sessions', JSON.stringify(this.activeSessions.value))
-    if (this.currentToken.value) {
-      localStorage.setItem('admin_current_token', this.currentToken.value)
-    } else {
-      localStorage.removeItem('admin_current_token')
+    try {
+      localStorage.setItem('admin_sessions', JSON.stringify(this.activeSessions.value))
+      if (this.currentToken.value) {
+        localStorage.setItem('admin_current_token', this.currentToken.value)
+      } else {
+        localStorage.removeItem('admin_current_token')
+      }
+    } catch (error) {
+      console.error('Error saving session state to localStorage:', error)
     }
   },
   
@@ -101,26 +105,31 @@ const sessionToken = {
   
   // Kiểm tra token có hợp lệ không
   isValidToken(tokenId) {
-    if (!tokenId) return false
-    
-    const session = this.activeSessions.value.find(s => s.tokenId === tokenId)
-    if (!session) return false
-    
-    // Kiểm tra token có hết hạn chưa
-    const now = new Date()
-    const expiresAt = new Date(session.expiresAt)
-    
-    if (now > expiresAt) {
-      // Nếu hết hạn, xóa token
-      this.removeToken(tokenId)
+    try {
+      if (!tokenId) return false
+      
+      const session = this.activeSessions.value.find(s => s.tokenId === tokenId)
+      if (!session) return false
+      
+      // Kiểm tra token có hết hạn chưa
+      const now = new Date()
+      const expiresAt = new Date(session.expiresAt)
+      
+      if (now > expiresAt) {
+        // Nếu hết hạn, xóa token
+        this.removeToken(tokenId)
+        return false
+      }
+      
+      // Cập nhật thời gian hoạt động cuối
+      session.lastActivity = new Date().toISOString()
+      this.saveState()
+      
+      return true
+    } catch (error) {
+      console.error('Error validating token:', error)
       return false
     }
-    
-    // Cập nhật thời gian hoạt động cuối
-    session.lastActivity = new Date().toISOString()
-    this.saveState()
-    
-    return true
   },
   
   // Kiểm tra token hiện tại có hợp lệ không

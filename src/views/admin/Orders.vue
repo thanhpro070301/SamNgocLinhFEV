@@ -81,37 +81,29 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <div class="ml-0">
-                        <div class="text-sm font-medium text-gray-900 line-clamp-1">{{ order.customerName }}</div>
-                        <div class="text-xs text-gray-500 truncate max-w-[200px]">{{ order.customerEmail }}</div>
+                        <div class="text-sm font-medium text-gray-900 line-clamp-1">{{ order.shippingName }}</div>
+                        <div class="text-xs text-gray-500 truncate max-w-[200px]">{{ order.shippingEmail }}</div>
                       </div>
                     </div>
                   </td>
                   
                   <!-- Order date -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ order.date }}</div>
-                    <div class="text-xs text-gray-500">{{ order.time }}</div>
+                    <div class="text-sm text-gray-900">{{ formatDate(order.createdAt) }}</div>
                   </td>
                   
                   <!-- Total price -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ formatPrice(order.total) }}đ</div>
-                    <div class="text-xs text-gray-500">{{ order.itemCount }} sản phẩm</div>
+                    <div class="text-sm text-gray-900">{{ formatCurrency(order.totalAmount) }}</div>
                   </td>
                   
                   <!-- Status -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span 
                       class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      :class="{
-                        'bg-green-100 text-green-800': order.status === 'Hoàn thành',
-                        'bg-blue-100 text-blue-800': order.status === 'Đang giao',
-                        'bg-yellow-100 text-yellow-800': order.status === 'Đang xử lý',
-                        'bg-red-100 text-red-800': order.status === 'Đã hủy',
-                        'bg-purple-100 text-purple-800': order.status === 'Chờ thanh toán'
-                      }"
+                      :class="getStatusColor(order.status)"
                     >
-                      {{ order.status }}
+                      {{ getStatusName(order.status) }}
                     </span>
                   </td>
                   
@@ -127,7 +119,7 @@
                         <i class="fas fa-eye"></i>
                       </button>
                       <button 
-                        @click="updateOrderStatus(order)"
+                        @click="updateOrderStatus(order.id, order.status)"
                         class="w-9 h-9 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
                         title="Cập nhật trạng thái"
                         type="button"
@@ -217,25 +209,19 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 class="text-sm font-medium text-gray-500 mb-2">Thông tin khách hàng</h4>
-                      <p class="text-sm text-gray-900">{{ selectedOrder?.customerName }}</p>
-                      <p class="text-sm text-gray-500">{{ selectedOrder?.customerEmail }}</p>
-                      <p class="text-sm text-gray-500">{{ selectedOrder?.customerPhone }}</p>
+                      <p class="text-sm text-gray-900">{{ selectedOrder?.shippingName }}</p>
+                      <p class="text-sm text-gray-500">{{ selectedOrder?.shippingEmail }}</p>
+                      <p class="text-sm text-gray-500">{{ selectedOrder?.shippingPhone }}</p>
                     </div>
                     <div>
                       <h4 class="text-sm font-medium text-gray-500 mb-2">Thông tin đơn hàng</h4>
-                      <p class="text-sm text-gray-900">Ngày đặt: {{ selectedOrder?.date }}</p>
+                      <p class="text-sm text-gray-900">Ngày đặt: {{ formatDate(selectedOrder?.createdAt) }}</p>
                       <p class="text-sm text-gray-900">Trạng thái: 
                         <span 
                           class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
-                          :class="{
-                            'bg-green-100 text-green-800': selectedOrder?.status === 'Hoàn thành',
-                            'bg-blue-100 text-blue-800': selectedOrder?.status === 'Đang giao',
-                            'bg-yellow-100 text-yellow-800': selectedOrder?.status === 'Đang xử lý',
-                            'bg-red-100 text-red-800': selectedOrder?.status === 'Đã hủy',
-                            'bg-purple-100 text-purple-800': selectedOrder?.status === 'Chờ thanh toán'
-                          }"
+                          :class="getStatusColor(selectedOrder?.status)"
                         >
-                          {{ selectedOrder?.status }}
+                          {{ getStatusName(selectedOrder?.status) }}
                         </span>
                       </p>
                       <p class="text-sm text-gray-900">Phương thức thanh toán: {{ selectedOrder?.paymentMethod }}</p>
@@ -248,56 +234,17 @@
                   <p class="text-sm text-gray-900">{{ selectedOrder?.shippingAddress }}</p>
                 </div>
                 
-                <div class="border-t border-gray-200 py-4">
-                  <h4 class="text-sm font-medium text-gray-500 mb-2">Danh sách sản phẩm</h4>
-                  <div class="mt-2 space-y-3">
-                    <div 
-                      v-for="(item, index) in selectedOrder?.items" 
-                      :key="index"
-                      class="flex items-center justify-between py-2 border-b border-gray-100"
-                    >
-                      <div class="flex items-center">
-                        <div class="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-gray-100 mr-3">
-                          <img :src="item.image" :alt="item.name" class="h-full w-full object-cover object-center">
-                        </div>
-                        <div>
-                          <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
-                          <div class="text-xs text-gray-500">
-                            Số lượng: {{ item.quantity }} x {{ formatPrice(item.price) }}đ
-                          </div>
-                        </div>
-                      </div>
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ formatPrice(item.price * item.quantity) }}đ
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="border-t border-gray-200 py-4">
-                  <div class="flex justify-between items-center">
-                    <div class="text-sm font-medium text-gray-500">Tổng tiền sản phẩm:</div>
-                    <div class="text-sm font-medium text-gray-900">{{ formatPrice(selectedOrder?.subtotal) }}đ</div>
-                  </div>
-                  <div class="flex justify-between items-center mt-2">
-                    <div class="text-sm font-medium text-gray-500">Phí vận chuyển:</div>
-                    <div class="text-sm font-medium text-gray-900">{{ formatPrice(selectedOrder?.shipping) }}đ</div>
-                  </div>
-                  <div class="flex justify-between items-center mt-2">
-                    <div class="text-sm font-medium text-gray-900">Tổng thanh toán:</div>
-                    <div class="text-lg font-bold text-green-600">{{ formatPrice(selectedOrder?.total) }}đ</div>
-                  </div>
-                </div>
-                
                 <div class="border-t border-gray-200 pt-4">
                   <div class="flex justify-between">
                     <select 
                       v-model="newStatus" 
                       class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
-                      <option v-for="status in statusOptions" :key="status" :value="status">
-                        {{ status }}
-                      </option>
+                      <option value="PENDING">Chờ xử lý</option>
+                      <option value="PROCESSING">Đang xử lý</option>
+                      <option value="SHIPPING">Đang giao hàng</option>
+                      <option value="COMPLETED">Hoàn thành</option>
+                      <option value="CANCELLED">Đã hủy</option>
                     </select>
                     
                     <button 
@@ -319,7 +266,20 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
+import auth from '@/store/auth'
+import api from '@/api'
+
+const router = useRouter()
+const orders = ref([])
+const isLoading = ref(false)
+const loadingError = ref(null)
+
+// Chuyển hướng nếu chưa đăng nhập
+if (!auth.isAuthenticated.value) {
+  router.push('/admin/login')
+}
 
 // State
 const searchTerm = ref('')
@@ -332,149 +292,12 @@ const newStatus = ref('')
 
 // Status options
 const statusOptions = [
-  'Đang xử lý',
-  'Đang giao',
-  'Hoàn thành', 
-  'Chờ thanh toán',
-  'Đã hủy'
+  'PENDING',
+  'PROCESSING',
+  'SHIPPING',
+  'COMPLETED',
+  'CANCELLED'
 ]
-
-// Sample order data
-const orders = ref([
-  {
-    id: 'ORD10001',
-    customerName: 'Nguyễn Văn A',
-    customerEmail: 'nguyenvana@gmail.com',
-    customerPhone: '0987654321',
-    date: '15/04/2023',
-    time: '10:30',
-    total: 4500000,
-    subtotal: 4300000,
-    shipping: 200000,
-    itemCount: 2,
-    status: 'Hoàn thành',
-    paymentMethod: 'Thanh toán khi nhận hàng (COD)',
-    shippingAddress: '123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    items: [
-      {
-        name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
-        price: 2500000,
-        quantity: 1,
-        image: '/src/assets/images/products/sam-tuoi.png'
-      },
-      {
-        name: 'Rượu sâm ngọc linh 15 năm',
-        price: 1800000,
-        quantity: 1,
-        image: '/src/assets/images/products/ruou-sam.png'
-      }
-    ]
-  },
-  {
-    id: 'ORD10002',
-    customerName: 'Trần Thị B',
-    customerEmail: 'tranthib@gmail.com',
-    customerPhone: '0912345678',
-    date: '14/04/2023',
-    time: '14:45',
-    total: 6700000,
-    subtotal: 6500000,
-    shipping: 200000,
-    itemCount: 2,
-    status: 'Đang giao',
-    paymentMethod: 'Chuyển khoản ngân hàng',
-    shippingAddress: '456 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    items: [
-      {
-        name: 'Sâm Ngọc Linh tươi 15 năm tuổi',
-        price: 5000000,
-        quantity: 1,
-        image: '/src/assets/images/products/sam-tuoi-15-nam.png'
-      },
-      {
-        name: 'Trà sâm ngọc linh',
-        price: 1500000,
-        quantity: 1,
-        image: '/src/assets/images/products/tra-sam.png'
-      }
-    ]
-  },
-  {
-    id: 'ORD10003',
-    customerName: 'Lê Văn C',
-    customerEmail: 'levanc@gmail.com',
-    customerPhone: '0923456789',
-    date: '13/04/2023',
-    time: '09:15',
-    total: 3200000,
-    subtotal: 3000000,
-    shipping: 200000,
-    itemCount: 1,
-    status: 'Đang xử lý',
-    paymentMethod: 'Thanh toán khi nhận hàng (COD)',
-    shippingAddress: '789 Đường Lý Tự Trọng, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh',
-    items: [
-      {
-        name: 'Cao sâm ngọc linh 100g',
-        price: 3000000,
-        quantity: 1,
-        image: '/src/assets/images/products/cao-sam.png'
-      }
-    ]
-  },
-  {
-    id: 'ORD10004',
-    customerName: 'Phạm Thị D',
-    customerEmail: 'phamthid@gmail.com',
-    customerPhone: '0934567890',
-    date: '12/04/2023',
-    time: '16:20',
-    total: 2200000,
-    subtotal: 2000000,
-    shipping: 200000,
-    itemCount: 2,
-    status: 'Chờ thanh toán',
-    paymentMethod: 'Chuyển khoản ngân hàng',
-    shippingAddress: '101 Đường Hai Bà Trưng, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    items: [
-      {
-        name: 'Trà sâm ngọc linh',
-        price: 1500000,
-        quantity: 1,
-        image: '/src/assets/images/products/tra-sam.png'
-      },
-      {
-        name: 'Kẹo sâm ngọc linh',
-        price: 500000,
-        quantity: 1,
-        image: '/src/assets/images/products/keo-sam.png'
-      }
-    ]
-  },
-  {
-    id: 'ORD10005',
-    customerName: 'Hoàng Văn E',
-    customerEmail: 'hoangvane@gmail.com',
-    customerPhone: '0945678901',
-    date: '11/04/2023',
-    time: '11:05',
-    total: 7500000,
-    subtotal: 7300000,
-    shipping: 200000,
-    itemCount: 1,
-    status: 'Đã hủy',
-    paymentMethod: 'Thanh toán khi nhận hàng (COD)',
-    shippingAddress: '202 Đường Đồng Khởi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    items: [
-      {
-        name: 'Sâm Ngọc Linh tươi 20 năm tuổi',
-        price: 7300000,
-        quantity: 1,
-        image: '/src/assets/images/products/sam-tuoi-20-nam.png'
-      }
-    ]
-  }
-])
 
 // Filtered orders
 const filteredOrders = computed(() => {
@@ -484,9 +307,9 @@ const filteredOrders = computed(() => {
   if (searchTerm.value) {
     const searchLower = searchTerm.value.toLowerCase()
     result = result.filter(order => 
-      order.id.toLowerCase().includes(searchLower) || 
-      order.customerName.toLowerCase().includes(searchLower) || 
-      order.customerEmail.toLowerCase().includes(searchLower)
+      order.id.toString().includes(searchLower) || 
+      order.shippingName.toLowerCase().includes(searchLower) || 
+      order.shippingEmail.toLowerCase().includes(searchLower)
     )
   }
 
@@ -498,9 +321,145 @@ const filteredOrders = computed(() => {
   return result
 })
 
-// Format currency
-function formatPrice(price) {
-  return new Intl.NumberFormat('vi-VN').format(price)
+// Lấy danh sách đơn hàng
+async function fetchOrders() {
+  isLoading.value = true
+  loadingError.value = null
+  
+  try {
+    const response = await api.order.getOrders()
+    orders.value = response.data
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    loadingError.value = 'Không thể tải danh sách đơn hàng'
+    
+    // Sử dụng dữ liệu mẫu nếu API lỗi
+    orders.value = [
+      {
+        id: 1,
+        userId: 1,
+        totalAmount: 3450000,
+        shippingFee: 30000,
+        status: "COMPLETED",
+        paymentMethod: "COD",
+        paymentStatus: "COMPLETED",
+        shippingName: "Nguyễn Văn A",
+        shippingPhone: "0123456789",
+        shippingAddress: "123 Đường ABC, Quận XYZ",
+        shippingEmail: "nguyenvana@example.com",
+        notes: "Giao hàng giờ hành chính",
+        createdAt: "2023-11-01T12:00:00",
+        updatedAt: "2023-11-01T15:30:00"
+      },
+      {
+        id: 2,
+        userId: 2,
+        totalAmount: 7800000,
+        shippingFee: 30000,
+        status: "PROCESSING",
+        paymentMethod: "TRANSFER",
+        paymentStatus: "PENDING",
+        shippingName: "Trần Thị B",
+        shippingPhone: "0987654321",
+        shippingAddress: "456 Đường DEF, Quận UVW",
+        shippingEmail: "tranthib@example.com",
+        notes: "",
+        createdAt: "2023-11-02T10:15:00",
+        updatedAt: "2023-11-02T10:15:00"
+      },
+      {
+        id: 3,
+        userId: 3,
+        totalAmount: 1250000,
+        shippingFee: 30000,
+        status: "SHIPPING",
+        paymentMethod: "COD",
+        paymentStatus: "PENDING",
+        shippingName: "Lê Văn C",
+        shippingPhone: "0369852147",
+        shippingAddress: "789 Đường GHI, Quận RST",
+        shippingEmail: "levanc@example.com",
+        notes: "Gọi trước khi giao",
+        createdAt: "2023-11-03T09:30:00",
+        updatedAt: "2023-11-03T14:20:00"
+      }
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Cập nhật trạng thái đơn hàng
+async function updateOrderStatus(orderId, status) {
+  try {
+    await api.order.updateOrderStatus(orderId, status)
+    // Cập nhật lại danh sách đơn hàng
+    fetchOrders()
+  } catch (error) {
+    console.error('Error updating order status:', error)
+    alert('Không thể cập nhật trạng thái đơn hàng')
+  }
+}
+
+// Cập nhật trạng thái thanh toán
+async function updatePaymentStatus(orderId, paymentStatus) {
+  try {
+    await api.order.updatePaymentStatus(orderId, paymentStatus)
+    // Cập nhật lại danh sách đơn hàng
+    fetchOrders()
+  } catch (error) {
+    console.error('Error updating payment status:', error)
+    alert('Không thể cập nhật trạng thái thanh toán')
+  }
+}
+
+// Định dạng số thành tiền Việt Nam
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(amount).replace('₫', 'VNĐ')
+}
+
+// Định dạng thời gian
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString('vi-VN')
+}
+
+// Lấy màu cho trạng thái
+function getStatusColor(status) {
+  switch (status) {
+    case 'COMPLETED':
+      return 'bg-green-100 text-green-800'
+    case 'PROCESSING':
+      return 'bg-blue-100 text-blue-800'
+    case 'SHIPPING':
+      return 'bg-purple-100 text-purple-800'
+    case 'PENDING':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'CANCELLED':
+      return 'bg-red-100 text-red-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
+// Hiển thị tên trạng thái tiếng Việt
+function getStatusName(status) {
+  switch (status) {
+    case 'COMPLETED':
+      return 'Hoàn thành'
+    case 'PROCESSING':
+      return 'Đang xử lý'
+    case 'SHIPPING':
+      return 'Đang giao hàng'
+    case 'PENDING':
+      return 'Chờ xử lý'
+    case 'CANCELLED':
+      return 'Đã hủy'
+    default:
+      return status
+  }
 }
 
 // View order details
@@ -516,28 +475,12 @@ function closeDetailModal() {
   selectedOrder.value = null
 }
 
-// Update order status
-function updateOrderStatus(order) {
-  selectedOrder.value = order
-  newStatus.value = order.status
-  showDetailModal.value = true
-}
-
 // Save order status
 function saveOrderStatus() {
   if (selectedOrder.value) {
-    // Find the order and update its status
-    const orderIndex = orders.value.findIndex(o => o.id === selectedOrder.value.id)
-    if (orderIndex !== -1) {
-      orders.value[orderIndex].status = newStatus.value
-      selectedOrder.value.status = newStatus.value
-      
-      // In a real app, you would call an API to update the status
-      // api.updateOrderStatus(selectedOrder.value.id, newStatus.value)
-      
-      // Show success message (in a real app)
-      // toast.success('Trạng thái đơn hàng đã được cập nhật')
-    }
+    // Call API to update order status
+    updateOrderStatus(selectedOrder.value.id, newStatus.value)
+    closeDetailModal()
   }
 }
 
@@ -548,12 +491,9 @@ function exportOrders() {
   alert('Tính năng xuất Excel đang được phát triển')
 }
 
-// Lifecycle
+// Lấy danh sách đơn hàng khi component được khởi tạo
 onMounted(() => {
-  // In a real app, this would fetch orders from an API
-  // api.getOrders().then(data => {
-  //   orders.value = data
-  // })
+  fetchOrders()
 })
 </script>
 

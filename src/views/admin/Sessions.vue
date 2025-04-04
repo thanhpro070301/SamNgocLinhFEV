@@ -151,14 +151,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import auth from '@/store/auth'
 import sessionToken from '@/store/sessionToken'
+import api from '@/api'
 
 const router = useRouter()
 const isLoading = ref(false)
+const sessions = ref([])
+const loadingError = ref(null)
 
 // Chuyển hướng nếu chưa đăng nhập
 if (!auth.isAuthenticated.value) {
@@ -166,30 +169,61 @@ if (!auth.isAuthenticated.value) {
 }
 
 // Lấy phiên đăng nhập hiện tại
-const currentSession = computed(() => sessionToken.getCurrentSession())
+const currentSession = computed(() => {
+  const currentTokenId = sessionToken.currentToken.value
+  return sessions.value.find(session => session.id === currentTokenId || session.isCurrentSession)
+})
 
 // Lấy các phiên đăng nhập khác
 const otherSessions = computed(() => {
-  const currentTokenId = sessionToken.currentToken.value
-  return auth.getUserSessions.value.filter(
-    session => session.tokenId !== currentTokenId
+  return sessions.value.filter(session => 
+    !(session.id === sessionToken.currentToken.value || session.isCurrentSession)
   )
 })
 
+// Lấy danh sách phiên đăng nhập
+async function fetchSessions() {
+  isLoading.value = true
+  loadingError.value = null
+  
+  try {
+    const response = await api.session.getSessions()
+    sessions.value = response.data
+  } catch (error) {
+    console.error('Error fetching sessions:', error)
+    loadingError.value = 'Không thể tải danh sách phiên đăng nhập'
+    
+    // Sử dụng dữ liệu từ localStorage nếu API lỗi
+    sessions.value = auth.getUserSessions.value
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // Đăng xuất khỏi một thiết bị
-async function logoutDevice(tokenId) {
+async function logoutDevice(sessionId) {
   isLoading.value = true
   try {
-    // Mô phỏng gọi API
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await api.session.logoutSession(sessionId)
     
-    auth.removeSession(tokenId)
-    // Nếu token được xóa là token hiện tại, chuyển hướng về trang đăng nhập
-    if (tokenId === sessionToken.currentToken.value) {
+    // Cập nhật lại danh sách phiên đăng nhập
+    if (sessionId === sessionToken.currentToken.value) {
+      auth.logout()
       router.push('/admin/login')
+    } else {
+      fetchSessions()
     }
   } catch (error) {
     console.error('Error logging out device:', error)
+    
+    // Fallback nếu API lỗi
+    auth.removeSession(sessionId)
+    // Nếu token được xóa là token hiện tại, chuyển hướng về trang đăng nhập
+    if (sessionId === sessionToken.currentToken.value) {
+      router.push('/admin/login')
+    } else {
+      fetchSessions()
+    }
   } finally {
     isLoading.value = false
   }
@@ -199,12 +233,14 @@ async function logoutDevice(tokenId) {
 async function logoutOtherDevices() {
   isLoading.value = true
   try {
-    // Mô phỏng gọi API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    auth.removeOtherSessions()
+    await api.session.logoutOtherDevices()
+    fetchSessions()
   } catch (error) {
     console.error('Error logging out other devices:', error)
+    
+    // Fallback nếu API lỗi
+    auth.removeOtherSessions()
+    fetchSessions()
   } finally {
     isLoading.value = false
   }
@@ -221,7 +257,11 @@ function formatDate(dateString) {
 
 // Lấy tên thiết bị từ user agent
 function getDeviceName(device) {
-  const ua = device.userAgent.toLowerCase()
+  if (!device) return 'Unknown Device'
+  
+  const ua = typeof device === 'string' 
+    ? device.toLowerCase() 
+    : (device.userAgent || device.platform || '').toLowerCase()
   
   // Kiểm tra hệ điều hành
   let os = 'Unknown OS'
@@ -251,23 +291,12 @@ function getDeviceName(device) {
     browser = 'Opera'
   }
   
-  return `${browser} trên ${os} (${device.platform})`
+  return `${browser} trên ${os}`
 }
 
-// Cập nhật hoạt động định kỳ
-const activityInterval = setInterval(() => {
-  auth.updateActivity()
-}, 60000) // Cập nhật mỗi phút
-
-// Dọn dẹp khi component bị hủy
-onUnmounted(() => {
-  clearInterval(activityInterval)
-})
-
-// Khởi tạo
+// Fetch sessions khi component được mount
 onMounted(() => {
-  // Cập nhật hoạt động khi mở trang
-  auth.updateActivity()
+  fetchSessions()
 })
 </script>
 

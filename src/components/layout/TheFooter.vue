@@ -1,71 +1,274 @@
 <template>
-  <footer class="footer bg-green-800 text-white py-12">
-    <div class="container mx-auto px-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="footer-section">
-          <h3 class="text-xl font-bold mb-4">Về chúng tôi</h3>
-          <p class="mb-4">Sâm Ngọc Linh - Chuyên cung cấp các sản phẩm sâm Ngọc Linh chất lượng cao, được trồng và chăm sóc theo tiêu chuẩn nghiêm ngặt.</p>
-          <div class="social-links flex space-x-4">
-            <a href="#" class="hover:text-green-400"><i class="fab fa-facebook"></i></a>
-            <a href="#" class="hover:text-green-400"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="hover:text-green-400"><i class="fab fa-instagram"></i></a>
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Thông tin công ty -->
+        <div>
+          <div class="flex items-center mb-4">
+            <div class="w-10 h-10 bg-green-100 rounded-full overflow-hidden mr-2">
+              <img src="@/assets/images/products/sam-tuoi.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
+            </div>
+            <span class="text-xl font-semibold text-white">Sâm Ngọc Linh</span>
+          </div>
+          <p class="company-desc">
+            Chuyên cung cấp các sản phẩm sâm Ngọc Linh chất lượng cao, được trồng và chăm sóc theo tiêu chuẩn nghiêm ngặt.
+          </p>
+          <div class="social-links">
+            <a href="#" class="social-link">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="fab fa-youtube"></i>
+            </a>
           </div>
         </div>
-
-        <div class="footer-section">
-          <h3 class="text-xl font-bold mb-4">Liên hệ</h3>
-          <ul class="space-y-2">
-            <li><i class="fas fa-map-marker-alt mr-2"></i> Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM</li>
-            <li><i class="fas fa-phone mr-2"></i> Điện thoại: (84) 123-456-789</li>
-            <li><i class="fas fa-envelope mr-2"></i> Email: contact@samngoclinh.com</li>
+        
+        <!-- Menu hỗ trợ khách hàng -->
+        <div>
+          <h3 class="footer-heading">Hỗ trợ khách hàng</h3>
+          <ul class="footer-links">
+            <li>
+              <router-link to="/faq" class="footer-link">
+                Câu hỏi thường gặp
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/shipping" class="footer-link">
+                Chính sách vận chuyển
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/returns" class="footer-link">
+                Chính sách đổi trả
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/payment" class="footer-link">
+                Phương thức thanh toán
+              </router-link>
+            </li>
           </ul>
         </div>
-
-        <div class="footer-section">
-          <h3 class="text-xl font-bold mb-4">Đăng ký nhận tin</h3>
-          <form @submit.prevent="subscribeNewsletter" class="space-y-4">
-            <input 
-              type="email" 
-              v-model="email"
-              placeholder="Nhập email của bạn"
-              class="w-full px-4 py-2 rounded text-gray-800"
-            >
-            <button 
-              type="submit"
-              class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded transition-colors"
-            >
-              Đăng ký
-            </button>
-          </form>
+        
+        <!-- Liên kết hữu ích -->
+        <div>
+          <h3 class="footer-heading">Liên kết hữu ích</h3>
+          <ul class="footer-links">
+            <li>
+              <router-link to="/about" class="footer-link">
+                Giới thiệu
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/products" class="footer-link">
+                Sản phẩm
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/news" class="footer-link">
+                Tin tức
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/contact" class="footer-link">
+                Liên hệ
+              </router-link>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Thông tin liên hệ -->
+        <div>
+          <h3 class="footer-heading">Liên hệ</h3>
+          <ul class="footer-links">
+            <li class="contact-item">
+              <i class="fas fa-map-marker-alt mt-1 mr-2 text-gray-400"></i>
+              <span class="text-gray-400">
+                118 Nguyễn Văn Linh, Quận Thanh Khê, Đà Nẵng
+              </span>
+            </li>
+            <li class="contact-item">
+              <i class="fas fa-phone-alt mr-2 text-gray-400"></i>
+              <span class="text-gray-400">
+                <a href="tel:+84912345678" class="contact-link">
+                  0912 345 678
+                </a>
+              </span>
+            </li>
+            <li class="contact-item">
+              <i class="fas fa-envelope mr-2 text-gray-400"></i>
+              <span class="text-gray-400">
+                <a href="mailto:info@samngoclinh.com" class="contact-link">
+                  info@samngoclinh.com
+                </a>
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
-
-      <div class="mt-8 pt-8 border-t border-green-700 text-center">
-        <p>&copy; {{ new Date().getFullYear() }} Sâm Ngọc Linh. Tất cả quyền được bảo lưu.</p>
+      
+      <!-- Phần chân trang -->
+      <div class="footer-bottom">
+        <div class="footer-bottom-content">
+          <p class="copyright">
+            &copy; {{ currentYear }} Sâm Ngọc Linh. Tất cả các quyền được bảo lưu.
+          </p>
+          <div class="legal-links">
+            <router-link to="/privacy" class="legal-link">
+              Chính sách bảo mật
+            </router-link>
+            <router-link to="/terms" class="legal-link">
+              Điều khoản sử dụng
+            </router-link>
+          </div>
+        </div>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 
-const email = ref('')
-
-const subscribeNewsletter = () => {
-  // TODO: Implement newsletter subscription
-  console.log('Subscribe:', email.value)
-  email.value = ''
-}
+// Lấy năm hiện tại cho copyright
+const currentYear = computed(() => new Date().getFullYear())
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/styles/variables" as *;
+
 .footer {
-  .social-links {
-    a {
-      font-size: 1.5rem;
-      transition: color 0.3s ease;
-    }
+  background-color: #1f2937; // gray-900
+  color: $white;
+  padding-top: $spacing-xl;
+  padding-bottom: $spacing-md;
+}
+
+.container {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+  
+  @media (min-width: $breakpoint-sm) {
+    padding: 0 $spacing-lg;
+  }
+  
+  @media (min-width: $breakpoint-lg) {
+    padding: 0 $spacing-xl;
+  }
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-xl;
+  
+  @media (min-width: $breakpoint-md) {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  @media (min-width: $breakpoint-lg) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.company-desc {
+  color: #9ca3af; // gray-400
+  margin-bottom: $spacing-md;
+}
+
+.social-links {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.social-link {
+  color: #9ca3af; // gray-400
+  transition: color 0.3s;
+  
+  &:hover {
+    color: $white;
+  }
+}
+
+.footer-heading {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  margin-bottom: $spacing-md;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.footer-link {
+  color: #9ca3af; // gray-400
+  transition: color 0.3s;
+  
+  &:hover {
+    color: $white;
+  }
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: $spacing-sm;
+}
+
+.contact-link {
+  color: #9ca3af; // gray-400
+  transition: color 0.3s;
+  
+  &:hover {
+    color: $white;
+  }
+}
+
+.footer-bottom {
+  border-top: 1px solid #374151; // gray-800
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+}
+
+.footer-bottom-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+  }
+}
+
+.copyright {
+  color: #9ca3af; // gray-400
+  font-size: 0.875rem;
+  margin-bottom: $spacing-md;
+  
+  @media (min-width: $breakpoint-md) {
+    margin-bottom: 0;
+  }
+}
+
+.legal-links {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.legal-link {
+  color: #9ca3af; // gray-400
+  font-size: 0.875rem;
+  transition: color 0.3s;
+  
+  &:hover {
+    color: $white;
   }
 }
 </style> 

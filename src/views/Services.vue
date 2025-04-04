@@ -73,6 +73,8 @@ const contactUs = (service) => {
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/styles/variables" as *;
+
 .service-card {
   transition: transform 0.3s ease;
 

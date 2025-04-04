@@ -12,20 +12,31 @@ $black: #000000;
 $gray-100: #f3f4f6;
 $gray-200: #e5e7eb;
 
+// Color variables
+$primary-color: #15803d; // green-600
+$secondary-color: #4ade80; // green-400
+$text-color: #333333;
+$light-gray: #f3f4f6;
+
+// Size variables
+$container-max-width: 1280px;
+$border-radius: 0.5rem;
+
 // Typography
-$font-family-base: 'system-ui', '-apple-system', 'sans-serif';
+$font-family-base: 'Inter', sans-serif;
 $font-size-base: 1rem;
-$line-height-base: 1.5;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
 
 // Spacing
-$spacing-1: 0.25rem;
-$spacing-2: 0.5rem;
-$spacing-3: 0.75rem;
-$spacing-4: 1rem;
-$spacing-6: 1.5rem;
-$spacing-8: 2rem;
-$spacing-12: 3rem;
-$spacing-16: 4rem;
+$spacing-base: 1rem;
+$spacing-xs: $spacing-base * 0.25;
+$spacing-sm: $spacing-base * 0.5;
+$spacing-md: $spacing-base;
+$spacing-lg: $spacing-base * 1.5;
+$spacing-xl: $spacing-base * 2;
+$spacing-2xl: $spacing-base * 3;
 
 // Breakpoints
 $breakpoint-sm: 640px;
@@ -35,7 +46,6 @@ $breakpoint-xl: 1280px;
 
 // Border radius
 $border-radius-sm: 0.125rem;
-$border-radius: 0.25rem;
 $border-radius-lg: 0.5rem;
 $border-radius-xl: 1rem;
 
@@ -48,4 +58,12 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
 // Transitions
 $transition-base: all 0.3s ease;
 $transition-fast: all 0.15s ease;
-$transition-slow: all 0.45s ease; 
+$transition-slow: all 0.45s ease;
+
+// CSS Variables
+:root {
+  --primary-color: #{$primary-color};
+  --secondary-color: #{$secondary-color};
+  --text-color: #{$text-color};
+  --light-gray: #{$light-gray};
+} 

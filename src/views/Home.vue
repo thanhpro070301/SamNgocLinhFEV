@@ -1,169 +1,254 @@
 <template>
   <div class="home">
-    <div class="container mx-auto px-4 py-8">
-      <div class="flex flex-col md:flex-row gap-8">
-        <!-- Sidebar -->
-        <Sidebar class="order-2 md:order-1" />
-        
-        <!-- Main Content -->
-        <main class="flex-1 order-1 md:order-2">
-          <!-- Hero Section -->
-          <section class="hero relative overflow-hidden rounded-3xl mb-12">
-            <!-- Background -->
-            <div class="absolute inset-0 bg-gradient-to-br from-green-700 to-green-600"></div>
-
-            <div class="container mx-auto px-8 relative z-10">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
-                <!-- Left Content -->
-                <div class="hero-content text-white py-7" data-aos="fade-right">
-                  <!-- Title -->
-                  <h1 class="text-6xl md:text-7xl font-bold mb-8 leading-tight">
-                    Sâm Ngọc<br/>
-                    <span class="text-green-300">Linh</span>
-                  </h1>
-
-                  <!-- Description -->
-                  <p class="text-xl text-green-100 leading-relaxed mb-10 max-w-xl">
-                    Chuyên cung cấp các sản phẩm sâm Ngọc Linh chất lượng cao, được trồng và chăm sóc theo tiêu chuẩn nghiêm ngặt.
-                  </p>
-
-                  <!-- Buttons -->
-                  <div class="flex flex-wrap gap-4 mb-12">
-                    <router-link 
-                      to="/products" 
-                      class="inline-flex items-center gap-2 bg-white text-green-700 px-6 py-3 rounded-full font-medium hover:bg-green-50 transition-all"
-                    >
-                      Xem sản phẩm
-                      <i class="fas fa-arrow-right"></i>
-                    </router-link>
-                    <router-link 
-                      to="/contact" 
-                      class="inline-flex items-center gap-2 border-2 border-white/30 text-white px-6 py-3 rounded-full font-medium hover:bg-white/10 transition-all backdrop-blur-sm"
-                    >
-                      Liên hệ ngay
-                      <i class="fas fa-headset"></i>
-                    </router-link>
-                  </div>
-
-                  <!-- Trust Badges -->
-                  <div class="flex flex-wrap items-center gap-8 mt-12">
-                    <div class="flex items-center gap-2">
-                      <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                        <i class="fas fa-check-circle text-green-300 text-xl"></i>
-                      </div>
-                      <span class="text-green-100">100% Tự nhiên</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                        <i class="fas fa-award text-green-300 text-xl"></i>
-                      </div>
-                      <span class="text-green-100">Chứng nhận ATTP</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                        <i class="fas fa-truck text-green-300 text-xl"></i>
-                      </div>
-                      <div class="flex flex-col">
-                        <span class="text-green-100">Giao hàng</span>
-                        <span class="text-sm text-green-200">Miễn phí toàn quốc</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Right Content -->
-                <div class="relative" data-aos="fade-left">
-                  <!-- Main Image -->
-                  <div class="relative z-10">
-                    <img 
-                      :src="samTuoiImage" 
-                      alt="Sâm Ngọc Linh" 
-                      class="w-full h-auto"
-                    >
-                  </div>
-
-                  <!-- Rating Card -->
-                  <div class="absolute top-4 right-4 bg-white rounded-2xl p-4 shadow-lg">
-                    <h4 class="text-green-700 font-medium mb-1">Đánh giá</h4>
-                    <div class="flex items-center gap-1 text-yellow-400 mb-1">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-sm text-gray-600">1,234+ đánh giá</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Featured Products -->
-          <section class="featured-products bg-gray-50 rounded-2xl mb-12">
-            <div class="container mx-auto px-4 py-12">
-              <div class="text-center mb-10">
-                <h2 class="text-3xl font-bold mb-4">Sản Phẩm Bán Chạy</h2>
-                <div class="w-24 h-1 bg-green-600 mx-auto"></div>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <ProductCard 
-                  v-for="product in featuredProducts" 
-                  :key="product.id" 
-                  :product="product"
-                  @add-to-cart="addToCart"
-                />
-              </div>
-            </div>
-          </section>
-
-          <!-- Why Choose Us -->
-          <section class="why-choose-us py-12 bg-white rounded-2xl mb-12">
-            <div class="container mx-auto px-4">
-              <div class="text-center mb-16" data-aos="fade-up">
-                <h2 class="text-4xl font-bold mb-4">Tại sao chọn chúng tôi?</h2>
-                <div class="w-24 h-1 bg-green-600 mx-auto"></div>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="feature-card text-center" data-aos="fade-up" data-aos-delay="100">
-                  <div class="icon-wrapper mb-6">
-                    <i class="fas fa-certificate text-5xl text-green-600"></i>
-                  </div>
-                  <h3 class="text-2xl font-semibold mb-4">Chất lượng đảm bảo</h3>
-                  <p class="text-gray-600 leading-relaxed">Sản phẩm được kiểm định chất lượng nghiêm ngặt, đạt tiêu chuẩn cao nhất</p>
-                </div>
-                <div class="feature-card text-center" data-aos="fade-up" data-aos-delay="200">
-                  <div class="icon-wrapper mb-6">
-                    <i class="fas fa-shipping-fast text-5xl text-green-600"></i>
-                  </div>
-                  <h3 class="text-2xl font-semibold mb-4">Giao hàng nhanh chóng</h3>
-                  <p class="text-gray-600 leading-relaxed">Dịch vụ vận chuyển toàn quốc, đảm bảo thời gian và chất lượng</p>
-                </div>
-                <div class="feature-card text-center" data-aos="fade-up" data-aos-delay="300">
-                  <div class="icon-wrapper mb-6">
-                    <i class="fas fa-headset text-5xl text-green-600"></i>
-                  </div>
-                  <h3 class="text-2xl font-semibold mb-4">Hỗ trợ 24/7</h3>
-                  <p class="text-gray-600 leading-relaxed">Đội ngũ tư vấn chuyên nghiệp, nhiệt tình hỗ trợ mọi lúc</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- Call to Action -->
-          <section class="cta bg-green-700 text-white py-16 rounded-2xl" data-aos="fade-up">
-            <div class="container mx-auto px-4 text-center">
-              <h2 class="text-4xl font-bold mb-6">Bắt đầu trải nghiệm ngay hôm nay</h2>
-              <p class="text-xl mb-8 text-green-100">Khám phá bộ sưu tập sản phẩm sâm Ngọc Linh chất lượng cao của chúng tôi</p>
+    <!-- Hero Section with animation -->
+    <div class="hero-section">
+      <div class="container mx-auto px-4 py-16 md:py-24">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div class="hero-content" data-aos="fade-right">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Sâm Ngọc Linh<br><span class="text-green-600">Chất Lượng Cao</span></h1>
+            <p class="text-lg text-gray-600 mb-8">
+              Sản phẩm từ thiên nhiên, mang đến những dưỡng chất quý giá cho sức khỏe và sắc đẹp của bạn.
+            </p>
+            <div class="flex flex-wrap gap-4">
               <router-link 
                 to="/products" 
-                class="inline-block bg-white text-green-700 px-10 py-4 rounded-lg font-semibold hover:bg-green-100 transition-all transform hover:scale-105 shadow-lg"
+                class="btn-primary px-6 py-3 rounded-lg text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                Xem tất cả sản phẩm
+                <i class="fas fa-shopping-basket mr-2"></i> Xem sản phẩm
+              </router-link>
+              <router-link 
+                to="/about" 
+                class="btn-outline px-6 py-3 rounded-lg border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all"
+              >
+                <i class="fas fa-info-circle mr-2"></i> Tìm hiểu thêm
               </router-link>
             </div>
-          </section>
-        </main>
+          </div>
+          <div class="hero-image" data-aos="fade-left" data-aos-delay="200">
+            <div class="relative">
+              <div class="absolute -inset-4 bg-green-100 rounded-full opacity-70 animate-pulse"></div>
+              <div class="relative z-10 overflow-hidden rounded-full p-2 bg-white shadow-2xl">
+                <img 
+                  :src="samTuoiImage" 
+                  alt="Sâm Ngọc Linh" 
+                  class="w-full h-auto rounded-full object-cover transform hover:scale-105 transition-transform duration-500"
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Benefit Pills -->
+    <div class="benefits-section bg-gray-50 py-10">
+      <div class="container mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="100">
+            <i class="fas fa-leaf text-green-500 mr-2"></i>
+            <span>100% Tự Nhiên</span>
+          </div>
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="200">
+            <i class="fas fa-medal text-green-500 mr-2"></i>
+            <span>Chứng Nhận Chất Lượng</span>
+          </div>
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="300">
+            <i class="fas fa-truck text-green-500 mr-2"></i>
+            <span>Giao Hàng Toàn Quốc</span>
+          </div>
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="400">
+            <i class="fas fa-shield-alt text-green-500 mr-2"></i>
+            <span>Bảo Hành Sản Phẩm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Featured Products -->
+    <div class="featured-products py-16">
+      <div class="container mx-auto px-4">
+        <div class="section-header text-center mb-12" data-aos="fade-up">
+          <span class="text-sm uppercase tracking-wider text-green-600 font-semibold">Sản phẩm đặc biệt</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Sản Phẩm Nổi Bật</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Sâm Ngọc Linh được mệnh danh là "quốc bảo" của Việt Nam với nhiều công dụng quý giá cho sức khỏe.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Sản phẩm giả lập với animation -->
+          <div 
+            v-for="(product, index) in featuredProducts" 
+            :key="index" 
+            class="product-card group"
+            data-aos="fade-up"
+            :data-aos-delay="index * 100"
+          >
+            <div class="product-image overflow-hidden rounded-t-lg bg-gray-100">
+              <img 
+                :src="product.image" 
+                :alt="product.name" 
+                class="w-full h-64 object-contain transform group-hover:scale-105 transition-transform duration-500"
+              >
+            </div>
+            <div class="product-info p-6 bg-white rounded-b-lg shadow-md group-hover:shadow-xl transition-shadow">
+              <h3 class="product-title text-xl font-semibold text-gray-800 mb-2">{{ product.name }}</h3>
+              <div class="flex items-center mb-2">
+                <div class="flex text-yellow-400">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="text-sm text-gray-500 ml-2">(4.5)</span>
+              </div>
+              <p class="product-description text-gray-600 mb-4 line-clamp-2">{{ product.description }}</p>
+              <div class="flex justify-between items-center">
+                <span class="product-price text-xl font-bold text-green-600">{{ formatPrice(product.price) }}</span>
+                <button class="btn-add-cart px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <i class="fas fa-shopping-cart mr-1"></i> Thêm vào giỏ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-12" data-aos="fade-up">
+          <router-link 
+            to="/products" 
+            class="btn-view-all inline-flex items-center px-6 py-3 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+          >
+            Xem tất cả sản phẩm
+            <i class="fas fa-arrow-right ml-2"></i>
+          </router-link>
+        </div>
+      </div>
+    </div>
+
+    <!-- Why Choose Us -->
+    <div class="features-section bg-gray-50 py-16">
+      <div class="container mx-auto px-4">
+        <div class="section-header text-center mb-12" data-aos="fade-up">
+          <span class="text-sm uppercase tracking-wider text-green-600 font-semibold">Lý do chọn chúng tôi</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Tại Sao Chọn Chúng Tôi?</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Chúng tôi cam kết mang đến những sản phẩm Sâm Ngọc Linh chất lượng cao nhất.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="feature-item text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="100">
+            <div class="feature-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-leaf text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="feature-title text-xl font-semibold mb-3">100% Tự nhiên</h3>
+            <p class="feature-description text-gray-600">
+              Sản phẩm được trồng và thu hoạch theo phương pháp tự nhiên, không chất bảo quản, đảm bảo an toàn cho sức khỏe người sử dụng.
+            </p>
+          </div>
+          
+          <div class="feature-item text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="200">
+            <div class="feature-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-certificate text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="feature-title text-xl font-semibold mb-3">Chứng nhận chất lượng</h3>
+            <p class="feature-description text-gray-600">
+              Đạt tiêu chuẩn chất lượng và được cấp giấy chứng nhận từ các cơ quan chức năng, đảm bảo nguồn gốc xuất xứ rõ ràng.
+            </p>
+          </div>
+          
+          <div class="feature-item text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="300">
+            <div class="feature-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-shipping-fast text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="feature-title text-xl font-semibold mb-3">Giao hàng nhanh chóng</h3>
+            <p class="feature-description text-gray-600">
+              Sản phẩm được đóng gói cẩn thận và giao hàng nhanh chóng đến tận tay khách hàng trên toàn quốc.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="testimonials-section py-16">
+      <div class="container mx-auto px-4">
+        <div class="section-header text-center mb-12" data-aos="fade-up">
+          <span class="text-sm uppercase tracking-wider text-green-600 font-semibold">Khách hàng nói gì</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Đánh Giá Từ Khách Hàng</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Những đánh giá chân thực từ khách hàng đã sử dụng sản phẩm của chúng tôi.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="testimonial-card p-6 bg-white rounded-xl shadow-md" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="text-gray-600 mb-4 italic">
+              "Tôi đã sử dụng Sâm Ngọc Linh được 3 tháng và sức khỏe đã cải thiện đáng kể. Giấc ngủ sâu hơn và tinh thần luôn tỉnh táo."
+            </p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded-full mr-4 overflow-hidden">
+                <i class="fas fa-user text-gray-400 flex items-center justify-center h-full"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold">Nguyễn Văn A</h4>
+                <p class="text-sm text-gray-500">Khách hàng thân thiết</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="testimonial-card p-6 bg-white rounded-xl shadow-md" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="text-gray-600 mb-4 italic">
+              "Sản phẩm chất lượng cao, đóng gói cẩn thận và giao hàng nhanh. Tôi rất hài lòng với dịch vụ và sẽ tiếp tục ủng hộ."
+            </p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded-full mr-4 overflow-hidden">
+                <i class="fas fa-user text-gray-400 flex items-center justify-center h-full"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold">Trần Thị B</h4>
+                <p class="text-sm text-gray-500">Khách hàng mới</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="testimonial-card p-6 bg-white rounded-xl shadow-md" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <p class="text-gray-600 mb-4 italic">
+              "Đã mua rượu sâm ngọc linh làm quà biếu và nhận được phản hồi rất tích cực. Giá cả hợp lý cho chất lượng sản phẩm."
+            </p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded-full mr-4 overflow-hidden">
+                <i class="fas fa-user text-gray-400 flex items-center justify-center h-full"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold">Lê Văn C</h4>
+                <p class="text-sm text-gray-500">Khách hàng VIP</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -171,105 +256,105 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import ProductCard from '@/components/ProductCard.vue'
-import Sidebar from '@/components/sidebar/Sidebar.vue'
 import AOS from 'aos'
-import 'aos/dist/aos.css'
-import cart from '@/store/cart'
 
-// Import images
-import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
-import patternImage from '@/assets/images/patterns/pattern.jpg'
+// Fix image path by using public path instead of relative import
+const samTuoiImage = '/assets/images/products/sam-tuoi.png'
 
-onMounted(() => {
-  AOS.init({
-    duration: 1000,
-    once: true,
-    offset: 50
-  })
-})
-
-const featuredProducts = ref([
+// Sản phẩm nổi bật giả lập
+const featuredProducts = [
   {
-    id: 1,
-    name: 'Sâm Ngọc Linh Tươi 10 Năm Tuổi',
-    image: samTuoiImage,
-    price: 15000000,
-    originalPrice: 18000000,
-    rating: 5,
-    sold: 124,
-    category: 'sam-tuoi',
-    stock: 50
+    name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
+    description: 'Sâm ngọc linh tươi có tuổi đời 10 năm, được thu hoạch từ vùng núi Ngọc Linh, giữ nguyên dược tính quý giá.',
+    price: 2500000,
+    image: samTuoiImage
   },
   {
-    id: 2,
     name: 'Cao Sâm Ngọc Linh',
-    image: samTuoiImage,
-    price: 8000000,
-    rating: 4,
-    sold: 89,
-    category: 'cao-sam',
-    stock: 100
+    description: 'Cao sâm ngọc linh nguyên chất, tinh khiết, giúp bồi bổ sức khỏe hiệu quả, tăng cường hệ miễn dịch.',
+    price: 1800000,
+    image: samTuoiImage
   },
   {
-    id: 3,
     name: 'Rượu Sâm Ngọc Linh',
-    image: samTuoiImage,
-    price: 5000000,
-    originalPrice: 6000000,
-    rating: 5,
-    sold: 156,
-    category: 'ruou-sam',
-    stock: 0
+    description: 'Rượu ngâm sâm ngọc linh, giúp tăng cường sinh lực và bồi bổ cơ thể, phù hợp cho người lớn tuổi.',
+    price: 1500000,
+    image: samTuoiImage
   }
-])
+]
 
-const addToCart = (product) => {
-  console.log('Product added to cart:', product.name)
+// Format giá tiền
+function formatPrice(price) {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(price).replace('₫', 'VNĐ')
 }
+
+// Refresh AOS on component mount
+onMounted(() => {
+  AOS.refresh();
+})
 </script>
 
-<style lang="scss" scoped>
-.hero {
-  min-height: 15vh;
-  background-color: #065f46;
+<style lang="scss">
+@use "@/assets/styles/variables" as *;
+
+// Custom styles for benefit pills
+.benefit-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  color: #374151;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   
-  @media (max-width: 768px) {
-    min-height: auto;
-  }
-}
-
-.feature-card {
-  padding: 2.5rem;
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  }
-
-  .icon-wrapper {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto;
-    background: rgba(16, 185, 129, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-
-  &:hover .icon-wrapper {
-    background: rgba(16, 185, 129, 0.2);
-    transform: scale(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 }
 
-.cta {
-  background-image: linear-gradient(135deg, #047857 0%, #059669 100%);
+// Add animations
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30%;
+    height: 100%;
+    background-color: rgba(220, 252, 231, 0.3); // green-100 with opacity
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+    z-index: 0;
+  }
+}
+
+// Custom animation for product cards
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+.product-card {
+  transition: all 0.3s ease;
+  &:hover {
+    transform: translateY(-8px);
+  }
+}
+
+// Using @apply for utility classes
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style> 

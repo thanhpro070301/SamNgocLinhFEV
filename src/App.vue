@@ -28,6 +28,8 @@ const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 </script>
 
 <style lang="scss">
+@use "@/assets/styles/variables" as *;
+
 .app {
   min-height: 100vh;
   display: flex;

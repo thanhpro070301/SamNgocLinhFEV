@@ -23,5 +23,5 @@
 </template>
 
 <script setup>
-import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
+const samTuoiImage = '/assets/images/products/sam-tuoi.png'
 </script> 

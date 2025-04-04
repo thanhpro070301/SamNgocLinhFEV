@@ -24,14 +24,14 @@
         <p>{{ successMessage }}</p>
       </div>
       
-      <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
+      <form class="mt-8 space-y-6" @submit.prevent="register">
         <div class="rounded-md -space-y-px">
           <div class="mb-4">
-            <label for="fullname" class="block text-sm font-medium text-gray-700">Họ và tên</label>
+            <label for="name" class="block text-sm font-medium text-gray-700">Họ tên</label>
             <input 
-              id="fullname" 
-              v-model="fullname"
-              name="fullname" 
+              id="name" 
+              v-model="form.name"
+              name="name" 
               type="text" 
               autocomplete="name" 
               required 
@@ -44,13 +44,13 @@
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input 
               id="email" 
-              v-model="email"
+              v-model="form.email"
               name="email" 
               type="email" 
               autocomplete="email" 
               required 
               class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="admin@example.com"
+              placeholder="example@email.com"
             >
           </div>
           
@@ -58,9 +58,10 @@
             <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
             <input 
               id="password" 
-              v-model="password"
+              v-model="form.password"
               name="password" 
-              type="password"
+              type="password" 
+              autocomplete="new-password" 
               required 
               class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="••••••••"
@@ -68,12 +69,13 @@
           </div>
           
           <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Xác nhận mật khẩu</label>
+            <label for="password_confirm" class="block text-sm font-medium text-gray-700">Xác nhận mật khẩu</label>
             <input 
-              id="confirmPassword" 
-              v-model="confirmPassword"
-              name="confirmPassword" 
-              type="password"
+              id="password_confirm" 
+              v-model="form.passwordConfirm"
+              name="password_confirm" 
+              type="password" 
+              autocomplete="new-password" 
               required 
               class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="••••••••"
@@ -100,7 +102,7 @@
         <div>
           <button 
             type="submit"
-            :disabled="isLoading || !passwordsMatch"
+            :disabled="isLoading"
             class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-75"
           >
             <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
@@ -118,60 +120,87 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/api'
 import auth from '@/store/auth'
-import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
 
 const router = useRouter()
-const fullname = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const agreeTerms = ref(false)
-const isLoading = ref(false)
 const errorMessage = ref('')
+const isLoading = ref(false)
 const successMessage = ref('')
+const agreeTerms = ref(false)
 
-const passwordsMatch = computed(() => {
-  return password.value.length >= 6 && password.value === confirmPassword.value
+const samTuoiImage = '/assets/images/products/sam-tuoi.png'
+
+// Form data
+const form = reactive({
+  name: '',
+  email: '',
+  password: '',
+  passwordConfirm: ''
 })
 
-const handleRegister = async () => {
-  if (password.value !== confirmPassword.value) {
+// Validate form
+function validateForm() {
+  if (!form.name || !form.email || !form.password || !form.passwordConfirm) {
+    errorMessage.value = 'Vui lòng điền đầy đủ thông tin'
+    return false
+  }
+  
+  if (form.password !== form.passwordConfirm) {
     errorMessage.value = 'Mật khẩu xác nhận không khớp'
-    return
+    return false
   }
   
-  if (password.value.length < 6) {
+  if (form.password.length < 6) {
     errorMessage.value = 'Mật khẩu phải có ít nhất 6 ký tự'
-    return
+    return false
   }
   
-  isLoading.value = true
+  return true
+}
+
+// Register function
+async function register() {
+  if (!validateForm()) return
+  
   errorMessage.value = ''
-  successMessage.value = ''
+  isLoading.value = true
   
   try {
-    const success = await auth.register({
-      name: fullname.value,
-      email: email.value,
-      password: password.value
+    // Gọi API đăng ký
+    await api.auth.register({
+      name: form.name,
+      email: form.email,
+      password: form.password
     })
     
-    if (success) {
-      successMessage.value = 'Đăng ký thành công! Bạn sẽ được chuyển hướng đến trang đăng nhập.'
-      
-      // Chuyển hướng đến trang đăng nhập sau 2 giây
-      setTimeout(() => {
-        router.push('/admin/login')
-      }, 2000)
-    } else {
-      errorMessage.value = 'Email này đã được sử dụng'
-    }
+    // Chuyển hướng đến trang đăng nhập
+    router.push({
+      path: '/admin/login',
+      query: { registered: 'success' }
+    })
   } catch (error) {
-    errorMessage.value = 'Đã xảy ra lỗi, vui lòng thử lại'
     console.error('Register error:', error)
+    
+    // Hiển thị thông báo lỗi phù hợp
+    if (error.response) {
+      // Nếu server trả về lỗi
+      switch (error.response.status) {
+        case 409:
+          errorMessage.value = 'Email đã được sử dụng, vui lòng chọn email khác'
+          break
+        case 400:
+          errorMessage.value = 'Thông tin không hợp lệ, vui lòng kiểm tra lại'
+          break
+        default:
+          errorMessage.value = 'Đã xảy ra lỗi, vui lòng thử lại sau'
+      }
+    } else {
+      // Lỗi kết nối hoặc lỗi khác
+      errorMessage.value = 'Không thể kết nối đến máy chủ, vui lòng thử lại sau'
+    }
   } finally {
     isLoading.value = false
   }

@@ -12,8 +12,33 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "@/assets/styles/variables.scss";`
+        additionalData: `@use "@/assets/styles/variables" as *;`
       }
+    }
+  },
+  publicDir: 'public',
+  build: {
+    assetsInlineLimit: 0,
+    copyPublicDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia']
+        }
+      }
+    },
+    sourcemap: true
+  },
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: false,
+    fs: {
+      strict: false
+    },
+    cors: true,
+    hmr: {
+      overlay: true
     }
   }
 }) 

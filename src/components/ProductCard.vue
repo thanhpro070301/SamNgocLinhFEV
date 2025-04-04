@@ -128,7 +128,9 @@ const contactUs = () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/assets/styles/variables" as *;
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -151,7 +153,7 @@ const contactUs = () => {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: $border-radius-sm;
   font-weight: 500;
   transition: all 0.3s ease;
   border: none;
@@ -166,13 +168,13 @@ const contactUs = () => {
 
 .btn-cart {
   background-color: #f0fdf4;
-  color: #16a34a;
+  color: $primary-color;
   border: 1px solid #dcfce7;
 }
 
 .btn-buy {
-  background-color: #16a34a;
-  color: white;
+  background-color: $primary-color;
+  color: $white;
   box-shadow: 0 4px 6px rgba(22, 163, 74, 0.15);
 }
 
@@ -182,7 +184,7 @@ const contactUs = () => {
 }
 
 .btn-buy:hover {
-  background-color: #15803d;
+  background-color: $primary-dark;
   transform: translateY(-2px);
   box-shadow: 0 6px 8px rgba(22, 163, 74, 0.2);
 }
@@ -202,7 +204,7 @@ const contactUs = () => {
   font-size: 12px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: $breakpoint-sm) {
   .label {
     display: none;
   }
@@ -230,7 +232,7 @@ const contactUs = () => {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: $border-radius-sm;
   font-weight: 500;
   transition: all 0.3s ease;
   border: none;
@@ -242,7 +244,7 @@ const contactUs = () => {
   font-size: 13px;
   text-transform: none;
   background-color: #f59e0b;
-  color: white;
+  color: $white;
   box-shadow: 0 4px 6px rgba(245, 158, 11, 0.15);
 }
 
