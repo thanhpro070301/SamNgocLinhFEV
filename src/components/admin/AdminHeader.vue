@@ -130,6 +130,7 @@ const menuItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: 'fas fa-tachometer-alt' },
   { label: 'Sản phẩm', path: '/admin/products', icon: 'fas fa-box' },
   { label: 'Danh mục', path: '/admin/categories', icon: 'fas fa-tags' },
+  { label: 'Dịch vụ', path: '/admin/services', icon: 'fas fa-cogs' },
   { label: 'Đơn hàng', path: '/admin/orders', icon: 'fas fa-shopping-cart' },
   { label: 'Tin tức', path: '/admin/news', icon: 'fas fa-newspaper' },
   { label: 'Người dùng', path: '/admin/users', icon: 'fas fa-users' }

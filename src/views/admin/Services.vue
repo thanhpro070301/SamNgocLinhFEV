@@ -18,63 +18,88 @@
           </button>
         </div>
         
-        <!-- Actions Bar -->
-        <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
-          <div class="flex items-center gap-4 flex-grow">
-            <div class="relative flex-grow max-w-md">
-              <input 
-                type="text" 
-                v-model="searchQuery"
-                placeholder="Tìm kiếm dịch vụ..." 
-                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        <!-- Search and filters -->
+        <div class="bg-white p-4 rounded shadow mb-6">
+          <div class="flex flex-wrap gap-4">
+            <div class="flex-1 min-w-[200px]">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
+              <div class="relative">
+                <input 
+                  v-model="searchQuery"
+                  type="text" 
+                  placeholder="Tìm kiếm dịch vụ..." 
+                  class="w-full px-4 py-2 border rounded-md"
+                  @keyup.enter="searchQuery = searchQuery"
+                >
+                <button 
+                  class="absolute right-2 top-2 text-gray-400"
+                  @click="searchQuery = searchQuery"
+                >
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
             </div>
-            <div class="flex-shrink-0">
+            
+            <div class="w-48">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
               <select 
-                v-model="statusFilter"
-                class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                v-model="statusFilter" 
+                class="w-full px-4 py-2 border rounded-md"
               >
-                <option value="all">Tất cả trạng thái</option>
-                <option value="active">Hoạt động</option>
+                <option value="all">Tất cả</option>
+                <option value="active">Đang hoạt động</option>
                 <option value="inactive">Không hoạt động</option>
               </select>
             </div>
           </div>
         </div>
         
-        <!-- Services Table -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- Error message -->
+        <div v-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
+          <p>{{ error }}</p>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div v-if="isLoading" class="flex justify-center my-10">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+        
+        <!-- Services table -->
+        <div v-else-if="filteredServices.length > 0" class="bg-white rounded shadow overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Dịch vụ
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tên dịch vụ
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Giá
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thời gian
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="service in filteredServices" :key="service.id" class="hover:bg-gray-50">
+              <tr v-for="service in filteredServices" :key="service.id">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mr-3">
-                      <i :class="service.icon"></i>
+                    <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-blue-100 rounded-full">
+                      <i :class="[service.icon, 'text-blue-500 text-lg']"></i>
                     </div>
-                    <div class="max-w-xs">
-                      <div class="text-sm font-medium text-gray-900 truncate">{{ service.name }}</div>
-                      <div class="text-sm text-gray-500 line-clamp-1">{{ service.description }}</div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900 line-clamp-1">
+                        {{ service.name }}
+                      </div>
+                      <div class="text-sm text-gray-500 line-clamp-1">
+                        {{ service.description }}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -85,359 +110,538 @@
                   <div class="text-sm text-gray-900">{{ service.duration }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="`inline-flex px-2 py-1 text-xs font-medium rounded-full ${service.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`">
-                    {{ service.status === 'active' ? 'Hoạt động' : 'Không hoạt động' }}
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
+                    :class="service.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    {{ service.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động' }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div class="flex gap-3 items-center px-2">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div class="flex space-x-2">
                     <button 
-                      @click="editService(service)"
-                      class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shadow-sm"
+                      @click="editService(service)" 
+                      class="text-indigo-600 hover:text-indigo-900"
                       title="Chỉnh sửa"
-                      type="button"
                     >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button 
-                      @click="toggleServiceStatus(service)"
-                      class="w-9 h-9 flex items-center justify-center rounded-full shadow-sm transition-colors"
-                      :class="service.status === 'active' ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' : 'bg-green-50 text-green-600 hover:bg-green-100'"
+                      @click="toggleServiceStatus(service)" 
+                      class="text-yellow-600 hover:text-yellow-900"
                       :title="service.status === 'active' ? 'Vô hiệu hóa' : 'Kích hoạt'"
-                      type="button"
                     >
                       <i :class="service.status === 'active' ? 'fas fa-toggle-on' : 'fas fa-toggle-off'"></i>
                     </button>
                     <button 
-                      @click="confirmDelete(service.id)"
-                      class="w-9 h-9 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors shadow-sm"
+                      @click="confirmDelete(service.id)" 
+                      class="text-red-600 hover:text-red-900"
                       title="Xóa"
-                      type="button"
                     >
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
                 </td>
               </tr>
-              <tr v-if="filteredServices.length === 0">
-                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                  Không tìm thấy dịch vụ nào
-                </td>
-              </tr>
             </tbody>
           </table>
-        </div>
-        
-        <!-- Pagination -->
-        <div class="flex justify-between items-center mt-6">
-          <div class="text-sm text-gray-500">
-            Hiển thị {{ filteredServices.length }} trên tổng số {{ services.length }} dịch vụ
-          </div>
-          <div class="flex gap-2">
-            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="px-3 py-1 border border-gray-300 rounded-md bg-green-600 text-white">1</button>
-            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">2</button>
-            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">3</button>
-            <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Add/Edit Service Modal -->
-        <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">
-                {{ isEditMode ? 'Chỉnh sửa dịch vụ' : 'Thêm dịch vụ mới' }}
-              </h3>
+          
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="px-6 py-3 flex items-center justify-between border-t">
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button 
+                @click="prevPage" 
+                :disabled="currentPage === 0"
+                :class="currentPage === 0 ? 'bg-gray-300 text-gray-500' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                class="px-4 py-2 rounded"
+              >
+                Trước
+              </button>
+              <button 
+                @click="nextPage" 
+                :disabled="currentPage >= totalPages - 1"
+                :class="currentPage >= totalPages - 1 ? 'bg-gray-300 text-gray-500' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                class="px-4 py-2 rounded"
+              >
+                Sau
+              </button>
             </div>
-            <div class="p-6">
-              <form @submit.prevent="saveService">
-                <div class="grid gap-6">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên dịch vụ <span class="text-red-500">*</span></label>
-                    <input 
-                      type="text" 
-                      v-model="serviceForm.name"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      required
-                    >
-                  </div>
-                  
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Biểu tượng</label>
-                      <div class="relative">
-                        <select 
-                          v-model="serviceForm.icon"
-                          class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none"
-                        >
-                          <option value="fas fa-leaf">Lá (fas fa-leaf)</option>
-                          <option value="fas fa-seedling">Cây non (fas fa-seedling)</option>
-                          <option value="fas fa-hiking">Du lịch (fas fa-hiking)</option>
-                          <option value="fas fa-spa">Spa (fas fa-spa)</option>
-                          <option value="fas fa-tractor">Nông trại (fas fa-tractor)</option>
-                        </select>
-                        <i :class="[serviceForm.icon || 'fas fa-leaf', 'absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500']"></i>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-                      <select 
-                        v-model="serviceForm.status"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      >
-                        <option value="active">Hoạt động</option>
-                        <option value="inactive">Không hoạt động</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Giá (VNĐ) <span class="text-red-500">*</span></label>
-                      <input 
-                        type="number" 
-                        v-model="serviceForm.price"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        required
-                        min="0"
-                      >
-                    </div>
-                    
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian <span class="text-red-500">*</span></label>
-                      <input 
-                        type="text" 
-                        v-model="serviceForm.duration"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Ví dụ: 2 giờ, 1 ngày..."
-                        required
-                      >
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-                    <textarea 
-                      v-model="serviceForm.description"
-                      rows="4"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    ></textarea>
-                  </div>
-                </div>
-                
-                <div class="mt-6 flex justify-end gap-3">
-                  <button 
-                    type="button"
-                    @click="closeModal"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Hủy
-                  </button>
-                  <button 
-                    type="submit"
-                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                  >
-                    {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Delete Confirmation Modal -->
-        <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <div class="text-center">
-              <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-exclamation-triangle text-xl"></i>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700">
+                  Hiển thị <span class="font-medium">{{ filteredServices.length }}</span> trong số 
+                  <span class="font-medium">{{ totalServices }}</span> dịch vụ
+                </p>
               </div>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">Xác nhận xóa</h3>
-              <p class="text-gray-500 mb-6">Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác.</p>
-            </div>
-            <div class="flex justify-center gap-3">
-              <button 
-                @click="showDeleteConfirm = false"
-                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-              <button 
-                @click="deleteService"
-                class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Xóa
-              </button>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <button 
+                    @click="prevPage" 
+                    :disabled="currentPage === 0"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button 
+                    v-for="page in totalPages" 
+                    :key="page"
+                    @click="goToPage(page - 1)"
+                    :class="currentPage === page - 1 ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'"
+                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium"
+                  >
+                    {{ page }}
+                  </button>
+                  <button 
+                    @click="nextPage" 
+                    :disabled="currentPage >= totalPages - 1"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </nav>
+              </div>
             </div>
           </div>
+        </div>
+        
+        <!-- Empty state -->
+        <div v-else-if="!isLoading" class="bg-white p-8 rounded shadow text-center">
+          <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-1">Không có dịch vụ nào</h3>
+          <p class="text-gray-500 mb-4">Không tìm thấy dịch vụ nào phù hợp với tìm kiếm của bạn.</p>
+          <button 
+            @click="openAddModal" 
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Thêm dịch vụ mới
+          </button>
         </div>
       </div>
     </main>
+    
+    <!-- Add/Edit Service Modal -->
+    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b">
+          <h3 class="text-lg font-medium text-gray-900">
+            {{ isEditMode ? 'Chỉnh sửa dịch vụ' : 'Thêm dịch vụ mới' }}
+          </h3>
+        </div>
+        
+        <div class="p-6">
+          <div class="space-y-4">
+            <!-- Service Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tên dịch vụ *</label>
+              <input 
+                v-model="serviceForm.name" 
+                type="text" 
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="Nhập tên dịch vụ"
+              >
+            </div>
+            
+            <!-- Icon -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+              <div class="flex space-x-4">
+                <div class="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-lg">
+                  <i :class="[serviceForm.icon, 'text-blue-500 text-3xl']"></i>
+                </div>
+                <select 
+                  v-model="serviceForm.icon" 
+                  class="flex-1 px-4 py-2 border rounded-md"
+                >
+                  <option value="fas fa-leaf">Lá</option>
+                  <option value="fas fa-hiking">Du lịch</option>
+                  <option value="fas fa-seedling">Cây con</option>
+                  <option value="fas fa-tractor">Máy kéo</option>
+                  <option value="fas fa-spa">Spa</option>
+                  <option value="fas fa-tree">Cây</option>
+                  <option value="fas fa-mountain">Núi</option>
+                  <option value="fas fa-clinic-medical">Y tế</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Status -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+              <select 
+                v-model="serviceForm.status" 
+                class="w-full px-4 py-2 border rounded-md"
+              >
+                <option value="active">Đang hoạt động</option>
+                <option value="inactive">Không hoạt động</option>
+              </select>
+            </div>
+            
+            <!-- Price -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Giá (VNĐ) *</label>
+              <input 
+                v-model.number="serviceForm.price" 
+                type="number" 
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="Nhập giá dịch vụ"
+                min="0"
+              >
+            </div>
+            
+            <!-- Duration -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian *</label>
+              <input 
+                v-model="serviceForm.duration" 
+                type="text" 
+                class="w-full px-4 py-2 border rounded-md"
+                placeholder="Ví dụ: 2 giờ, 1 ngày, 3 tháng..."
+              >
+            </div>
+            
+            <!-- Description -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
+              <textarea 
+                v-model="serviceForm.description" 
+                class="w-full px-4 py-2 border rounded-md"
+                rows="4"
+                placeholder="Nhập mô tả chi tiết về dịch vụ"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+          <button 
+            @click="closeModal" 
+            class="px-4 py-2 border rounded-md"
+          >
+            Hủy
+          </button>
+          <button 
+            @click="saveService" 
+            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+          >
+            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-exclamation-triangle text-xl"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Xác nhận xóa</h3>
+          <p class="text-gray-500 mb-6">Bạn có chắc chắn muốn xóa dịch vụ này? Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="flex justify-center gap-3">
+          <button 
+            @click="showDeleteConfirm = false"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button 
+            @click="deleteService"
+            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Xóa
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
+import api from '@/api'
+import notificationService from '@/utils/notificationService'
 
-// Sample data - replace with API calls in production
-const services = ref([
-  {
-    id: 1,
-    name: 'Du lịch trải nghiệm',
-    description: 'Tour khám phá vùng trồng sâm Ngọc Linh, tìm hiểu về quy trình trồng và thu hoạch.',
-    price: 2500000,
-    duration: '1 ngày',
-    icon: 'fas fa-hiking',
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Chăm sóc, bảo vệ Sâm',
-    description: 'Dịch vụ tư vấn kỹ thuật chăm sóc sâm Ngọc Linh từ các chuyên gia.',
-    price: 5000000,
-    duration: '3 tháng',
-    icon: 'fas fa-seedling',
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Xây dựng trang trại',
-    description: 'Tư vấn thiết kế, xây dựng và vận hành trang trại trồng sâm Ngọc Linh.',
-    price: 15000000,
-    duration: '6 tháng',
-    icon: 'fas fa-tractor',
-    status: 'inactive'
-  },
-  {
-    id: 4,
-    name: 'Hướng dẫn chế biến',
-    description: 'Khóa học chế biến các sản phẩm từ sâm Ngọc Linh như rượu, cao, trà...',
-    price: 1800000,
-    duration: '2 ngày',
-    icon: 'fas fa-spa',
-    status: 'active'
-  }
-])
+// Services data
+const services = ref([])
+const isLoading = ref(true)
+const error = ref(null)
 
-// Search and filter
+// Modal state
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const currentServiceId = ref(null)
+
+// Filters
 const searchQuery = ref('')
 const statusFilter = ref('all')
 
-const filteredServices = computed(() => {
-  let result = services.value
-  
-  // Apply search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(service => 
-      service.name.toLowerCase().includes(query) || 
-      service.description.toLowerCase().includes(query)
-    )
-  }
-  
-  // Apply status filter
-  if (statusFilter.value !== 'all') {
-    result = result.filter(service => service.status === statusFilter.value)
-  }
-  
-  return result
-})
+// Pagination
+const currentPage = ref(0)
+const itemsPerPage = ref(10)
+const totalServices = ref(0)
+const totalPages = ref(1)
 
-// Modal state and form
-const isModalOpen = ref(false)
-const isEditMode = ref(false)
-const serviceForm = ref({
-  id: null,
+// Service form data
+const serviceForm = reactive({
   name: '',
-  description: '',
+  icon: 'fas fa-leaf',
+  status: 'active',
   price: 0,
   duration: '',
-  icon: 'fas fa-leaf',
-  status: 'active'
+  description: ''
 })
 
-// Delete confirmation
-const showDeleteConfirm = ref(false)
-const serviceToDeleteId = ref(null)
+// Computed: filtered services based on search and status
+const filteredServices = computed(() => {
+  return services.value.filter(service => {
+    // Filter by search query
+    const matchesSearch = !searchQuery.value || 
+      service.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    
+    // Filter by status
+    const matchesStatus = statusFilter.value === 'all' || service.status === statusFilter.value
+    
+    return matchesSearch && matchesStatus
+  })
+})
 
-// Format price with thousand separator
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN').format(price) + ' ₫'
+// Fetch services from API
+async function fetchServices() {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    // For now, services endpoint might not be ready, so we're using sample data
+    // This should be replaced with actual API call when backend is ready
+    // const response = await api.service.getServices()
+    // services.value = response.data
+    
+    // Sample data
+    services.value = [
+      {
+        id: 1,
+        name: 'Tham quan vườn sâm Ngọc Linh',
+        icon: 'fas fa-hiking',
+        description: 'Tham quan vườn sâm Ngọc Linh và tìm hiểu quy trình trồng, chăm sóc sâm.',
+        price: 500000,
+        duration: '2 giờ',
+        status: 'active'
+      },
+      {
+        id: 2,
+        name: 'Trải nghiệm thu hoạch sâm',
+        icon: 'fas fa-seedling',
+        description: 'Trải nghiệm quy trình thu hoạch sâm Ngọc Linh cùng các chuyên gia.',
+        price: 1200000,
+        duration: '4 giờ',
+        status: 'active'
+      },
+      {
+        id: 3,
+        name: 'Chăm sóc sức khỏe với sâm Ngọc Linh',
+        icon: 'fas fa-spa',
+        description: 'Dịch vụ tư vấn sức khỏe và cách sử dụng sâm Ngọc Linh hiệu quả.',
+        price: 300000,
+        duration: '1 giờ',
+        status: 'inactive'
+      }
+    ]
+    
+    // Simulate pagination data
+    totalServices.value = services.value.length
+    totalPages.value = Math.ceil(totalServices.value / itemsPerPage.value)
+    
+  } catch (err) {
+    console.error('Error fetching services:', err)
+    error.value = 'Không thể tải danh sách dịch vụ. Vui lòng thử lại sau.'
+    notificationService.show('Không thể tải danh sách dịch vụ. Vui lòng thử lại sau.', {
+      title: 'Lỗi',
+      type: 'error'
+    })
+  } finally {
+    isLoading.value = false
+  }
 }
 
-// Open modal for adding new service
-const openAddModal = () => {
+// Format price
+function formatPrice(price) {
+  return new Intl.NumberFormat('vi-VN', { 
+    style: 'currency', 
+    currency: 'VND',
+    maximumFractionDigits: 0
+  }).format(price)
+}
+
+// Open modal to add new service
+function openAddModal() {
   isEditMode.value = false
-  serviceForm.value = {
-    id: null,
-    name: '',
-    description: '',
-    price: 0,
-    duration: '',
-    icon: 'fas fa-leaf',
-    status: 'active'
-  }
+  currentServiceId.value = null
+  
+  // Reset form
+  serviceForm.name = ''
+  serviceForm.icon = 'fas fa-leaf'
+  serviceForm.status = 'active'
+  serviceForm.price = 0
+  serviceForm.duration = ''
+  serviceForm.description = ''
+  
   isModalOpen.value = true
 }
 
-// Open modal for editing service
-const editService = (service) => {
+// Open modal to edit service
+function editService(service) {
   isEditMode.value = true
-  serviceForm.value = { ...service }
+  currentServiceId.value = service.id
+  
+  // Populate form with service data
+  serviceForm.name = service.name
+  serviceForm.icon = service.icon
+  serviceForm.status = service.status
+  serviceForm.price = service.price
+  serviceForm.duration = service.duration
+  serviceForm.description = service.description
+  
   isModalOpen.value = true
 }
 
 // Close modal
-const closeModal = () => {
+function closeModal() {
   isModalOpen.value = false
 }
 
-// Save service (add or update)
-const saveService = () => {
-  if (isEditMode.value) {
-    // Update existing service
-    const index = services.value.findIndex(s => s.id === serviceForm.value.id)
-    if (index !== -1) {
-      services.value[index] = { ...serviceForm.value }
+// Save service (add new or update existing)
+async function saveService() {
+  try {
+    if (isEditMode.value) {
+      // Update existing service
+      // await api.service.updateService(currentServiceId.value, serviceForm)
+      
+      // For now, update in local array
+      const index = services.value.findIndex(s => s.id === currentServiceId.value)
+      if (index !== -1) {
+        services.value[index] = {
+          ...services.value[index],
+          ...serviceForm
+        }
+      }
+      
+      notificationService.show('Dịch vụ đã được cập nhật thành công.', {
+        title: 'Thành công',
+        type: 'success'
+      })
+    } else {
+      // Add new service
+      // const response = await api.service.createService(serviceForm)
+      
+      // For now, add to local array
+      const newId = Math.max(0, ...services.value.map(s => s.id)) + 1
+      services.value.push({
+        id: newId,
+        ...serviceForm
+      })
+      
+      notificationService.show('Dịch vụ mới đã được thêm thành công.', {
+        title: 'Thành công',
+        type: 'success'
+      })
     }
-  } else {
-    // Add new service
-    const newId = Math.max(0, ...services.value.map(s => s.id)) + 1
-    services.value.push({
-      ...serviceForm.value,
-      id: newId
+    
+    // Close modal
+    closeModal()
+    
+  } catch (err) {
+    console.error('Error saving service:', err)
+    notificationService.show('Có lỗi xảy ra khi lưu dịch vụ. Vui lòng thử lại sau.', {
+      title: 'Lỗi',
+      type: 'error'
     })
   }
-  
-  closeModal()
 }
 
-// Confirm delete
-const confirmDelete = (id) => {
-  serviceToDeleteId.value = id
-  showDeleteConfirm.value = true
+// Toggle service status (active/inactive)
+function toggleServiceStatus(service) {
+  const newStatus = service.status === 'active' ? 'inactive' : 'active'
+  try {
+    // await api.service.updateService(service.id, { status: newStatus })
+    
+    // For now, update in local array
+    const index = services.value.findIndex(s => s.id === service.id)
+    if (index !== -1) {
+      services.value[index].status = newStatus
+    }
+    
+    notificationService.show(`Dịch vụ đã được ${newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa'}.`, {
+      title: 'Thành công',
+      type: 'success'
+    })
+  } catch (err) {
+    console.error('Error updating service status:', err)
+    notificationService.show('Có lỗi xảy ra khi cập nhật trạng thái dịch vụ.', {
+      title: 'Lỗi',
+      type: 'error'
+    })
+  }
+}
+
+// Confirm delete service
+function confirmDelete(serviceId) {
+  const confirmed = confirm('Bạn có chắc chắn muốn xóa dịch vụ này?')
+  if (confirmed) {
+    deleteService(serviceId)
+  }
 }
 
 // Delete service
-const deleteService = () => {
-  services.value = services.value.filter(s => s.id !== serviceToDeleteId.value)
-  showDeleteConfirm.value = false
-}
-
-// Toggle service status
-const toggleServiceStatus = (service) => {
-  const index = services.value.findIndex(s => s.id === service.id)
-  if (index !== -1) {
-    services.value[index].status = service.status === 'active' ? 'inactive' : 'active'
+async function deleteService(serviceId) {
+  try {
+    // await api.service.deleteService(serviceId)
+    
+    // For now, remove from local array
+    services.value = services.value.filter(s => s.id !== serviceId)
+    
+    notificationService.show('Dịch vụ đã được xóa thành công.', {
+      title: 'Thành công',
+      type: 'success'
+    })
+  } catch (err) {
+    console.error('Error deleting service:', err)
+    notificationService.show('Có lỗi xảy ra khi xóa dịch vụ.', {
+      title: 'Lỗi',
+      type: 'error'
+    })
   }
 }
+
+// Pagination controls
+function nextPage() {
+  if (currentPage.value < totalPages.value - 1) {
+    currentPage.value++
+    // When API is implemented:
+    // fetchServices()
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 0) {
+    currentPage.value--
+    // When API is implemented:
+    // fetchServices()
+  }
+}
+
+function goToPage(page) {
+  currentPage.value = page
+  // When API is implemented:
+  // fetchServices()
+}
+
+// Load services on component mount
+onMounted(() => {
+  fetchServices()
+})
 </script>
 
 <style scoped>
@@ -446,14 +650,6 @@ const toggleServiceStatus = (service) => {
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  max-width: 200px;
-}
-
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 200px;
 }
 
 /* Đảm bảo các nút thao tác luôn hiển thị */
@@ -472,6 +668,10 @@ td button:hover {
 
 /* Đảm bảo cell có đủ không gian cho nút */
 td:last-child {
+  min-width: 140px;
+}
+
+.min-width-cell {
   min-width: 140px;
 }
 </style> 
