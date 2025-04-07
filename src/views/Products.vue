@@ -384,13 +384,29 @@ async function fetchProducts() {
         response = await api.product.getProducts(params)
       }
       
+      const data = response.data;
+      console.log('API Response:', data);
+      
       // Extract pagination info from the actual API response structure
-      totalProducts.value = response.data.totalItems || 0
-      totalPages.value = response.data.totalPages || 1
-      currentPage.value = response.data.currentPage || 0
+      totalProducts.value = data.totalItems || 0
+      totalPages.value = data.totalPages || 1
+      currentPage.value = data.currentPage || 0
       
       // Map products using the actual API response structure
-      const fetchedProducts = response.data.products || []
+      // Kiểm tra cấu trúc phản hồi từ API
+      let fetchedProducts = [];
+      
+      if (data.products && Array.isArray(data.products)) {
+        // Cấu trúc thay thế: { products: [...], totalItems, totalPages }
+        fetchedProducts = data.products;
+        totalProducts.value = data.totalItems || fetchedProducts.length;
+        totalPages.value = data.totalPages || 1;
+      } else if (Array.isArray(data)) {
+        // Mảng trực tiếp không có phân trang
+        fetchedProducts = data;
+        totalProducts.value = fetchedProducts.length;
+        totalPages.value = 1;
+      }
       
       // Apply price filters (client-side)
       let filteredProducts = fetchedProducts

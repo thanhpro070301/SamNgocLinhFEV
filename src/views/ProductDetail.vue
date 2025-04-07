@@ -54,10 +54,11 @@
         <div data-aos="fade-right">
           <div class="bg-white rounded-lg overflow-hidden shadow-md">
             <img 
-              :src="product.image" 
+              :src="product.image || defaultImage" 
               :alt="product.name" 
               class="w-full h-auto object-contain"
               style="max-height: 500px;"
+              @error="$event.target.src = defaultImage"
             >
           </div>
           
@@ -429,20 +430,23 @@ async function fetchProduct() {
     const productId = route.params.id
     const response = await api.product.getProduct(productId)
     
+    console.log('Product API Response:', response.data);
+    const productData = response.data;
+    
     // Map API response to product object
     product.value = {
-      id: response.data.id,
-      name: response.data.name,
-      description: response.data.description,
-      longDescription: response.data.longDescription,
-      price: response.data.price,
-      originalPrice: response.data.originalPrice,
-      image: response.data.image ? (response.data.image.startsWith('http') ? response.data.image : `http://localhost:8080${response.data.image}`) : defaultImage,
-      rating: response.data.rating || 4.5,
-      sold: response.data.sold || 0,
-      stock: response.data.stock || 10,
-      categoryId: response.data.categoryId,
-      weight: response.data.weight
+      id: productData.id,
+      name: productData.name,
+      description: productData.description || '',
+      longDescription: productData.longDescription || productData.description || '',
+      price: productData.price,
+      originalPrice: productData.originalPrice || productData.price,
+      image: productData.image ? (productData.image.startsWith('http') ? productData.image : `${import.meta.env.VITE_API_URL}${productData.image}`) : defaultImage,
+      rating: productData.rating || 4.5,
+      sold: productData.sold || 0,
+      stock: productData.stock || 0,
+      categoryId: productData.categoryId,
+      weight: productData.weight || 0
     }
     
     // Also fetch categories if they haven't been fetched yet
@@ -451,7 +455,7 @@ async function fetchProduct() {
     }
     
     // After successfully fetching the product, fetch related products
-    fetchRelatedProducts(response.data.categoryId)
+    fetchRelatedProducts(productData.categoryId)
   } catch (err) {
     console.error('Error fetching product:', err)
     error.value = 'Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.'
@@ -499,15 +503,26 @@ async function fetchRelatedProducts(categoryId) {
     }
     
     const response = await api.category.getCategoryProducts(categoryId, params)
+    console.log('Related products API response:', response.data);
+    
+    const data = response.data;
+    let relatedProductsData = [];
+    
+    // Xử lý dữ liệu API phù hợp với cấu trúc
+    if (data.products && Array.isArray(data.products)) {
+      relatedProductsData = data.products;
+    } else if (Array.isArray(data)) {
+      relatedProductsData = data;
+    }
     
     // Map and filter out the current product
-    relatedProducts.value = response.data.products
+    relatedProducts.value = relatedProductsData
       .filter(p => p.id !== product.value.id)
       .map(p => ({
         id: p.id,
         name: p.name,
         price: p.price,
-        image: p.image ? (p.image.startsWith('http') ? p.image : `http://localhost:8080${p.image}`) : defaultImage,
+        image: p.image ? (p.image.startsWith('http') ? p.image : `${import.meta.env.VITE_API_URL}${p.image}`) : defaultImage,
         stock: p.stock || 0
       }))
       .slice(0, 4) // Ensure we only have 4 products max
@@ -520,18 +535,27 @@ async function fetchRelatedProducts(categoryId) {
       }
       
       const moreResponse = await api.product.getProducts(moreParams)
+      const moreData = moreResponse.data;
+      let moreProductsData = [];
       
-      const moreProducts = moreResponse.data.products
+      // Xử lý dữ liệu API phù hợp với cấu trúc
+      if (moreData.products && Array.isArray(moreData.products)) {
+        moreProductsData = moreData.products;
+      } else if (Array.isArray(moreData)) {
+        moreProductsData = moreData;
+      }
+      
+      const moreProducts = moreProductsData
         .filter(p => p.id !== product.value.id && !relatedProducts.value.some(rp => rp.id === p.id))
         .map(p => ({
           id: p.id,
           name: p.name,
           price: p.price,
-          image: p.image ? (p.image.startsWith('http') ? p.image : `http://localhost:8080${p.image}`) : defaultImage,
+          image: p.image ? (p.image.startsWith('http') ? p.image : `${import.meta.env.VITE_API_URL}${p.image}`) : defaultImage,
           stock: p.stock || 0
         }))
         
-      relatedProducts.value = [...relatedProducts.value, ...moreProducts]
+      relatedProducts.value = [...relatedProducts.value, ...moreProducts].slice(0, 4);
     }
   } catch (err) {
     console.error('Error fetching related products:', err)
