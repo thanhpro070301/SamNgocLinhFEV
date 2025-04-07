@@ -1,8 +1,8 @@
-.node_modules
-.build
-.dist
-.vite
-.vscode
+node_modules
+build
+dist
+vite
+vscode
 .env
 .env.local
 .env.development
