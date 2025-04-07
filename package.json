@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
  "scripts": {
-  "build": "chmod +x node_modules/.bin/vite && vite build"
+  "build": "vite build"
   },
   "dependencies": {
     "@vueuse/core": "^10.0.0",
