@@ -43,26 +43,6 @@ export default defineConfig({
     },
     hmr: {
       overlay: true
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-        configure: (proxy, options) => {
-          // Proxy events for debugging
-          proxy.on('error', (err, req, res) => {
-            console.log('Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to target:', proxyReq.path);
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from target:', proxyRes.statusCode);
-          });
-        }
-      }
     }
   }
 }) 
