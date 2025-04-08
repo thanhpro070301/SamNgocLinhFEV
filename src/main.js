@@ -5,7 +5,7 @@ import App from './App.vue'
 // Import router
 import router from './router'
 
-// Import auth store trước khi khởi tạo
+// Import auth store
 import { useAuthStore } from './store/auth'
 
 // Import AOS
@@ -34,21 +34,19 @@ const handleError = (err, instance, info) => {
 // Create Pinia store
 const pinia = createPinia()
 
-try {
-  // Khởi tạo auth store để kiểm tra trạng thái đăng nhập
-  const auth = useAuthStore()
-  auth.init()
+// Create Vue app
+const app = createApp(App)
 
-  // Create and mount Vue app
-  const app = createApp(App)
-  
-  // Global error handler
-  app.config.errorHandler = handleError
-  
-  app.use(router)
-  app.use(pinia)
+// Global error handler
+app.config.errorHandler = handleError
 
-  app.mount('#app')
-} catch (error) {
-  console.error('Error initializing app:', error)
-} 
+// Use plugins
+app.use(router)
+app.use(pinia)
+
+// Initialize auth store after plugins are registered
+const auth = useAuthStore()
+auth.init()
+
+// Mount app
+app.mount('#app') 
