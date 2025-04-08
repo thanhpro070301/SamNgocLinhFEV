@@ -43,6 +43,14 @@ export default defineConfig({
     },
     hmr: {
       overlay: true
+    },
+    proxy: {
+      '/api': {
+        target: 'https://samngoclinhproject.onrender.com',
+        changeOrigin: true,
+        secure: true,
+        ws: true
+      }
     }
   }
 }) 
