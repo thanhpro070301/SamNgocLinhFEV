@@ -27,89 +27,63 @@
           <p>{{ successMessage }}</p>
         </div>
       </transition>
-      
-      <form class="mt-8 space-y-6" @submit.prevent="register">
-        <div class="rounded-md -space-y-px">
-          <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Họ tên</label>
-            <input 
-              id="name" 
+
+      <!-- Step 1: Basic Info -->
+      <form v-if="currentStep === 1" @submit.prevent="handleStep1" class="mt-8 space-y-6">
+        <div class="rounded-md shadow-sm -space-y-px">
+          <div>
+            <label for="name" class="sr-only">Tên người dùng</label>
+            <input
+              id="name"
               v-model="form.name"
-              name="name" 
-              type="text" 
-              autocomplete="name" 
-              required 
-              class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700 transition-colors duration-200"
-              placeholder="Nguyễn Văn A"
-              @input="validateName"
+              name="name"
+              type="text"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Tên người dùng"
             >
-            <p v-if="nameError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ nameError }}</p>
           </div>
-          
-          <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-            <input 
-              id="email" 
+          <div>
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
               v-model="form.email"
-              name="email" 
-              type="email" 
-              autocomplete="email" 
-              required 
-              class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700 transition-colors duration-200"
-              placeholder="example@email.com"
-              @input="validateEmail"
+              name="email"
+              type="email"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Email"
             >
-            <p v-if="emailError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ emailError }}</p>
           </div>
-          
-          <div class="mb-4">
-            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mật khẩu</label>
-            <div class="relative">
-              <input 
-                id="password" 
-                v-model="form.password"
-                name="password" 
-                :type="showPassword ? 'text' : 'password'" 
-                autocomplete="new-password" 
-                required 
-                class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700 transition-colors duration-200"
-                placeholder="••••••••"
-                @input="validatePassword"
-              >
-              <button 
-                type="button" 
-                class="absolute inset-y-0 right-0 pr-3 flex items-center"
-                @click="showPassword = !showPassword"
-              >
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-500 dark:text-gray-400"></i>
-              </button>
-            </div>
-            <p v-if="passwordError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ passwordError }}</p>
+          <div>
+            <label for="password" class="sr-only">Mật khẩu</label>
+            <input
+              id="password"
+              v-model="form.password"
+              name="password"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Mật khẩu"
+            >
+            <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
           </div>
-          
-          <div class="mb-4">
-            <label for="passwordConfirm" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Xác nhận mật khẩu</label>
-            <div class="relative">
-              <input 
-                id="passwordConfirm" 
-                v-model="form.passwordConfirm"
-                name="passwordConfirm" 
-                :type="showPasswordConfirm ? 'text' : 'password'" 
-                autocomplete="new-password" 
-                required 
-                class="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700 transition-colors duration-200"
-                placeholder="••••••••"
-                @input="validatePasswordConfirm"
-              >
-              <button 
-                type="button" 
-                class="absolute inset-y-0 right-0 pr-3 flex items-center"
-                @click="showPasswordConfirm = !showPasswordConfirm"
-              >
-                <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-500 dark:text-gray-400"></i>
-              </button>
-            </div>
-            <p v-if="passwordConfirmError" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ passwordConfirmError }}</p>
+          <div>
+            <label for="passwordConfirm" class="sr-only">Xác nhận mật khẩu</label>
+            <input
+              id="passwordConfirm"
+              v-model="form.passwordConfirm"
+              name="passwordConfirm"
+              :type="showPasswordConfirm ? 'text' : 'password'"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Xác nhận mật khẩu"
+            >
+            <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
           </div>
         </div>
 
@@ -138,7 +112,52 @@
             <span v-else class="absolute left-0 inset-y-0 flex items-center pl-3">
               <i class="fas fa-user-plus"></i>
             </span>
-            {{ isLoading ? 'Đang xử lý...' : 'Đăng ký' }}
+            {{ isLoading ? 'Đang xử lý...' : 'Tiếp tục' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Step 2: OTP Verification -->
+      <form v-if="currentStep === 2" @submit.prevent="handleStep2" class="mt-8 space-y-6">
+        <div class="rounded-md shadow-sm -space-y-px">
+          <div>
+            <label for="otp" class="sr-only">Mã OTP</label>
+            <input
+              id="otp"
+              v-model="form.otp"
+              name="otp"
+              type="text"
+              required
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Nhập mã OTP"
+            >
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="text-sm">
+            <button type="button" @click="resendOtp" class="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300">
+              Gửi lại mã OTP
+            </button>
+          </div>
+          <div class="text-sm">
+            <span class="text-gray-500">Mã OTP sẽ hết hạn sau {{ otpExpiry }} giây</span>
+          </div>
+        </div>
+
+        <div>
+          <button 
+            type="submit"
+            :disabled="isLoading || !form.otp"
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <i class="fas fa-spinner fa-spin"></i>
+            </span>
+            <span v-else class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <i class="fas fa-check"></i>
+            </span>
+            {{ isLoading ? 'Đang xác thực...' : 'Xác thực' }}
           </button>
         </div>
       </form>
@@ -147,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
 import auth from '@/store/auth'
@@ -159,88 +178,72 @@ const successMessage = ref('')
 const agreeTerms = ref(false)
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
-
-// Form validation errors
-const nameError = ref('')
-const emailError = ref('')
-const passwordError = ref('')
-const passwordConfirmError = ref('')
-
-const samTuoiImage = '/assets/images/products/sam-tuoi.png'
+const currentStep = ref(1)
+const otpExpiry = ref(300) // 5 minutes
+let otpTimer = null
 
 // Form data
 const form = reactive({
   name: '',
   email: '',
   password: '',
-  passwordConfirm: ''
+  passwordConfirm: '',
+  otp: ''
 })
 
-// Computed property for form validation
+// Form validation
 const isFormValid = computed(() => {
-  return form.name && 
-         form.email && 
-         form.password && 
-         form.passwordConfirm && 
-         !nameError.value && 
-         !emailError.value && 
-         !passwordError.value && 
-         !passwordConfirmError.value &&
+  return form.name.length >= 2 &&
+         form.email &&
+         form.password.length >= 6 &&
+         form.password === form.passwordConfirm &&
          agreeTerms.value
 })
 
-// Validation functions
-function validateName() {
-  if (!form.name) {
-    nameError.value = 'Vui lòng nhập họ tên'
-  } else if (form.name.length < 2) {
-    nameError.value = 'Họ tên phải có ít nhất 2 ký tự'
-  } else {
-    nameError.value = ''
-  }
+// Start OTP countdown
+const startOtpCountdown = () => {
+  otpExpiry.value = 300
+  if (otpTimer) clearInterval(otpTimer)
+  otpTimer = setInterval(() => {
+    if (otpExpiry.value > 0) {
+      otpExpiry.value--
+    } else {
+      clearInterval(otpTimer)
+    }
+  }, 1000)
 }
 
-function validateEmail() {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!form.email) {
-    emailError.value = 'Vui lòng nhập email'
-  } else if (!emailRegex.test(form.email)) {
-    emailError.value = 'Email không hợp lệ'
-  } else {
-    emailError.value = ''
-  }
-}
-
-function validatePassword() {
-  if (!form.password) {
-    passwordError.value = 'Vui lòng nhập mật khẩu'
-  } else if (form.password.length < 6) {
-    passwordError.value = 'Mật khẩu phải có ít nhất 6 ký tự'
-  } else {
-    passwordError.value = ''
-    validatePasswordConfirm()
-  }
-}
-
-function validatePasswordConfirm() {
-  if (!form.passwordConfirm) {
-    passwordConfirmError.value = 'Vui lòng xác nhận mật khẩu'
-  } else if (form.password !== form.passwordConfirm) {
-    passwordConfirmError.value = 'Mật khẩu xác nhận không khớp'
-  } else {
-    passwordConfirmError.value = ''
-  }
-}
-
-// Register function
-async function register() {
+// Handle step 1: Send OTP
+async function handleStep1() {
   if (!isFormValid.value) return
   
   isLoading.value = true
   errorMessage.value = ''
-  successMessage.value = ''
   
   try {
+    await api.auth.sendOtp(form.email)
+    currentStep.value = 2
+    startOtpCountdown()
+  } catch (error) {
+    console.error('Send OTP error:', error)
+    errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Handle step 2: Verify OTP and Register
+async function handleStep2() {
+  if (!form.otp) return
+  
+  isLoading.value = true
+  errorMessage.value = ''
+  
+  try {
+    // Verify OTP
+    await api.auth.verifyOtp(form.email, form.otp)
+    
+    // Register user
     const success = await auth.register({
       name: form.name,
       email: form.email,
@@ -248,18 +251,11 @@ async function register() {
     })
     
     if (success) {
-      successMessage.value = 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.'
-      // Reset form
-      form.name = ''
-      form.email = ''
-      form.password = ''
-      form.passwordConfirm = ''
-      agreeTerms.value = false
-      
-      // Redirect to login after 3 seconds
+      successMessage.value = 'Đăng ký thành công! Đang chuyển hướng...'
+      // Redirect to admin dashboard after 2 seconds
       setTimeout(() => {
-        router.push('/admin/login')
-      }, 3000)
+        router.push('/admin/dashboard')
+      }, 2000)
     } else {
       errorMessage.value = 'Đăng ký thất bại. Vui lòng thử lại sau.'
     }
@@ -270,6 +266,28 @@ async function register() {
     isLoading.value = false
   }
 }
+
+// Resend OTP
+async function resendOtp() {
+  isLoading.value = true
+  errorMessage.value = ''
+  
+  try {
+    await api.auth.sendOtp(form.email)
+    startOtpCountdown()
+    successMessage.value = 'Mã OTP mới đã được gửi đến email của bạn!'
+  } catch (error) {
+    console.error('Resend OTP error:', error)
+    errorMessage.value = 'Có lỗi xảy ra khi gửi lại mã OTP. Vui lòng thử lại sau.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Cleanup
+onUnmounted(() => {
+  if (otpTimer) clearInterval(otpTimer)
+})
 </script>
 
 <style scoped>
