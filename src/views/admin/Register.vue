@@ -32,16 +32,18 @@
       <form v-if="currentStep === 1" @submit.prevent="handleStep1" class="mt-8 space-y-6">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
-            <label for="name" class="sr-only">Tên người dùng</label>
+            <label for="name" class="sr-only">Họ và tên</label>
             <input
               id="name"
               v-model="form.name"
               name="name"
               type="text"
               required
+              minlength="2"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Tên người dùng"
+              placeholder="Họ và tên"
             >
+            <p v-if="form.name && form.name.length < 2" class="text-red-500 text-xs mt-1">Họ và tên phải có ít nhất 2 ký tự</p>
           </div>
           <div>
             <label for="email" class="sr-only">Email</label>
@@ -54,6 +56,19 @@
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Email"
             >
+            <p v-if="form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)" class="text-red-500 text-xs mt-1">Email không hợp lệ</p>
+          </div>
+          <div>
+            <label for="phone" class="sr-only">Số điện thoại</label>
+            <input
+              id="phone"
+              v-model="form.phone"
+              name="phone"
+              type="tel"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Số điện thoại (không bắt buộc)"
+            >
+            <p v-if="form.phone && !/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs mt-1">Số điện thoại phải có 10-11 chữ số</p>
           </div>
           <div>
             <label for="password" class="sr-only">Mật khẩu</label>
@@ -63,12 +78,24 @@
               name="password"
               :type="showPassword ? 'text' : 'password'"
               required
+              minlength="6"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Mật khẩu"
             >
             <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2">
               <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
             </button>
+            <div v-if="form.password" class="mt-2">
+              <div class="flex items-center space-x-2">
+                <div v-for="i in 5" :key="i" 
+                  class="h-1 flex-1 rounded"
+                  :class="i <= passwordStrength ? 'bg-green-500' : 'bg-gray-200'">
+                </div>
+              </div>
+              <p class="text-xs mt-1 text-gray-500">
+                Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số
+              </p>
+            </div>
           </div>
           <div>
             <label for="passwordConfirm" class="sr-only">Xác nhận mật khẩu</label>
@@ -84,6 +111,7 @@
             <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute right-3 top-1/2 transform -translate-y-1/2">
               <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
             </button>
+            <p v-if="form.passwordConfirm && form.password !== form.passwordConfirm" class="text-red-500 text-xs mt-1">Mật khẩu không khớp</p>
           </div>
         </div>
 
@@ -128,6 +156,7 @@
               name="otp"
               type="text"
               required
+              maxlength="6"
               class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Nhập mã OTP"
             >
@@ -136,12 +165,19 @@
 
         <div class="flex items-center justify-between">
           <div class="text-sm">
-            <button type="button" @click="resendOtp" class="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300">
+            <button 
+              type="button" 
+              @click="resendOtp" 
+              :disabled="otpExpiry > 0"
+              class="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Gửi lại mã OTP
             </button>
           </div>
           <div class="text-sm">
-            <span class="text-gray-500">Mã OTP sẽ hết hạn sau {{ otpExpiry }} giây</span>
+            <span class="text-gray-500" :class="{ 'text-red-500': otpExpiry < 60 }">
+              Mã OTP sẽ hết hạn sau {{ Math.floor(otpExpiry / 60) }}:{{ (otpExpiry % 60).toString().padStart(2, '0') }}
+            </span>
           </div>
         </div>
 
@@ -188,6 +224,7 @@ const form = reactive({
   email: '',
   password: '',
   passwordConfirm: '',
+  phone: '',
   otp: ''
 })
 
@@ -195,9 +232,26 @@ const form = reactive({
 const isFormValid = computed(() => {
   return form.name.length >= 2 &&
          form.email &&
+         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
          form.password.length >= 6 &&
+         /[A-Z]/.test(form.password) &&
+         /[a-z]/.test(form.password) &&
+         /[0-9]/.test(form.password) &&
          form.password === form.passwordConfirm &&
+         (!form.phone || /^\d{10,11}$/.test(form.phone)) &&
          agreeTerms.value
+})
+
+// Password strength indicator
+const passwordStrength = computed(() => {
+  if (!form.password) return 0
+  let strength = 0
+  if (form.password.length >= 8) strength++
+  if (/[A-Z]/.test(form.password)) strength++
+  if (/[a-z]/.test(form.password)) strength++
+  if (/[0-9]/.test(form.password)) strength++
+  if (/[^A-Za-z0-9]/.test(form.password)) strength++
+  return strength
 })
 
 // Start OTP countdown
@@ -224,9 +278,14 @@ async function handleStep1() {
     await api.auth.sendOtp(form.email)
     currentStep.value = 2
     startOtpCountdown()
+    successMessage.value = 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.'
   } catch (error) {
     console.error('Send OTP error:', error)
-    errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
+    if (error.response?.status === 429) {
+      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
+    } else {
+      errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
+    }
   } finally {
     isLoading.value = false
   }
@@ -247,7 +306,8 @@ async function handleStep2() {
     const success = await auth.register({
       name: form.name,
       email: form.email,
-      password: form.password
+      password: form.password,
+      phone: form.phone || null
     })
     
     if (success) {
@@ -261,7 +321,13 @@ async function handleStep2() {
     }
   } catch (error) {
     console.error('Register error:', error)
-    errorMessage.value = 'Có lỗi xảy ra. Vui lòng thử lại sau.'
+    if (error.response?.status === 429) {
+      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
+    } else if (error.response?.status === 400) {
+      errorMessage.value = error.response.data.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
+    } else {
+      errorMessage.value = 'Có lỗi xảy ra. Vui lòng thử lại sau.'
+    }
   } finally {
     isLoading.value = false
   }
