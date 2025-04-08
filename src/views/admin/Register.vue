@@ -79,10 +79,18 @@
                 placeholder="Số điện thoại *"
                 @input="handlePhoneInput"
               >
-              <div v-if="isTypingPhone" class="mt-1 text-xs">
-                <p v-if="!form.phone" class="text-red-500">Vui lòng nhập số điện thoại</p>
-                <p v-else-if="!/^\d{10,11}$/.test(form.phone)" class="text-red-500">Số điện thoại phải có 10-11 chữ số</p>
-                <p v-else class="text-green-500">Số điện thoại hợp lệ</p>
+              <div v-if="isTypingPhone" class="absolute left-0 right-0 mt-1 px-3">
+                <div class="flex items-center space-x-2 bg-white p-2 rounded-md shadow-sm">
+                  <svg v-if="!/^\d{10,11}$/.test(form.phone)" class="h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <svg v-else class="h-4 w-4 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-xs" :class="!/^\d{10,11}$/.test(form.phone) ? 'text-red-500' : 'text-green-500'">
+                    {{ !form.phone ? 'Vui lòng nhập số điện thoại' : !/^\d{10,11}$/.test(form.phone) ? 'Số điện thoại phải có 10-11 chữ số' : 'Số điện thoại hợp lệ' }}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -117,16 +125,18 @@
                   <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
                 </svg>
               </button>
-              <div v-if="isTypingPassword" class="mt-1">
-                <div class="flex items-center space-x-2">
-                  <div v-for="i in 5" :key="i" 
-                    class="h-1 flex-1 rounded"
-                    :class="i <= passwordStrength ? 'bg-green-500' : 'bg-gray-200'">
+              <div v-if="isTypingPassword" class="absolute left-0 right-0 mt-1 px-3">
+                <div class="bg-white p-2 rounded-md shadow-sm">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <div v-for="i in 5" :key="i" 
+                      class="h-1 flex-1 rounded"
+                      :class="i <= passwordStrength ? 'bg-green-500' : 'bg-gray-200'">
+                    </div>
                   </div>
+                  <p class="text-xs text-gray-500">
+                    Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số
+                  </p>
                 </div>
-                <p class="text-xs mt-1 text-gray-500">
-                  Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số
-                </p>
               </div>
             </div>
 
@@ -189,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/api';
 import { useAuthStore } from '@/store/auth';
@@ -206,7 +216,8 @@ const form = ref({
   email: '',
   phone: '',
   password: '',
-  passwordConfirm: ''
+  passwordConfirm: '',
+  otp: ''
 });
 
 // Form validation
@@ -270,22 +281,48 @@ const handleSubmit = async () => {
   errorMessage.value = '';
   
   try {
-    // Đăng ký tài khoản trước
-    const success = await auth.register({
+    // Gửi OTP trước (nếu chưa có OTP)
+    if (!form.value.otp) {
+      await api.auth.sendOtp(form.value.email);
+      isLoading.value = false;
+      router.push({
+        path: '/admin/verify-otp',
+        query: { 
+          email: form.value.email,
+          name: form.value.name,
+          phone: form.value.phone,
+          password: form.value.password,
+          action: 'register'
+        }
+      });
+      return;
+    }
+    
+    // Nếu đã có OTP thì đăng ký
+    const registerData = {
       name: form.value.name,
       email: form.value.email,
       password: form.value.password,
-      phone: form.value.phone
-    });
+      phone: form.value.phone,
+      otp: form.value.otp
+    };
     
-    if (success) {
-      // Sau khi đăng ký thành công, gửi OTP
-      await api.auth.sendOtp(form.value.email);
-      // Chuyển đến trang xác thực OTP
-      router.push({
-        path: '/admin/verify-otp',
-        query: { email: form.value.email }
+    const result = await auth.register(registerData);
+    
+    if (result.success) {
+      // Đăng nhập tự động sau khi đăng ký
+      const loginResult = await auth.login({
+        email: form.value.email,
+        password: form.value.password
       });
+      
+      if (loginResult) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/admin/login');
+      }
+    } else {
+      errorMessage.value = result.message || 'Đăng ký thất bại. Vui lòng thử lại sau.';
     }
   } catch (error) {
     console.error('Registration error:', error);
@@ -302,6 +339,19 @@ const handleSubmit = async () => {
     isLoading.value = false;
   }
 };
+
+// Kiểm tra xem có OTP được truyền qua query không
+onMounted(() => {
+  const route = router.currentRoute.value;
+  if (route.query.otp) {
+    form.value.otp = route.query.otp;
+    form.value.email = route.query.email || '';
+    form.value.name = route.query.name || '';
+    form.value.phone = route.query.phone || '';
+    form.value.password = route.query.password || '';
+    form.value.passwordConfirm = route.query.password || '';
+  }
+});
 
 onUnmounted(() => {
   if (typingTimeout) clearTimeout(typingTimeout);

@@ -10,6 +10,7 @@ import News from '@/views/News.vue'
 import Contact from '@/views/Contact.vue'
 import Login from '@/views/admin/Login.vue'
 import Register from '@/views/admin/Register.vue'
+import VerifyOtp from '@/views/admin/VerifyOtp.vue'
 import Dashboard from '@/views/admin/Dashboard.vue'
 import AdminProducts from '@/views/admin/Products.vue'
 import AdminServices from '@/views/admin/Services.vue'
@@ -87,6 +88,12 @@ const routes = [
     path: '/admin/register',
     name: 'AdminRegister',
     component: Register,
+    meta: { requiresGuest: true }
+  },
+  {
+    path: '/admin/verify-otp',
+    name: 'VerifyOtp',
+    component: VerifyOtp,
     meta: { requiresGuest: true }
   },
   {

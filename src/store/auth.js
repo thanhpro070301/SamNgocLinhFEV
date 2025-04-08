@@ -134,6 +134,37 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value.role.name === role
   }
 
+  // Đăng ký
+  const register = async (userData) => {
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const response = await api.auth.register(userData);
+      
+      if (response && response.data) {
+        return {
+          success: true,
+          data: response.data
+        };
+      }
+      
+      error.value = 'Đăng ký thất bại';
+      return {
+        success: false,
+        message: 'Đăng ký thất bại'
+      };
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Lỗi đăng ký';
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Lỗi đăng ký'
+      };
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     user,
     loading,
@@ -142,6 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
     init,
     login,
     logout,
+    register,
     hasPermission,
     hasRole
   }
