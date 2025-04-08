@@ -50,10 +50,10 @@ export const authApi = {
     return apiClient.post('/auth/register', userData);
   },
   sendOtp(email) {
-    return apiClient.post('/auth/send-otp', email);
+    return apiClient.post('/auth/send-otp', { email });
   },
   verifyOtp(email, otp) {
-    return apiClient.post('/auth/verify-otp', null, { params: { email, otp } });
+    return apiClient.post('/auth/verify-otp', { email, otp });
   },
   login(credentials) {
     return apiClient.post('/auth/login', credentials);
