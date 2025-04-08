@@ -18,7 +18,7 @@ import AdminNews from '@/views/admin/News.vue'
 import Categories from '@/views/admin/Categories.vue'
 import Orders from '@/views/admin/Orders.vue'
 import Sessions from '@/views/admin/Sessions.vue'
-import auth from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 import sessionToken from '@/store/sessionToken'
 
 const routes = [
@@ -145,7 +145,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior() {
     // Luôn cuộn lên đầu trang khi chuyển route
@@ -154,7 +154,9 @@ const router = createRouter({
 })
 
 // Navigation Guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
+  
   // Cập nhật hoạt động khi chuyển trang nếu đã đăng nhập
   if (auth.isAuthenticated.value) {
     auth.updateActivity()

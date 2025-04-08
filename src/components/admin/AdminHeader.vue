@@ -128,12 +128,13 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import auth from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 import sessionToken from '@/store/sessionToken'
 import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 
 const isMobileMenuOpen = ref(false)
 const isUserMenuOpen = ref(false)

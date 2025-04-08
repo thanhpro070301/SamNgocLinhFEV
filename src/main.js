@@ -6,7 +6,7 @@ import App from './App.vue'
 import router from './router'
 
 // Import auth store trước khi khởi tạo
-import auth from './store/auth'
+import { useAuthStore } from './store/auth'
 
 // Import AOS
 import AOS from 'aos'
@@ -36,6 +36,7 @@ const pinia = createPinia()
 
 try {
   // Khởi tạo auth store để kiểm tra trạng thái đăng nhập
+  const auth = useAuthStore()
   auth.init()
 
   // Create and mount Vue app

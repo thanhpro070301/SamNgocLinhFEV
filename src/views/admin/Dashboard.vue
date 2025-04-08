@@ -216,12 +216,13 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
-import auth from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 import api from '@/api'
 import sessionToken from '@/store/sessionToken'
 import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
+const auth = useAuthStore()
 const isLoading = ref(false)
 const dashboardData = ref({
   totalProducts: 0,

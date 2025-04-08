@@ -268,10 +268,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
-import auth from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 import api from '@/api'
 
 const router = useRouter()
+const auth = useAuthStore()
 const orders = ref([])
 const isLoading = ref(false)
 const loadingError = ref(null)
