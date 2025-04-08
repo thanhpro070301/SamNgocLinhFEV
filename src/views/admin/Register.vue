@@ -69,30 +69,38 @@
               pattern="[0-9]{10,11}"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Số điện thoại *"
+              @input="handlePhoneInput"
             >
-            <p v-if="!form.phone" class="text-red-500 text-xs mt-1">Vui lòng nhập số điện thoại</p>
-            <p v-else-if="!/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs mt-1">Số điện thoại phải có 10-11 chữ số</p>
+            <div v-if="isTypingPhone" class="mt-2">
+              <p v-if="!form.phone" class="text-red-500 text-xs">Vui lòng nhập số điện thoại</p>
+              <p v-else-if="!/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs">Số điện thoại phải có 10-11 chữ số</p>
+              <p v-else class="text-green-500 text-xs">Số điện thoại hợp lệ</p>
+            </div>
           </div>
           <div class="relative">
             <label for="password" class="sr-only">Mật khẩu</label>
-            <input
-              id="password"
-              v-model="form.password"
-              name="password"
-              :type="showPassword ? 'text' : 'password'"
-              required
-              minlength="6"
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Mật khẩu *"
-            >
-            <button 
-              type="button" 
-              @click="showPassword = !showPassword" 
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
-            </button>
-            <div v-if="form.password" class="mt-2">
+            <div class="relative">
+              <input
+                id="password"
+                v-model="form.password"
+                name="password"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                minlength="6"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm pr-10"
+                placeholder="Mật khẩu *"
+                @input="handlePasswordInput"
+              >
+              <button 
+                type="button" 
+                @click="showPassword = !showPassword" 
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                tabindex="-1"
+              >
+                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
+              </button>
+            </div>
+            <div v-if="isTypingPassword" class="mt-2">
               <div class="flex items-center space-x-2">
                 <div v-for="i in 5" :key="i" 
                   class="h-1 flex-1 rounded"
@@ -106,22 +114,25 @@
           </div>
           <div class="relative">
             <label for="passwordConfirm" class="sr-only">Xác nhận mật khẩu</label>
-            <input
-              id="passwordConfirm"
-              v-model="form.passwordConfirm"
-              name="passwordConfirm"
-              :type="showPasswordConfirm ? 'text' : 'password'"
-              required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Xác nhận mật khẩu *"
-            >
-            <button 
-              type="button" 
-              @click="showPasswordConfirm = !showPasswordConfirm" 
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
-            </button>
+            <div class="relative">
+              <input
+                id="passwordConfirm"
+                v-model="form.passwordConfirm"
+                name="passwordConfirm"
+                :type="showPasswordConfirm ? 'text' : 'password'"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm pr-10"
+                placeholder="Xác nhận mật khẩu *"
+              >
+              <button 
+                type="button" 
+                @click="showPasswordConfirm = !showPasswordConfirm" 
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                tabindex="-1"
+              >
+                <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
+              </button>
+            </div>
             <p v-if="form.passwordConfirm && form.password !== form.passwordConfirm" class="text-red-500 text-xs mt-1">Mật khẩu không khớp</p>
           </div>
         </div>
@@ -229,6 +240,10 @@ const showPasswordConfirm = ref(false)
 const currentStep = ref(1)
 const otpExpiry = ref(300) // 5 minutes
 let otpTimer = null
+const isTypingPassword = ref(false)
+let typingTimeout = null
+const isTypingPhone = ref(false)
+let phoneTypingTimeout = null
 
 // Form data
 const form = reactive({
@@ -278,6 +293,24 @@ const startOtpCountdown = () => {
       clearInterval(otpTimer)
     }
   }, 1000)
+}
+
+// Handle password input
+const handlePasswordInput = () => {
+  isTypingPassword.value = true
+  if (typingTimeout) clearTimeout(typingTimeout)
+  typingTimeout = setTimeout(() => {
+    isTypingPassword.value = false
+  }, 3000) // Hide after 3 seconds of no typing
+}
+
+// Handle phone input
+const handlePhoneInput = () => {
+  isTypingPhone.value = true
+  if (phoneTypingTimeout) clearTimeout(phoneTypingTimeout)
+  phoneTypingTimeout = setTimeout(() => {
+    isTypingPhone.value = false
+  }, 3000) // Hide after 3 seconds of no typing
 }
 
 // Handle step 1: Send OTP
@@ -394,6 +427,8 @@ async function resendOtp() {
 // Cleanup
 onUnmounted(() => {
   if (otpTimer) clearInterval(otpTimer)
+  if (typingTimeout) clearTimeout(typingTimeout)
+  if (phoneTypingTimeout) clearTimeout(phoneTypingTimeout)
 })
 </script>
 
