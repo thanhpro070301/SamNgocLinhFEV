@@ -1,35 +1,16 @@
 <template>
-  <div class="admin-register min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl">
-      <div class="text-center">
-        <div class="flex justify-center">
-          <div class="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full overflow-hidden flex-shrink-0 transform transition-transform duration-300 hover:scale-110">
-            <img :src="samTuoiImage" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
-          </div>
-        </div>
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">Đăng ký tài khoản</h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Đăng ký tài khoản</h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
           Hoặc
-          <router-link to="/admin/login" class="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300 transition-colors duration-200">
-            đăng nhập nếu đã có tài khoản
-          </router-link>
+          <a href="#" class="font-medium text-green-600 hover:text-green-500">
+            đăng nhập nếu bạn đã có tài khoản
+          </a>
         </p>
       </div>
-      
-      <transition name="fade">
-        <div v-if="errorMessage" class="bg-red-100 dark:bg-red-900 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 mb-4 rounded" role="alert">
-          <p>{{ errorMessage }}</p>
-        </div>
-      </transition>
-      
-      <transition name="fade">
-        <div v-if="successMessage" class="bg-green-100 dark:bg-green-900 border-l-4 border-green-500 text-green-700 dark:text-green-200 p-4 mb-4 rounded" role="alert">
-          <p>{{ successMessage }}</p>
-        </div>
-      </transition>
-
-      <!-- Step 1: Basic Info -->
-      <form v-if="currentStep === 1" @submit.prevent="handleStep1" class="mt-8 space-y-6">
+      <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
             <label for="name" class="sr-only">Họ và tên</label>
@@ -39,11 +20,9 @@
               name="name"
               type="text"
               required
-              minlength="2"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Họ và tên *"
             >
-            <p v-if="form.name && form.name.length < 2" class="text-red-500 text-xs mt-1">Họ và tên phải có ít nhất 2 ký tự</p>
           </div>
           <div>
             <label for="email" class="sr-only">Email</label>
@@ -56,7 +35,6 @@
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Email *"
             >
-            <p v-if="form.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)" class="text-red-500 text-xs mt-1">Email không hợp lệ</p>
           </div>
           <div>
             <label for="phone" class="sr-only">Số điện thoại</label>
@@ -71,151 +49,48 @@
               placeholder="Số điện thoại *"
               @input="handlePhoneInput"
             >
-            <div v-if="isTypingPhone" class="mt-2">
-              <p v-if="!form.phone" class="text-red-500 text-xs">Vui lòng nhập số điện thoại</p>
-              <p v-else-if="!/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs">Số điện thoại phải có 10-11 chữ số</p>
-              <p v-else class="text-green-500 text-xs">Số điện thoại hợp lệ</p>
-            </div>
           </div>
           <div class="relative">
             <label for="password" class="sr-only">Mật khẩu</label>
-            <div class="relative">
-              <input
-                id="password"
-                v-model="form.password"
-                name="password"
-                :type="showPassword ? 'text' : 'password'"
-                required
-                minlength="6"
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm pr-10"
-                placeholder="Mật khẩu *"
-                @input="handlePasswordInput"
-              >
-              <button 
-                type="button" 
-                @click="showPassword = !showPassword" 
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                tabindex="-1"
-              >
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
-              </button>
-            </div>
-            <div v-if="isTypingPassword" class="mt-2">
-              <div class="flex items-center space-x-2">
-                <div v-for="i in 5" :key="i" 
-                  class="h-1 flex-1 rounded"
-                  :class="i <= passwordStrength ? 'bg-green-500' : 'bg-gray-200'">
-                </div>
-              </div>
-              <p class="text-xs mt-1 text-gray-500">
-                Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số
-              </p>
-            </div>
-          </div>
-          <div class="relative">
-            <label for="passwordConfirm" class="sr-only">Xác nhận mật khẩu</label>
-            <div class="relative">
-              <input
-                id="passwordConfirm"
-                v-model="form.passwordConfirm"
-                name="passwordConfirm"
-                :type="showPasswordConfirm ? 'text' : 'password'"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm pr-10"
-                placeholder="Xác nhận mật khẩu *"
-              >
-              <button 
-                type="button" 
-                @click="showPasswordConfirm = !showPasswordConfirm" 
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                tabindex="-1"
-              >
-                <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
-              </button>
-            </div>
-            <p v-if="form.passwordConfirm && form.password !== form.passwordConfirm" class="text-red-500 text-xs mt-1">Mật khẩu không khớp</p>
-          </div>
-        </div>
-
-        <div class="flex items-center">
-          <input 
-            id="agreeTerms" 
-            v-model="agreeTerms"
-            name="agreeTerms" 
-            type="checkbox" 
-            class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-          >
-          <label for="agreeTerms" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-            Tôi đồng ý với <a href="#" class="text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300">điều khoản sử dụng</a>
-          </label>
-        </div>
-
-        <div>
-          <button 
-            type="submit"
-            :disabled="isLoading || !isFormValid"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-200"
-          >
-            <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <i class="fas fa-spinner fa-spin"></i>
-            </span>
-            <span v-else class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <i class="fas fa-user-plus"></i>
-            </span>
-            {{ isLoading ? 'Đang xử lý...' : 'Tiếp tục' }}
-          </button>
-        </div>
-      </form>
-
-      <!-- Step 2: OTP Verification -->
-      <form v-if="currentStep === 2" @submit.prevent="handleStep2" class="mt-8 space-y-6">
-        <div class="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label for="otp" class="sr-only">Mã OTP</label>
             <input
-              id="otp"
-              v-model="form.otp"
-              name="otp"
-              type="text"
+              id="password"
+              v-model="form.password"
+              name="password"
+              :type="showPassword ? 'text' : 'password'"
               required
-              maxlength="6"
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Nhập mã OTP"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Mật khẩu *"
+              @input="handlePasswordInput"
             >
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <div class="text-sm">
-            <button 
-              type="button" 
-              @click="resendOtp" 
-              :disabled="otpExpiry > 0"
-              class="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Gửi lại mã OTP
-            </button>
-          </div>
-          <div class="text-sm">
-            <span class="text-gray-500" :class="{ 'text-red-500': otpExpiry < 60 }">
-              Mã OTP sẽ hết hạn sau {{ Math.floor(otpExpiry / 60) }}:{{ (otpExpiry % 60).toString().padStart(2, '0') }}
+            <span @click="togglePasswordVisibility" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer">
+              <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a7 7 0 00-7 7 7 7 0 0014 0 7 7 0 00-7-7zm0 12a5 5 0 100-10 5 5 0 000 10z" clip-rule="evenodd" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3.172 3.172a4 4 0 015.656 0L10 4.343l1.172-1.171a4 4 0 115.656 5.656L10 15.657l-1.172-1.171a4 4 0 01-5.656-5.656L3.172 3.172zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+              </svg>
             </span>
+          </div>
+          <div>
+            <label for="password-confirm" class="sr-only">Xác nhận mật khẩu</label>
+            <input
+              id="password-confirm"
+              v-model="form.passwordConfirm"
+              name="password-confirm"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+              placeholder="Xác nhận mật khẩu *"
+            >
           </div>
         </div>
 
         <div>
-          <button 
+          <button
             type="submit"
-            :disabled="isLoading || !form.otp"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-200"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
-            <span v-if="isLoading" class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <i class="fas fa-spinner fa-spin"></i>
-            </span>
-            <span v-else class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <i class="fas fa-check"></i>
-            </span>
-            {{ isLoading ? 'Đang xác thực...' : 'Xác thực' }}
+            Đăng ký
           </button>
         </div>
       </form>
@@ -224,222 +99,53 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import api from '@/api'
-import { useAuthStore } from '@/store/auth'
+import { ref, onUnmounted } from 'vue';
 
-const router = useRouter()
-const auth = useAuthStore()
-const errorMessage = ref('')
-const isLoading = ref(false)
-const successMessage = ref('')
-const agreeTerms = ref(false)
-const showPassword = ref(false)
-const showPasswordConfirm = ref(false)
-const currentStep = ref(1)
-const otpExpiry = ref(300) // 5 minutes
-let otpTimer = null
-const isTypingPassword = ref(false)
-let typingTimeout = null
-const isTypingPhone = ref(false)
-let phoneTypingTimeout = null
-
-// Form data
-const form = reactive({
+const form = ref({
   name: '',
   email: '',
-  password: '',
-  passwordConfirm: '',
   phone: '',
-  otp: ''
-})
+  password: '',
+  passwordConfirm: ''
+});
 
-// Form validation
-const isFormValid = computed(() => {
-  return form.name.length >= 2 &&
-         form.email &&
-         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email) &&
-         form.password.length >= 6 &&
-         /[A-Z]/.test(form.password) &&
-         /[a-z]/.test(form.password) &&
-         /[0-9]/.test(form.password) &&
-         form.password === form.passwordConfirm &&
-         form.phone &&
-         /^\d{10,11}$/.test(form.phone) &&
-         agreeTerms.value
-})
+const showPassword = ref(false);
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
-// Password strength indicator
-const passwordStrength = computed(() => {
-  if (!form.password) return 0
-  let strength = 0
-  if (form.password.length >= 8) strength++
-  if (/[A-Z]/.test(form.password)) strength++
-  if (/[a-z]/.test(form.password)) strength++
-  if (/[0-9]/.test(form.password)) strength++
-  if (/[^A-Za-z0-9]/.test(form.password)) strength++
-  return strength
-})
+const handleSubmit = () => {
+  // Handle form submission
+};
 
-// Start OTP countdown
-const startOtpCountdown = () => {
-  otpExpiry.value = 300
-  if (otpTimer) clearInterval(otpTimer)
-  otpTimer = setInterval(() => {
-    if (otpExpiry.value > 0) {
-      otpExpiry.value--
-    } else {
-      clearInterval(otpTimer)
-    }
-  }, 1000)
-}
-
-// Handle password input
+const isTypingPassword = ref(false);
+let typingTimeout = null;
 const handlePasswordInput = () => {
-  isTypingPassword.value = true
-  if (typingTimeout) clearTimeout(typingTimeout)
+  isTypingPassword.value = true;
+  if (typingTimeout) clearTimeout(typingTimeout);
   typingTimeout = setTimeout(() => {
-    isTypingPassword.value = false
-  }, 3000) // Hide after 3 seconds of no typing
-}
+    isTypingPassword.value = false;
+  }, 3000);
+};
 
-// Handle phone input
+const isTypingPhone = ref(false);
+let phoneTypingTimeout = null;
 const handlePhoneInput = () => {
-  isTypingPhone.value = true
-  if (phoneTypingTimeout) clearTimeout(phoneTypingTimeout)
+  isTypingPhone.value = true;
+  if (phoneTypingTimeout) clearTimeout(phoneTypingTimeout);
   phoneTypingTimeout = setTimeout(() => {
-    isTypingPhone.value = false
-  }, 3000) // Hide after 3 seconds of no typing
-}
+    isTypingPhone.value = false;
+  }, 3000);
+};
 
-// Handle step 1: Send OTP
-async function handleStep1() {
-  if (!isFormValid.value) return
-  
-  isLoading.value = true
-  errorMessage.value = ''
-  
-  try {
-    // Validate email format before sending
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)) {
-      errorMessage.value = 'Email không hợp lệ. Vui lòng kiểm tra lại.'
-      return
-    }
-
-    const response = await api.auth.sendOtp(form.email)
-    if (response && response.success) {
-      currentStep.value = 2
-      startOtpCountdown()
-      successMessage.value = 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.'
-    } else {
-      errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
-    }
-  } catch (error) {
-    console.error('Send OTP error:', error)
-    if (error.response?.status === 429) {
-      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
-    } else if (error.response?.status === 400) {
-      errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.'
-    } else {
-      errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Handle step 2: Verify OTP and Register
-async function handleStep2() {
-  if (!form.otp) return
-  
-  isLoading.value = true
-  errorMessage.value = ''
-  
-  try {
-    // Verify OTP
-    await api.auth.verifyOtp(form.email, form.otp)
-    
-    // Register user
-    const success = await auth.register({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      phone: form.phone
-    })
-    
-    if (success) {
-      successMessage.value = 'Đăng ký thành công! Đang chuyển hướng...'
-      // Redirect to admin dashboard after 2 seconds
-      setTimeout(() => {
-        router.push('/admin/dashboard')
-      }, 2000)
-    } else {
-      errorMessage.value = 'Đăng ký thất bại. Vui lòng thử lại sau.'
-    }
-  } catch (error) {
-    console.error('Register error:', error)
-    if (error.response?.status === 429) {
-      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
-    } else if (error.response?.status === 400) {
-      errorMessage.value = error.response.data.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'
-    } else {
-      errorMessage.value = 'Có lỗi xảy ra. Vui lòng thử lại sau.'
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Resend OTP
-async function resendOtp() {
-  isLoading.value = true
-  errorMessage.value = ''
-  
-  try {
-    // Validate email format before resending
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)) {
-      errorMessage.value = 'Email không hợp lệ. Vui lòng kiểm tra lại.'
-      return
-    }
-
-    const response = await api.auth.sendOtp(form.email)
-    if (response && response.success) {
-      startOtpCountdown()
-      successMessage.value = 'Mã OTP mới đã được gửi đến email của bạn!'
-    } else {
-      errorMessage.value = 'Có lỗi xảy ra khi gửi lại mã OTP. Vui lòng thử lại sau.'
-    }
-  } catch (error) {
-    console.error('Resend OTP error:', error)
-    if (error.response?.status === 429) {
-      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
-    } else if (error.response?.status === 400) {
-      errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.'
-    } else {
-      errorMessage.value = 'Có lỗi xảy ra khi gửi lại mã OTP. Vui lòng thử lại sau.'
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Cleanup
 onUnmounted(() => {
-  if (otpTimer) clearInterval(otpTimer)
-  if (typingTimeout) clearTimeout(typingTimeout)
-  if (phoneTypingTimeout) clearTimeout(phoneTypingTimeout)
-})
+  if (typingTimeout) clearTimeout(typingTimeout);
+  if (phoneTypingTimeout) clearTimeout(phoneTypingTimeout);
+});
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+body {
+  font-family: 'Inter', sans-serif;
 }
 </style> 
