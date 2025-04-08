@@ -9,9 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "vite preview",
-    "prebuild": "node prebuild.js",
-    "vercel-build": "node build-vercel.js"
+    "start": "vite preview"
   },
   "dependencies": {
     "@vueuse/core": "^10.0.0",
