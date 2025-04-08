@@ -56,7 +56,7 @@
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Email *"
             >
-            <p v-if="form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)" class="text-red-500 text-xs mt-1">Email không hợp lệ</p>
+            <p v-if="form.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)" class="text-red-500 text-xs mt-1">Email không hợp lệ</p>
           </div>
           <div>
             <label for="phone" class="sr-only">Số điện thoại</label>
@@ -73,7 +73,7 @@
             <p v-if="!form.phone" class="text-red-500 text-xs mt-1">Vui lòng nhập số điện thoại</p>
             <p v-else-if="!/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs mt-1">Số điện thoại phải có 10-11 chữ số</p>
           </div>
-          <div>
+          <div class="relative">
             <label for="password" class="sr-only">Mật khẩu</label>
             <input
               id="password"
@@ -85,8 +85,12 @@
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Mật khẩu *"
             >
-            <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            <button 
+              type="button" 
+              @click="showPassword = !showPassword" 
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
             </button>
             <div v-if="form.password" class="mt-2">
               <div class="flex items-center space-x-2">
@@ -100,7 +104,7 @@
               </p>
             </div>
           </div>
-          <div>
+          <div class="relative">
             <label for="passwordConfirm" class="sr-only">Xác nhận mật khẩu</label>
             <input
               id="passwordConfirm"
@@ -111,8 +115,12 @@
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Xác nhận mật khẩu *"
             >
-            <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            <button 
+              type="button" 
+              @click="showPasswordConfirm = !showPasswordConfirm" 
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
             </button>
             <p v-if="form.passwordConfirm && form.password !== form.passwordConfirm" class="text-red-500 text-xs mt-1">Mật khẩu không khớp</p>
           </div>
@@ -236,7 +244,7 @@ const form = reactive({
 const isFormValid = computed(() => {
   return form.name.length >= 2 &&
          form.email &&
-         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
+         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email) &&
          form.password.length >= 6 &&
          /[A-Z]/.test(form.password) &&
          /[a-z]/.test(form.password) &&
@@ -280,14 +288,26 @@ async function handleStep1() {
   errorMessage.value = ''
   
   try {
-    await api.auth.sendOtp(form.email)
-    currentStep.value = 2
-    startOtpCountdown()
-    successMessage.value = 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.'
+    // Validate email format before sending
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)) {
+      errorMessage.value = 'Email không hợp lệ. Vui lòng kiểm tra lại.'
+      return
+    }
+
+    const response = await api.auth.sendOtp(form.email)
+    if (response && response.success) {
+      currentStep.value = 2
+      startOtpCountdown()
+      successMessage.value = 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.'
+    } else {
+      errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
+    }
   } catch (error) {
     console.error('Send OTP error:', error)
     if (error.response?.status === 429) {
       errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
+    } else if (error.response?.status === 400) {
+      errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.'
     } else {
       errorMessage.value = 'Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại sau.'
     }
@@ -344,12 +364,28 @@ async function resendOtp() {
   errorMessage.value = ''
   
   try {
-    await api.auth.sendOtp(form.email)
-    startOtpCountdown()
-    successMessage.value = 'Mã OTP mới đã được gửi đến email của bạn!'
+    // Validate email format before resending
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.email)) {
+      errorMessage.value = 'Email không hợp lệ. Vui lòng kiểm tra lại.'
+      return
+    }
+
+    const response = await api.auth.sendOtp(form.email)
+    if (response && response.success) {
+      startOtpCountdown()
+      successMessage.value = 'Mã OTP mới đã được gửi đến email của bạn!'
+    } else {
+      errorMessage.value = 'Có lỗi xảy ra khi gửi lại mã OTP. Vui lòng thử lại sau.'
+    }
   } catch (error) {
     console.error('Resend OTP error:', error)
-    errorMessage.value = 'Có lỗi xảy ra khi gửi lại mã OTP. Vui lòng thử lại sau.'
+    if (error.response?.status === 429) {
+      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.'
+    } else if (error.response?.status === 400) {
+      errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.'
+    } else {
+      errorMessage.value = 'Có lỗi xảy ra khi gửi lại mã OTP. Vui lòng thử lại sau.'
+    }
   } finally {
     isLoading.value = false
   }
