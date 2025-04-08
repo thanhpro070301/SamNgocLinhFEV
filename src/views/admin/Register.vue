@@ -125,7 +125,7 @@
                   <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
                 </svg>
               </button>
-              <div v-if="isTypingPassword" class="absolute left-0 right-0 mt-1 px-3">
+              <div v-if="isTypingPassword" class="absolute left-0 right-0 mt-1 px-3 z-10">
                 <div class="bg-white p-2 rounded-md shadow-sm">
                   <div class="flex items-center space-x-2 mb-1">
                     <div v-for="i in 5" :key="i" 
@@ -133,7 +133,7 @@
                       :class="i <= passwordStrength ? 'bg-green-500' : 'bg-gray-200'">
                     </div>
                   </div>
-                  <p class="text-xs text-gray-500">
+                  <p class="text-xs text-gray-500 truncate">
                     Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số
                   </p>
                 </div>
