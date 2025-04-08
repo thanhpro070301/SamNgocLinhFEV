@@ -1,175 +1,148 @@
-import { ref, computed } from 'vue'
-import sessionToken from './sessionToken'
+import { ref } from 'vue'
+import { defineStore } from 'pinia'
 import api from '@/api'
+import sessionToken from './sessionToken'
 
-// Tạo store quản lý authentication
-const auth = {
-  isAuthenticated: ref(false),
-  currentUser: ref(null),
-  isLoading: ref(false),
-  
-  // Khởi tạo store từ localStorage nếu đã đăng nhập trước đó
-  init() {
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref(null)
+  const loading = ref(false)
+  const error = ref(null)
+  const isAuthenticated = ref(false)
+  const sessionCheckInterval = ref(null)
+
+  // Khởi tạo store
+  const init = async () => {
     try {
-      // Kiểm tra token hiện tại có hợp lệ không
+      // Kiểm tra token hiện tại
       if (sessionToken.isCurrentTokenValid()) {
+        // Lấy thông tin user từ session
         const session = sessionToken.getCurrentSession()
         if (session) {
-          // Khôi phục thông tin người dùng từ session
-          this.currentUser.value = {
+          user.value = {
             id: session.userId,
             name: session.userName,
             email: session.userEmail,
             role: session.userRole
           }
-          this.isAuthenticated.value = true
+          isAuthenticated.value = true
+          
+          // Bắt đầu kiểm tra session định kỳ
+          startSessionCheck()
         }
       } else {
-        // Nếu token không hợp lệ, đăng xuất
-        this.logout(false) // false để không xóa token (đã được xóa trong sessionToken)
+        // Token không hợp lệ, đăng xuất
+        await logout()
       }
     } catch (error) {
       console.error('Error initializing auth store:', error)
-      // Reset auth state on error
-      this.currentUser.value = null
-      this.isAuthenticated.value = false
-    }
-  },
-  
-  // Đăng nhập
-  async login({ email, password, rememberMe }) {
-    this.isLoading.value = true
-    
-    try {
-      // Gọi API đăng nhập
-      const response = await api.auth.login({
-        email,
-        password
-      })
-      
-      // Lấy token từ response
-      const token = response.data
-      
-      // Giả lập dữ liệu user từ token
-      // Thực tế sẽ decode token hoặc gọi API get profile
-      const user = {
-        id: 1, // Giả lập ID
-        email: email,
-        name: email.split('@')[0], // Lấy tên từ email 
-        role: email.includes('admin') ? 'admin' : 'user'
-      }
-      
-      // Lưu thông tin đăng nhập
-      this.currentUser.value = user
-      this.isAuthenticated.value = true
-      
-      // Tạo token session
-      sessionToken.createToken(user, rememberMe)
-      
-      return true
-    } catch (error) {
-      console.error('Login error:', error)
-      return false
-    } finally {
-      this.isLoading.value = false
-    }
-  },
-  
-  // Đăng ký
-  async register({ name, email, password }) {
-    this.isLoading.value = true
-    
-    try {
-      // Gọi API đăng ký
-      await api.auth.register({
-        name,
-        email,
-        password
-      })
-      
-      // Trả về true khi đăng ký thành công
-      return true
-    } catch (error) {
-      console.error('Register error:', error)
-      return false
-    } finally {
-      this.isLoading.value = false
-    }
-  },
-  
-  // Đăng xuất
-  async logout(removeToken = true) {
-    this.isLoading.value = true
-    
-    try {
-      // Gọi API đăng xuất nếu đã đăng nhập và cần xóa token
-      if (this.isAuthenticated.value && removeToken) {
-        try {
-          await api.auth.logout()
-        } catch (error) {
-          console.error('Error calling logout API:', error)
-          // Tiếp tục quá trình logout dù API có lỗi
-        }
-      }
-      
-      // Xóa dữ liệu người dùng
-      this.currentUser.value = null
-      this.isAuthenticated.value = false
-      
-      // Xóa token session nếu cần
-      if (removeToken) {
-        sessionToken.removeToken(sessionToken.currentToken.value)
-      }
-      
-      return true
-    } catch (error) {
-      console.error('Logout error:', error)
-      return false
-    } finally {
-      this.isLoading.value = false
-    }
-  },
-  
-  // Kiểm tra quyền admin
-  isAdmin: computed(() => {
-    if (!auth.isAuthenticated.value) return false
-    return auth.currentUser.value?.role === 'admin'
-  }),
-  
-  // Cập nhật hoạt động của phiên hiện tại
-  updateActivity() {
-    if (this.isAuthenticated.value) {
-      sessionToken.updateActivity()
-    }
-  },
-  
-  // Lấy danh sách phiên đăng nhập của người dùng hiện tại
-  getUserSessions: computed(() => {
-    if (!auth.isAuthenticated.value) return []
-    return sessionToken.getCurrentUserSessions.value
-  }),
-  
-  // Xóa một phiên đăng nhập cụ thể
-  removeSession(tokenId) {
-    if (this.isAuthenticated.value) {
-      // Nếu xóa phiên hiện tại, thực hiện đăng xuất
-      if (tokenId === sessionToken.currentToken.value) {
-        this.logout()
-      } else {
-        sessionToken.removeToken(tokenId)
-      }
-    }
-  },
-  
-  // Xóa tất cả phiên đăng nhập ngoại trừ phiên hiện tại
-  removeOtherSessions() {
-    if (this.isAuthenticated.value) {
-      sessionToken.removeOtherTokens()
+      await logout()
     }
   }
-}
 
-// Khởi tạo store khi import
-auth.init()
+  // Bắt đầu kiểm tra session định kỳ
+  const startSessionCheck = () => {
+    // Kiểm tra mỗi 5 phút
+    sessionCheckInterval.value = setInterval(async () => {
+      try {
+        if (!sessionToken.isCurrentTokenValid()) {
+          // Thử refresh token
+          const refreshed = await sessionToken.refreshSession()
+          if (!refreshed) {
+            // Không thể refresh, đăng xuất
+            await logout()
+          }
+        }
+      } catch (error) {
+        console.error('Error checking session:', error)
+        await logout()
+      }
+    }, 5 * 60 * 1000)
+  }
 
-export default auth 
+  // Dừng kiểm tra session
+  const stopSessionCheck = () => {
+    if (sessionCheckInterval.value) {
+      clearInterval(sessionCheckInterval.value)
+      sessionCheckInterval.value = null
+    }
+  }
+
+  // Đăng nhập
+  const login = async (credentials, rememberMe = false) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const response = await api.auth.login(credentials)
+      
+      if (response && response.token) {
+        // Tạo session token
+        const { token, refreshToken } = sessionToken.createToken(response.user, rememberMe)
+        
+        // Lưu thông tin user
+        user.value = response.user
+        isAuthenticated.value = true
+        
+        // Bắt đầu kiểm tra session
+        startSessionCheck()
+        
+        return true
+      }
+      
+      error.value = 'Invalid credentials'
+      return false
+    } catch (err) {
+      error.value = err.message || 'Login failed'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Đăng xuất
+  const logout = async () => {
+    try {
+      // Gọi API logout nếu có token
+      if (sessionToken.currentToken.value) {
+        await api.auth.logout(sessionToken.currentToken.value)
+      }
+    } catch (error) {
+      console.error('Error during logout:', error)
+    } finally {
+      // Reset state
+      user.value = null
+      isAuthenticated.value = false
+      error.value = null
+      
+      // Dừng kiểm tra session
+      stopSessionCheck()
+      
+      // Xóa session token
+      sessionToken.resetAll()
+    }
+  }
+
+  // Kiểm tra quyền
+  const hasPermission = (permission) => {
+    if (!user.value || !user.value.role) return false
+    return user.value.role.permissions.includes(permission)
+  }
+
+  // Kiểm tra role
+  const hasRole = (role) => {
+    if (!user.value || !user.value.role) return false
+    return user.value.role.name === role
+  }
+
+  return {
+    user,
+    loading,
+    error,
+    isAuthenticated,
+    init,
+    login,
+    logout,
+    hasPermission,
+    hasRole
+  }
+}) 
