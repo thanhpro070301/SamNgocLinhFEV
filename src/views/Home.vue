@@ -320,49 +320,86 @@ async function fetchFeaturedProducts() {
       direction: 'desc'
     })
     
-    // Map API response to our format - updated to match actual API structure
-    featuredProducts.value = response.data.products.map(product => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      image: product.image ? (product.image.startsWith('http') ? product.image : `${import.meta.env.VITE_API_URL}${product.image}`) : samTuoiImage,
-      slug: product.slug
-    }))
-  } catch (err) {
-    console.error('Error fetching products:', err)
-    error.value = 'Không thể tải sản phẩm. Vui lòng thử lại sau.'
+    console.log('API Response in Home.vue:', response.data);
     
-    // Fallback to sample data if API fails
-    featuredProducts.value = [
-      {
-        id: 1,
-        name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
-        description: 'Sâm ngọc linh tươi có tuổi đời 10 năm, được thu hoạch từ vùng núi Ngọc Linh, giữ nguyên dược tính quý giá.',
-        price: 2500000,
-        image: samTuoiImage,
-        slug: 'sam-ngoc-linh-tuoi-10-nam-tuoi'
-      },
-      {
-        id: 2,
-        name: 'Cao Sâm Ngọc Linh',
-        description: 'Cao sâm ngọc linh nguyên chất, tinh khiết, giúp bồi bổ sức khỏe hiệu quả, tăng cường hệ miễn dịch.',
-        price: 1800000,
-        image: samTuoiImage,
-        slug: 'cao-sam-ngoc-linh'
-      },
-      {
-        id: 3,
-        name: 'Rượu Sâm Ngọc Linh',
-        description: 'Rượu ngâm sâm ngọc linh, giúp tăng cường sinh lực và bồi bổ cơ thể, phù hợp cho người lớn tuổi.',
-        price: 1500000,
-        image: samTuoiImage,
-        slug: 'ruou-sam-ngoc-linh'
+    // Kiểm tra cấu trúc phản hồi API
+    let productsData = [];
+    
+    if (response.data && typeof response.data === 'object') {
+      if (response.data.products && Array.isArray(response.data.products)) {
+        // Cấu trúc { products: [...], totalItems, totalPages }
+        productsData = response.data.products;
+      } else if (Array.isArray(response.data)) {
+        // Cấu trúc mảng trực tiếp
+        productsData = response.data;
       }
-    ]
+    }
+    
+    // Kiểm tra nếu có data
+    if (productsData && productsData.length > 0) {
+      // Map API response to our format
+      featuredProducts.value = productsData.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description || '',
+        price: product.price,
+        image: product.image ? (product.image.startsWith('http') ? product.image : `${import.meta.env.VITE_API_URL}${product.image}`) : samTuoiImage,
+        slug: product.slug || ''
+      }));
+    } else {
+      // Nếu không có sản phẩm nào, sử dụng dữ liệu mẫu
+      console.warn('Không có sản phẩm nào được trả về từ API');
+      useDefaultProducts();
+    }
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    
+    if (err.response) {
+      console.error('Error response:', err.response.status, err.response.data);
+      
+      // Kiểm tra nếu response là HTML (không phải JSON)
+      if (typeof err.response.data === 'string' && err.response.data.includes('<!DOCTYPE html>')) {
+        console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với cấu hình CORS hoặc API endpoint');
+      }
+    }
+    
+    error.value = 'Không thể tải sản phẩm. Vui lòng thử lại sau.';
+    
+    // Sử dụng dữ liệu mẫu khi API bị lỗi
+    useDefaultProducts();
   } finally {
     isLoading.value = false
   }
+}
+
+// Function để sử dụng dữ liệu mẫu
+function useDefaultProducts() {
+  featuredProducts.value = [
+    {
+      id: 1,
+      name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
+      description: 'Sâm ngọc linh tươi có tuổi đời 10 năm, được thu hoạch từ vùng núi Ngọc Linh, giữ nguyên dược tính quý giá.',
+      price: 2500000,
+      image: samTuoiImage,
+      slug: 'sam-ngoc-linh-tuoi-10-nam-tuoi'
+    },
+    {
+      id: 2,
+      name: 'Cao Sâm Ngọc Linh',
+      description: 'Cao sâm ngọc linh nguyên chất, tinh khiết, giúp bồi bổ sức khỏe hiệu quả, tăng cường hệ miễn dịch.',
+      price: 1800000,
+      image: samTuoiImage,
+      slug: 'cao-sam-ngoc-linh'
+    },
+    {
+      id: 3,
+      name: 'Rượu Sâm Ngọc Linh',
+      description: 'Rượu ngâm sâm ngọc linh, giúp tăng cường sinh lực và bồi bổ cơ thể, phù hợp cho người lớn tuổi.',
+      price: 1500000,
+      image: samTuoiImage,
+      slug: 'ruou-sam-ngoc-linh'
+    }
+  ]
 }
 
 // Handle add to cart functionality

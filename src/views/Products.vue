@@ -385,7 +385,13 @@ async function fetchProducts() {
       }
       
       const data = response.data;
-      console.log('API Response:', data);
+      console.log('API Response in Products.vue:', data);
+      
+      // Kiểm tra nếu API trả về HTML thay vì JSON
+      if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
+        console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với kết nối hoặc CORS');
+        throw new Error('Invalid API response format');
+      }
       
       // Extract pagination info from the actual API response structure
       totalProducts.value = data.totalItems || 0
@@ -442,6 +448,15 @@ async function fetchProducts() {
         }))
     } catch (e) {
       console.error('Error with main API endpoint, trying fallback:', e)
+      
+      if (e.response) {
+        console.error('Error response:', e.response.status, e.response.data);
+        // Kiểm tra nếu response là HTML
+        if (typeof e.response.data === 'string' && e.response.data.includes('<!DOCTYPE html>')) {
+          console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với cấu hình CORS hoặc API endpoint');
+        }
+      }
+      
       // Try fallback with direct URL
       throw e
     }
