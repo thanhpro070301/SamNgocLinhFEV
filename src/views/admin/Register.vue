@@ -66,6 +66,7 @@
               name="phone"
               type="tel"
               required
+              pattern="[0-9]{10,11}"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
               placeholder="Số điện thoại *"
             >
@@ -82,7 +83,7 @@
               required
               minlength="6"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Mật khẩu"
+              placeholder="Mật khẩu *"
             >
             <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2">
               <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
@@ -108,7 +109,7 @@
               :type="showPasswordConfirm ? 'text' : 'password'"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Xác nhận mật khẩu"
+              placeholder="Xác nhận mật khẩu *"
             >
             <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute right-3 top-1/2 transform -translate-y-1/2">
               <i :class="showPasswordConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
@@ -207,9 +208,10 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
-import auth from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 const errorMessage = ref('')
 const isLoading = ref(false)
 const successMessage = ref('')

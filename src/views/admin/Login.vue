@@ -111,10 +111,11 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
-import auth from '@/store/auth'
+import { useAuthStore } from '@/store/auth'
 import sessionToken from '@/store/sessionToken'
 
 const router = useRouter()
+const auth = useAuthStore()
 const errorMessage = ref('')
 const isLoading = ref(false)
 const rememberMe = ref(false)
