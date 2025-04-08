@@ -41,7 +41,7 @@
               required
               minlength="2"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Họ và tên"
+              placeholder="Họ và tên *"
             >
             <p v-if="form.name && form.name.length < 2" class="text-red-500 text-xs mt-1">Họ và tên phải có ít nhất 2 ký tự</p>
           </div>
@@ -54,7 +54,7 @@
               type="email"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Email"
+              placeholder="Email *"
             >
             <p v-if="form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)" class="text-red-500 text-xs mt-1">Email không hợp lệ</p>
           </div>
@@ -65,10 +65,12 @@
               v-model="form.phone"
               name="phone"
               type="tel"
+              required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
-              placeholder="Số điện thoại (không bắt buộc)"
+              placeholder="Số điện thoại *"
             >
-            <p v-if="form.phone && !/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs mt-1">Số điện thoại phải có 10-11 chữ số</p>
+            <p v-if="!form.phone" class="text-red-500 text-xs mt-1">Vui lòng nhập số điện thoại</p>
+            <p v-else-if="!/^\d{10,11}$/.test(form.phone)" class="text-red-500 text-xs mt-1">Số điện thoại phải có 10-11 chữ số</p>
           </div>
           <div>
             <label for="password" class="sr-only">Mật khẩu</label>
@@ -238,7 +240,8 @@ const isFormValid = computed(() => {
          /[a-z]/.test(form.password) &&
          /[0-9]/.test(form.password) &&
          form.password === form.passwordConfirm &&
-         (!form.phone || /^\d{10,11}$/.test(form.phone)) &&
+         form.phone &&
+         /^\d{10,11}$/.test(form.phone) &&
          agreeTerms.value
 })
 
@@ -307,7 +310,7 @@ async function handleStep2() {
       name: form.name,
       email: form.email,
       password: form.password,
-      phone: form.phone || null
+      phone: form.phone
     })
     
     if (success) {
