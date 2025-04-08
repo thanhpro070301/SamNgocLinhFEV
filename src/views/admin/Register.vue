@@ -79,15 +79,15 @@
                 placeholder="Số điện thoại *"
                 @input="handlePhoneInput"
               >
-              <div v-if="isTypingPhone" class="absolute left-0 right-0 mt-1 px-3">
+              <div v-if="isTypingPhone" class="absolute left-0 right-0 mt-1 px-3 z-10">
                 <div class="flex items-center space-x-2 bg-white p-2 rounded-md shadow-sm">
-                  <svg v-if="!/^\d{10,11}$/.test(form.phone)" class="h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <svg v-if="!/^\d{10,11}$/.test(form.phone)" class="h-4 w-4 flex-shrink-0 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                   </svg>
-                  <svg v-else class="h-4 w-4 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <svg v-else class="h-4 w-4 flex-shrink-0 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                   </svg>
-                  <span class="text-xs" :class="!/^\d{10,11}$/.test(form.phone) ? 'text-red-500' : 'text-green-500'">
+                  <span class="text-xs truncate" :class="!/^\d{10,11}$/.test(form.phone) ? 'text-red-500' : 'text-green-500'">
                     {{ !form.phone ? 'Vui lòng nhập số điện thoại' : !/^\d{10,11}$/.test(form.phone) ? 'Số điện thoại phải có 10-11 chữ số' : 'Số điện thoại hợp lệ' }}
                   </span>
                 </div>
