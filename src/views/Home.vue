@@ -286,6 +286,7 @@ import AOS from 'aos'
 import api from '@/api'
 import cart from '@/store/cart'
 import { useRouter } from 'vue-router'
+import notificationService from '@/utils/notificationService'
 
 // Initialize router
 const router = useRouter()
@@ -402,17 +403,22 @@ function useDefaultProducts() {
   ]
 }
 
-// Handle add to cart functionality
+// Cart functionality
 function addToCart(product) {
   cart.addToCart(product, 1)
-  alert(`Đã thêm ${product.name} vào giỏ hàng!`)
+  notificationService.cart(product)
 }
 
-// Handle buy now functionality
+// Buy now functionality
 function buyNow(product) {
   cart.addToCart(product, 1)
-  alert(`Đang chuyển đến trang thanh toán cho sản phẩm: ${product.name}`)
-  router.push('/checkout')
+  notificationService.show(`Đang chuyển đến trang thanh toán cho sản phẩm: ${product.name}`, {
+    title: 'Thanh toán ngay'
+  })
+  
+  setTimeout(() => {
+    router.push('/checkout')
+  }, 800)
 }
 
 // Fetch data and initialize AOS on component mount
