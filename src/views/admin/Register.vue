@@ -17,6 +17,11 @@
           </p>
         </div>
 
+        <!-- Error Message -->
+        <div v-if="errorMessage" class="mt-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+          <p>{{ errorMessage }}</p>
+        </div>
+
         <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
           <div class="rounded-md space-y-4">
             <!-- Name Input -->
@@ -192,6 +197,7 @@ import { useAuthStore } from '@/store/auth';
 const router = useRouter();
 const auth = useAuthStore();
 const isLoading = ref(false);
+const errorMessage = ref('');
 const agreeTerms = ref(false);
 const showPassword = ref(false);
 
@@ -255,10 +261,16 @@ const handlePhoneInput = () => {
 };
 
 const handleSubmit = async () => {
-  if (!isFormValid.value) return;
+  if (!isFormValid.value) {
+    errorMessage.value = 'Vui lòng điền đầy đủ và chính xác thông tin!';
+    return;
+  }
   
   isLoading.value = true;
+  errorMessage.value = '';
+  
   try {
+    // Đăng ký tài khoản trước
     const success = await auth.register({
       name: form.value.name,
       email: form.value.email,
@@ -267,10 +279,25 @@ const handleSubmit = async () => {
     });
     
     if (success) {
-      router.push('/admin/dashboard');
+      // Sau khi đăng ký thành công, gửi OTP
+      await api.auth.sendOtp(form.value.email);
+      // Chuyển đến trang xác thực OTP
+      router.push({
+        path: '/admin/verify-otp',
+        query: { email: form.value.email }
+      });
     }
   } catch (error) {
     console.error('Registration error:', error);
+    if (error.response?.status === 400) {
+      errorMessage.value = error.response.data.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.';
+    } else if (error.response?.status === 409) {
+      errorMessage.value = 'Email đã được sử dụng. Vui lòng sử dụng email khác.';
+    } else if (error.response?.status === 429) {
+      errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.';
+    } else {
+      errorMessage.value = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
+    }
   } finally {
     isLoading.value = false;
   }
@@ -285,5 +312,16 @@ onUnmounted(() => {
 <style scoped>
 body {
   font-family: 'Inter', sans-serif;
+}
+
+/* Animation for error message */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style> 
