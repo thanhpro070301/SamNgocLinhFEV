@@ -203,11 +203,34 @@ export const useAuthStore = defineStore('auth', () => {
         message: response.message || 'Đăng ký thất bại'
       }
     } catch (err) {
-      error.value = err.message || 'Lỗi đăng ký'
       console.error('Registration error details:', err)
+      
+      // Xử lý lỗi theo từng mã HTTP cụ thể
+      if (err.response) {
+        const status = err.response.status
+        const responseData = err.response.data
+        
+        if (status === 400) {
+          error.value = responseData.message || 'Thông tin đăng ký không hợp lệ'
+        } else if (status === 409) {
+          error.value = 'Email đã được sử dụng'
+        } else if (status === 429) {
+          error.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút'
+        } else {
+          error.value = responseData.message || 'Đã xảy ra lỗi khi đăng ký'
+        }
+        
+        return {
+          success: false,
+          message: error.value
+        }
+      }
+      
+      // Các lỗi khác (network, timeout, etc)
+      error.value = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại'
       return {
         success: false,
-        message: err.message || 'Lỗi đăng ký'
+        message: error.value
       }
     } finally {
       loading.value = false
