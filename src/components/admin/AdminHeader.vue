@@ -32,6 +32,11 @@
           </nav>
         </div>
         
+        <!-- API Status -->
+        <div class="hidden md:flex items-center">
+          <ApiStatus :show-details="isUserMenuOpen" />
+        </div>
+        
         <!-- User dropdown -->
         <div class="flex items-center h-full relative ml-3 user-dropdown">
           <div>
@@ -131,6 +136,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import sessionToken from '@/store/sessionToken'
 import notificationService from '@/utils/notificationService'
+import ApiStatus from '@/components/ApiStatus.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -147,7 +153,8 @@ const menuItems = [
   { label: 'Dịch vụ', path: '/admin/services', icon: 'fas fa-cogs' },
   { label: 'Đơn hàng', path: '/admin/orders', icon: 'fas fa-shopping-cart' },
   { label: 'Tin tức', path: '/admin/news', icon: 'fas fa-newspaper' },
-  { label: 'Người dùng', path: '/admin/users', icon: 'fas fa-users' }
+  { label: 'Người dùng', path: '/admin/users', icon: 'fas fa-users' },
+  { label: 'API', path: '/admin/api-config', icon: 'fas fa-server' }
 ]
 
 // Get user info from auth store

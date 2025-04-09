@@ -19,6 +19,7 @@ import AdminNews from '@/views/admin/News.vue'
 import Categories from '@/views/admin/Categories.vue'
 import Orders from '@/views/admin/Orders.vue'
 import Sessions from '@/views/admin/Sessions.vue'
+import ApiConfig from '@/views/admin/ApiConfig.vue'
 import { useAuthStore } from '@/store/auth'
 import sessionToken from '@/store/sessionToken'
 
@@ -147,6 +148,12 @@ const routes = [
     path: '/admin/sessions',
     name: 'AdminSessions',
     component: Sessions,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/api-config',
+    name: 'AdminApiConfig',
+    component: ApiConfig,
     meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
