@@ -12,6 +12,20 @@ import { useAuthStore } from './store/auth'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
+// Import Vuetify
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import 'vuetify/styles'
+import 'animate.css'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import 'swiper/css/effect-fade'
+
+// Import Vuetify styles
+import '@mdi/font/css/materialdesignicons.css'
+
 // Initialize AOS
 AOS.init({
   duration: 800,
@@ -43,6 +57,26 @@ app.config.errorHandler = handleError
 // Use plugins
 app.use(router)
 app.use(pinia)
+app.use(createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'light',
+    themes: {
+      light: {
+        colors: {
+          primary: '#16a34a',
+          secondary: '#f97316',
+          accent: '#82B1FF',
+          error: '#FF5252',
+          info: '#2196F3',
+          success: '#4CAF50',
+          warning: '#FFC107',
+        },
+      },
+    },
+  },
+}))
 
 // Initialize auth store after plugins are registered
 const auth = useAuthStore()
