@@ -1,405 +1,297 @@
 <template>
-  <v-app>
-    <!-- Hero Section -->
-    <div class="hero-wrapper">
-      <v-container fluid class="hero-section pa-0">
-        <div class="hero-overlay"></div>
-        <v-row no-gutters class="align-center">
-          <v-col cols="12" md="6" class="pa-8 pa-md-16 hero-content">
-            <v-card flat class="bg-transparent">
-              <div class="logo-mark animate__animated animate__fadeIn animate__delay-1s">
-                <div class="logo-circle">
-                  <span>Sâm Ngọc Linh</span>
-                </div>
-              </div>
-              <v-card-title class="text-h2 font-weight-bold text-primary mb-4 animate__animated animate__fadeInRight">
-                Sâm Ngọc Linh<br>
-                <span class="text-green">Chất Lượng Cao</span>
-              </v-card-title>
-              <v-card-text class="text-h6 text-grey-darken-1 mb-8 animate__animated animate__fadeInRight animate__delay-1s">
-                Sản phẩm từ thiên nhiên, mang đến những dưỡng chất quý giá cho sức khỏe và sắc đẹp của bạn.
-              </v-card-text>
-              <v-card-actions class="gap-4 animate__animated animate__fadeInRight animate__delay-2s">
-                <v-btn
-                  to="/products"
-                  color="primary"
-                  size="x-large"
-                  class="text-white hero-btn"
-                  prepend-icon="mdi-shopping"
-                  elevation="8"
-                >
-                  Xem sản phẩm
-                </v-btn>
-                <v-btn
-                  to="/about"
-                  variant="outlined"
-                  color="primary"
-                  size="x-large"
-                  prepend-icon="mdi-information"
-                  class="hero-btn-outline"
-                >
-                  Tìm hiểu thêm
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="6" class="pa-0">
-            <div class="hero-image-container">
-              <div class="hero-circle animate__animated animate__zoomIn"></div>
-              <div class="hero-circle-2 animate__animated animate__zoomIn animate__delay-1s"></div>
-              <v-img
-                :src="samTuoiImage"
-                cover
-                height="100vh"
-                class="animate__animated animate__fadeInLeft hero-image"
+  <div class="home">
+    <!-- Hero Section with animation -->
+    <div class="hero-section">
+      <div class="container mx-auto px-4 py-16 md:py-24">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div class="hero-content" data-aos="fade-right">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Sâm Ngọc Linh<br><span class="text-green-600">Chất Lượng Cao</span></h1>
+            <p class="text-lg text-gray-600 mb-8">
+              Sản phẩm từ thiên nhiên, mang đến những dưỡng chất quý giá cho sức khỏe và sắc đẹp của bạn.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <router-link 
+                to="/products" 
+                class="btn-primary px-6 py-3 rounded-lg text-white bg-green-600 hover:bg-green-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                <div class="d-flex fill-height align-center justify-center">
-                  <v-card
-                    class="rounded-circle pa-4 bg-white animate__animated animate__pulse animate__infinite product-image-container"
-                  >
-                    <v-img
-                      :src="samTuoiImage"
-                      class="rounded-circle product-image"
-                      cover
-                    ></v-img>
-                  </v-card>
-                </div>
-              </v-img>
+                <i class="fas fa-shopping-basket mr-2"></i> Xem sản phẩm
+              </router-link>
+              <router-link 
+                to="/about" 
+                class="btn-outline px-6 py-3 rounded-lg border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all"
+              >
+                <i class="fas fa-info-circle mr-2"></i> Tìm hiểu thêm
+              </router-link>
             </div>
-          </v-col>
-        </v-row>
-      </v-container>
+          </div>
+          <div class="hero-image" data-aos="fade-left" data-aos-delay="200">
+            <div class="relative">
+              <div class="absolute -inset-4 bg-green-100 rounded-full opacity-70 animate-pulse"></div>
+              <div class="relative z-10 overflow-hidden rounded-full p-2 bg-white shadow-2xl">
+                <img 
+                  :src="samTuoiImage" 
+                  alt="Sâm Ngọc Linh" 
+                  class="w-full h-auto rounded-full object-cover transform hover:scale-105 transition-transform duration-500"
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Benefit Pills -->
+    <div class="benefits-section bg-gray-50 py-10">
+      <div class="container mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="100">
+            <i class="fas fa-leaf text-green-500 mr-2"></i>
+            <span>100% Tự Nhiên</span>
+          </div>
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="200">
+            <i class="fas fa-medal text-green-500 mr-2"></i>
+            <span>Chứng Nhận Chất Lượng</span>
+          </div>
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="300">
+            <i class="fas fa-truck text-green-500 mr-2"></i>
+            <span>Giao Hàng Toàn Quốc</span>
+          </div>
+          <div class="benefit-pill" data-aos="zoom-in" data-aos-delay="400">
+            <i class="fas fa-shield-alt text-green-500 mr-2"></i>
+            <span>Bảo Hành Sản Phẩm</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Benefits Section -->
-    <v-container class="py-16 benefits-section">
-      <v-row class="justify-center">
-        <v-col
-          v-for="(benefit, index) in benefits"
-          :key="index"
-          cols="12"
-          sm="6"
-          md="3"
-          class="animate__animated"
-          :class="`animate__fadeInUp animate__delay-${index + 1}s`"
-        >
-          <v-card
-            class="h-100 text-center pa-6 benefit-card"
-            elevation="0"
-            hover
-          >
-            <div class="benefit-icon-container mb-4">
-              <v-icon
-                :icon="benefit.icon"
-                size="36"
-                color="primary"
-                class="benefit-icon"
-              ></v-icon>
-            </div>
-            <v-card-title class="text-h6 font-weight-bold">
-              {{ benefit.title }}
-            </v-card-title>
-            <v-card-text class="text-body-1 text-grey-darken-1">
-              {{ benefit.description }}
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
-
     <!-- Featured Products -->
-    <div class="featured-products-section py-16">
-      <v-container>
-        <v-row>
-          <v-col cols="12" class="text-center mb-12">
-            <div class="section-subtitle text-uppercase font-weight-medium text-primary mb-2 animate__animated animate__fadeInDown">
-              Sản phẩm đặc biệt
-            </div>
-            <div class="text-h3 font-weight-bold mb-4 animate__animated animate__fadeInDown animate__delay-1s">
-              Sản Phẩm Nổi Bật
-            </div>
-            <div class="text-body-1 text-grey-darken-1 max-w-2xl mx-auto animate__animated animate__fadeInDown animate__delay-2s">
-              Sâm Ngọc Linh được mệnh danh là "quốc bảo" của Việt Nam với nhiều công dụng quý giá cho sức khỏe.
-            </div>
-          </v-col>
-        </v-row>
-
-        <v-row v-if="isLoading" class="justify-center">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-            size="64"
-          ></v-progress-circular>
-        </v-row>
-
-        <v-row v-else-if="error" class="justify-center">
-          <v-col cols="12" class="text-center">
-            <v-alert
-              type="error"
-              class="mb-4"
-            >
-              {{ error }}
-            </v-alert>
-            <v-btn
-              color="primary"
-              @click="fetchFeaturedProducts"
-            >
-              Thử lại
-            </v-btn>
-          </v-col>
-        </v-row>
-
-        <div v-else class="swiper-container animate__animated animate__fadeIn">
-          <swiper
-            :modules="[Navigation, Pagination, Autoplay, EffectCoverflow]"
-            :slides-per-view="1"
-            :loop="true"
-            :autoplay="{
-              delay: 3000,
-              disableOnInteraction: false
-            }"
-            :pagination="{ 
-              clickable: true,
-              dynamicBullets: true
-            }"
-            :navigation="true"
-            :effect="'coverflow'"
-            :breakpoints="{
-              '640': {
-                slidesPerView: 2,
-                spaceBetween: 20
-              },
-              '1024': {
-                slidesPerView: 3,
-                spaceBetween: 30
-              }
-            }"
-            :coverflow-effect="{
-              rotate: 50,
-              stretch: 0,
-              depth: 100,
-              modifier: 1,
-              slideShadows: true
-            }"
-            class="featured-swiper"
-          >
-            <swiper-slide
-              v-for="(product, index) in featuredProducts"
-              :key="product.id"
-              class="animate__animated animate__fadeInUp"
-              :style="{ 'animation-delay': `${index * 0.2}s` }"
-            >
-              <v-card
-                class="product-card h-100 overflow-hidden"
-                elevation="4"
-                hover
-              >
-                <div class="product-badge" v-if="index === 0">Hot</div>
-                <div class="product-badge new" v-else-if="index === 1">Mới</div>
-                <div class="product-badge sale" v-else-if="index === 2">Sale</div>
-                
-                <v-img
-                  :src="product.image"
-                  height="280"
-                  cover
-                  class="product-image"
-                >
-                  <template v-slot:placeholder>
-                    <v-row class="fill-height ma-0" align="center" justify="center">
-                      <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                    </v-row>
-                  </template>
-                  <div class="product-overlay">
-                    <v-btn
-                      icon="mdi-eye"
-                      color="white"
-                      variant="text"
-                      size="large"
-                      :to="`/product/${product.id}`"
-                      class="product-action-btn"
-                    ></v-btn>
-                    <v-btn
-                      icon="mdi-cart"
-                      color="white"
-                      variant="text"
-                      size="large"
-                      @click="addToCart(product)"
-                      class="product-action-btn"
-                    ></v-btn>
-                    <v-btn
-                      icon="mdi-heart"
-                      color="white"
-                      variant="text"
-                      size="large"
-                      class="product-action-btn"
-                    ></v-btn>
-                  </div>
-                </v-img>
-                
-                <v-card-text class="pa-6">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <div class="text-subtitle-2 text-primary">Sâm Ngọc Linh</div>
-                    <v-rating
-                      :model-value="4.5"
-                      color="amber"
-                      density="compact"
-                      half-increments
-                      size="small"
-                      readonly
-                    ></v-rating>
-                  </div>
-                  
-                  <h3 class="product-title text-h6 font-weight-bold mb-2 text-truncate">
-                    {{ product.name }}
-                  </h3>
-                  
-                  <p class="product-description text-body-2 text-grey-darken-1 mb-4 two-lines-ellipsis">
-                    {{ product.description }}
-                  </p>
-                  
-                  <div class="d-flex justify-space-between align-center">
-                    <span class="text-h5 font-weight-bold text-primary">
-                      {{ formatPrice(product.price) }}
-                    </span>
-                    <v-btn
-                      color="secondary"
-                      variant="elevated"
-                      @click="buyNow(product)"
-                      class="buy-now-btn"
-                    >
-                      Mua ngay
-                    </v-btn>
-                  </div>
-                </v-card-text>
-              </v-card>
-            </swiper-slide>
-          </swiper>
+    <div class="featured-products py-16">
+      <div class="container mx-auto px-4">
+        <div class="section-header text-center mb-12" data-aos="fade-up">
+          <span class="text-sm uppercase tracking-wider text-green-600 font-semibold">Sản phẩm đặc biệt</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Sản Phẩm Nổi Bật</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Sâm Ngọc Linh được mệnh danh là "quốc bảo" của Việt Nam với nhiều công dụng quý giá cho sức khỏe.
+          </p>
         </div>
-
-        <v-row class="justify-center mt-12">
-          <v-btn
-            to="/products"
-            color="primary"
-            variant="outlined"
-            size="large"
-            class="rounded-pill px-8 py-3 animate__animated animate__fadeInUp view-all-btn"
+        
+        <div v-if="isLoading" class="flex justify-center items-center py-20">
+          <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-600"></div>
+        </div>
+        
+        <div v-else-if="error" class="text-center py-10">
+          <p class="text-red-500">{{ error }}</p>
+          <button @click="fetchFeaturedProducts" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            Thử lại
+          </button>
+        </div>
+        
+        <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Sản phẩm với animation -->
+          <div 
+            v-for="(product, index) in featuredProducts" 
+            :key="product.id" 
+            class="product-card group flex flex-col h-full"
+            data-aos="fade-up"
+            :data-aos-delay="index * 100"
+          >
+            <div class="product-image overflow-hidden rounded-t-lg bg-gray-100 h-64 flex items-center justify-center">
+              <router-link :to="`/product/${product.id}`" class="w-full h-full flex items-center justify-center">
+                <img 
+                  :src="product.image" 
+                  :alt="product.name" 
+                  class="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
+                >
+              </router-link>
+            </div>
+            <div class="product-info p-6 bg-white rounded-b-lg shadow-md group-hover:shadow-xl transition-shadow flex flex-col h-60">
+              <router-link :to="`/product/${product.id}`">
+                <h3 class="product-title text-xl font-semibold text-gray-800 mb-2 h-14 line-clamp-2">{{ product.name }}</h3>
+              </router-link>
+              <div class="flex items-center mb-2">
+                <div class="flex text-yellow-400">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="text-sm text-gray-500 ml-2">(4.5)</span>
+              </div>
+              <p class="product-description text-gray-600 mb-4 h-12 line-clamp-2">{{ product.description }}</p>
+              <div class="flex flex-col mt-auto">
+                <span class="product-price text-xl font-bold text-green-600 mb-2">{{ formatPrice(product.price) }}</span>
+                <div class="flex space-x-2">
+                  <button 
+                    @click="addToCart(product)" 
+                    class="btn-add-cart h-10 px-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
+                  >
+                    <i class="fas fa-shopping-cart mr-1"></i> Thêm
+                  </button>
+                  <button 
+                    @click="buyNow(product)" 
+                    class="btn-buy-now h-10 px-2 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
+                  >
+                    <i class="fas fa-bolt mr-1"></i> Mua ngay
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-12" data-aos="fade-up">
+          <router-link 
+            to="/products" 
+            class="btn-view-all inline-flex items-center px-6 py-3 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
           >
             Xem tất cả sản phẩm
-            <v-icon end>mdi-arrow-right</v-icon>
-          </v-btn>
-        </v-row>
-      </v-container>
+            <i class="fas fa-arrow-right ml-2"></i>
+          </router-link>
+        </div>
+      </div>
+    </div>
+
+    <!-- Why Choose Us -->
+    <div class="features-section bg-gray-50 py-16">
+      <div class="container mx-auto px-4">
+        <div class="section-header text-center mb-12" data-aos="fade-up">
+          <span class="text-sm uppercase tracking-wider text-green-600 font-semibold">Lý do chọn chúng tôi</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Tại Sao Chọn Chúng Tôi?</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Chúng tôi cam kết mang đến những sản phẩm Sâm Ngọc Linh chất lượng cao nhất.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="feature-item text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="100">
+            <div class="feature-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-leaf text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="feature-title text-xl font-semibold mb-3">100% Tự nhiên</h3>
+            <p class="feature-description text-gray-600">
+              Sản phẩm được trồng và thu hoạch theo phương pháp tự nhiên, không chất bảo quản, đảm bảo an toàn cho sức khỏe người sử dụng.
+            </p>
+          </div>
+          
+          <div class="feature-item text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="200">
+            <div class="feature-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-certificate text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="feature-title text-xl font-semibold mb-3">Chứng nhận chất lượng</h3>
+            <p class="feature-description text-gray-600">
+              Đạt tiêu chuẩn chất lượng và được cấp giấy chứng nhận từ các cơ quan chức năng, đảm bảo nguồn gốc xuất xứ rõ ràng.
+            </p>
+          </div>
+          
+          <div class="feature-item text-center p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow" data-aos="fade-up" data-aos-delay="300">
+            <div class="feature-icon w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-shipping-fast text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="feature-title text-xl font-semibold mb-3">Giao hàng nhanh chóng</h3>
+            <p class="feature-description text-gray-600">
+              Sản phẩm được đóng gói cẩn thận và giao hàng nhanh chóng đến tận tay khách hàng trên toàn quốc.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Testimonials Section -->
     <div class="testimonials-section py-16">
-      <v-container>
-        <v-row>
-          <v-col cols="12" class="text-center mb-12">
-            <div class="section-subtitle text-uppercase font-weight-medium text-primary mb-2 animate__animated animate__fadeInDown">
-              Khách hàng nói gì
+      <div class="container mx-auto px-4">
+        <div class="section-header text-center mb-12" data-aos="fade-up">
+          <span class="text-sm uppercase tracking-wider text-green-600 font-semibold">Khách hàng nói gì</span>
+          <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">Đánh Giá Từ Khách Hàng</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Những đánh giá chân thực từ khách hàng đã sử dụng sản phẩm của chúng tôi.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="testimonial-card p-6 bg-white rounded-xl shadow-md" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
             </div>
-            <div class="text-h3 font-weight-bold mb-4 animate__animated animate__fadeInDown animate__delay-1s">
-              Đánh Giá Từ Khách Hàng
-            </div>
-            <div class="text-body-1 text-grey-darken-1 max-w-2xl mx-auto animate__animated animate__fadeInDown animate__delay-2s">
-              Những đánh giá chân thực từ khách hàng đã sử dụng sản phẩm của chúng tôi.
-            </div>
-          </v-col>
-        </v-row>
-
-        <swiper
-          :modules="[Navigation, Pagination, Autoplay]"
-          :slides-per-view="1"
-          :space-between="30"
-          :loop="true"
-          :autoplay="{
-            delay: 5000,
-            disableOnInteraction: false
-          }"
-          :pagination="{ 
-            clickable: true,
-            dynamicBullets: true
-          }"
-          :breakpoints="{
-            '640': { slidesPerView: 2 },
-            '1024': { slidesPerView: 3 }
-          }"
-          class="testimonials-swiper"
-        >
-          <swiper-slide
-            v-for="(testimonial, index) in testimonials"
-            :key="index"
-            class="animate__animated animate__fadeInUp"
-            :style="{ 'animation-delay': `${index * 0.2}s` }"
-          >
-            <v-card
-              class="testimonial-card h-100 pa-6"
-              elevation="3"
-              hover
-            >
-              <div class="testimonial-quote-icon mb-4">
-                <v-icon icon="mdi-format-quote-open" color="primary" size="36"></v-icon>
+            <p class="text-gray-600 mb-4 italic">
+              "Tôi đã sử dụng Sâm Ngọc Linh được 3 tháng và sức khỏe đã cải thiện đáng kể. Giấc ngủ sâu hơn và tinh thần luôn tỉnh táo."
+            </p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded-full mr-4 overflow-hidden">
+                <i class="fas fa-user text-gray-400 flex items-center justify-center h-full"></i>
               </div>
-              
-              <p class="testimonial-text text-body-1 text-grey-darken-1 mb-6 font-italic">
-                "{{ testimonial.comment }}"
-              </p>
-              
-              <v-rating
-                :model-value="testimonial.rating"
-                color="amber"
-                density="compact"
-                half-increments
-                readonly
-                class="mb-4"
-              ></v-rating>
-              
-              <v-divider class="mb-4"></v-divider>
-              
-              <div class="d-flex align-center">
-                <v-avatar
-                  color="primary"
-                  size="56"
-                  class="me-4 testimonial-avatar"
-                >
-                  <v-icon icon="mdi-account" color="white" size="28"></v-icon>
-                </v-avatar>
-                <div>
-                  <div class="text-subtitle-1 font-weight-bold testimonial-name">
-                    {{ testimonial.name }}
-                  </div>
-                  <div class="text-caption text-grey testimonial-role">
-                    {{ testimonial.role }}
-                  </div>
-                </div>
+              <div>
+                <h4 class="font-semibold">Nguyễn Văn A</h4>
+                <p class="text-sm text-gray-500">Khách hàng thân thiết</p>
               </div>
-            </v-card>
-          </swiper-slide>
-        </swiper>
-      </v-container>
+            </div>
+          </div>
+          
+          <div class="testimonial-card p-6 bg-white rounded-xl shadow-md" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="text-gray-600 mb-4 italic">
+              "Sản phẩm chất lượng cao, đóng gói cẩn thận và giao hàng nhanh. Tôi rất hài lòng với dịch vụ và sẽ tiếp tục ủng hộ."
+            </p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded-full mr-4 overflow-hidden">
+                <i class="fas fa-user text-gray-400 flex items-center justify-center h-full"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold">Trần Thị B</h4>
+                <p class="text-sm text-gray-500">Khách hàng mới</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="testimonial-card p-6 bg-white rounded-xl shadow-md" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex text-yellow-400 mb-4">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <p class="text-gray-600 mb-4 italic">
+              "Đã mua rượu sâm ngọc linh làm quà biếu và nhận được phản hồi rất tích cực. Giá cả hợp lý cho chất lượng sản phẩm."
+            </p>
+            <div class="flex items-center">
+              <div class="w-12 h-12 bg-gray-200 rounded-full mr-4 overflow-hidden">
+                <i class="fas fa-user text-gray-400 flex items-center justify-center h-full"></i>
+              </div>
+              <div>
+                <h4 class="font-semibold">Lê Văn C</h4>
+                <p class="text-sm text-gray-500">Khách hàng VIP</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </v-app>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Pagination, Autoplay, EffectCoverflow } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
-import 'swiper/css/effect-coverflow'
-import 'animate.css'
+import AOS from 'aos'
 import api from '@/api'
 import cart from '@/store/cart'
+import { useRouter } from 'vue-router'
 import notificationService from '@/utils/notificationService'
 
+// Initialize router
 const router = useRouter()
-const modules = [Navigation, Pagination, Autoplay, EffectCoverflow]
 
-// Fix image path
+// Fix image path by using public path instead of relative import
 const samTuoiImage = '/assets/images/products/sam-tuoi.png'
 
 // State for products
@@ -407,53 +299,7 @@ const featuredProducts = ref([])
 const isLoading = ref(true)
 const error = ref(null)
 
-// Benefits data
-const benefits = [
-  {
-    icon: 'mdi-leaf',
-    title: '100% Tự Nhiên',
-    description: 'Sản phẩm được trồng và thu hoạch theo phương pháp tự nhiên, không chất bảo quản.'
-  },
-  {
-    icon: 'mdi-certificate',
-    title: 'Chứng Nhận Chất Lượng',
-    description: 'Đạt tiêu chuẩn chất lượng và được cấp giấy chứng nhận từ các cơ quan chức năng.'
-  },
-  {
-    icon: 'mdi-truck-fast',
-    title: 'Giao Hàng Toàn Quốc',
-    description: 'Sản phẩm được đóng gói cẩn thận và giao hàng nhanh chóng đến tận tay khách hàng.'
-  },
-  {
-    icon: 'mdi-shield-check',
-    title: 'Bảo Hành Sản Phẩm',
-    description: 'Cam kết chất lượng sản phẩm và chính sách bảo hành uy tín.'
-  }
-]
-
-// Testimonials data
-const testimonials = [
-  {
-    rating: 5,
-    comment: 'Tôi đã sử dụng Sâm Ngọc Linh được 3 tháng và sức khỏe đã cải thiện đáng kể. Giấc ngủ sâu hơn và tinh thần luôn tỉnh táo.',
-    name: 'Nguyễn Văn A',
-    role: 'Khách hàng thân thiết'
-  },
-  {
-    rating: 5,
-    comment: 'Sản phẩm chất lượng cao, đóng gói cẩn thận và giao hàng nhanh. Tôi rất hài lòng với dịch vụ và sẽ tiếp tục ủng hộ.',
-    name: 'Trần Thị B',
-    role: 'Khách hàng mới'
-  },
-  {
-    rating: 4.5,
-    comment: 'Đã mua rượu sâm ngọc linh làm quà biếu và nhận được phản hồi rất tích cực. Giá cả hợp lý cho chất lượng sản phẩm.',
-    name: 'Lê Văn C',
-    role: 'Khách hàng VIP'
-  }
-]
-
-// Format price
+// Format giá tiền
 function formatPrice(price) {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -461,25 +307,33 @@ function formatPrice(price) {
   }).format(price).replace('₫', 'VNĐ')
 }
 
-// Fetch featured products
+// Fetch featured products from API
 async function fetchFeaturedProducts() {
   isLoading.value = true
   error.value = null
   
   try {
+    // Fetch featured products using the new endpoint
     const response = await api.product.getFeaturedProducts()
     
-    let productsData = []
+    console.log('API Response in Home.vue:', response);
+    
+    // Kiểm tra cấu trúc phản hồi API
+    let productsData = [];
     
     if (response && typeof response === 'object') {
       if (response.products && Array.isArray(response.products)) {
-        productsData = response.products
+        // Cấu trúc { products: [...], totalItems, totalPages }
+        productsData = response.products;
       } else if (Array.isArray(response)) {
-        productsData = response
+        // Cấu trúc mảng trực tiếp
+        productsData = response;
       }
     }
     
+    // Kiểm tra nếu có data
     if (productsData && productsData.length > 0) {
+      // Map API response to our format
       featuredProducts.value = productsData.map(product => ({
         id: product.id,
         name: product.name,
@@ -487,20 +341,34 @@ async function fetchFeaturedProducts() {
         price: product.price,
         image: product.image ? (product.image.startsWith('http') ? product.image : `${import.meta.env.VITE_API_URL}${product.image}`) : samTuoiImage,
         slug: product.slug || ''
-      }))
+      }));
     } else {
-      useDefaultProducts()
+      // Nếu không có sản phẩm nào, sử dụng dữ liệu mẫu
+      console.warn('Không có sản phẩm nổi bật nào được trả về từ API');
+      useDefaultProducts();
     }
   } catch (err) {
-    console.error('Error fetching featured products:', err)
-    error.value = 'Không thể tải sản phẩm nổi bật. Vui lòng thử lại sau.'
-    useDefaultProducts()
+    console.error('Error fetching featured products:', err);
+    
+    if (err.response) {
+      console.error('Error response:', err.response.status, err.response.data);
+      
+      // Kiểm tra nếu response là HTML (không phải JSON)
+      if (typeof err.response.data === 'string' && err.response.data.includes('<!DOCTYPE html>')) {
+        console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với cấu hình CORS hoặc API endpoint');
+      }
+    }
+    
+    error.value = 'Không thể tải sản phẩm nổi bật. Vui lòng thử lại sau.';
+    
+    // Sử dụng dữ liệu mẫu khi API bị lỗi
+    useDefaultProducts();
   } finally {
     isLoading.value = false
   }
 }
 
-// Default products
+// Function để sử dụng dữ liệu mẫu
 function useDefaultProducts() {
   featuredProducts.value = [
     {
@@ -548,394 +416,119 @@ function buyNow(product) {
   }, 800)
 }
 
-// Initialize on mount
+// Fetch data and initialize AOS on component mount
 onMounted(() => {
   fetchFeaturedProducts()
+  AOS.refresh()
 })
 </script>
 
-<style>
-.hero-wrapper {
+<style lang="scss">
+@use "@/assets/styles/variables" as *;
+
+// Custom styles for benefit pills
+.benefit-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  color: #374151;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Add animations
+.hero-section {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30%;
+    height: 100%;
+    background-color: rgba(220, 252, 231, 0.3); // green-100 with opacity
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+    z-index: 0;
+  }
 }
 
-.hero-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('/assets/images/pattern.png') repeat;
-  opacity: 0.05;
-  z-index: 1;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 2;
-}
-
-.hero-circle {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background: rgba(22, 163, 74, 0.1);
-  border-radius: 50%;
-  top: 20%;
-  right: 10%;
-  z-index: 0;
-}
-
-.hero-circle-2 {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  background: rgba(249, 115, 22, 0.1);
-  border-radius: 50%;
-  bottom: 15%;
-  right: 25%;
-  z-index: 0;
-}
-
-.hero-btn {
-  border-radius: 30px !important;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3);
-}
-
-.hero-btn-outline {
-  border-radius: 30px !important;
-  border-width: 2px !important;
-  transition: all 0.3s ease;
-}
-
-.hero-btn:hover, .hero-btn-outline:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(22, 163, 74, 0.2);
-}
-
-.product-image-container {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  max-width: 400px;
-  max-height: 400px;
-  z-index: 2;
-}
-
-.logo-mark {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
-
-.logo-circle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 2px solid #16a34a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  font-weight: bold;
-  color: #16a34a;
-  text-align: center;
-  text-transform: uppercase;
-  line-height: 1;
-  padding: 4px;
-}
-
-.benefit-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  margin: 0 auto;
-  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.2);
-}
-
-.benefit-card {
-  border-radius: 16px;
-  border: 1px solid rgba(22, 163, 74, 0.1);
-  transition: all 0.3s ease;
-}
-
-.benefit-card:hover {
-  transform: translateY(-10px);
-  border-color: rgba(22, 163, 74, 0.3);
-  box-shadow: 0 20px 25px -5px rgba(22, 163, 74, 0.1), 0 10px 10px -5px rgba(22, 163, 74, 0.04) !important;
-}
-
-.featured-products-section {
-  background-color: #f8fafc;
-  position: relative;
-  overflow: hidden;
-}
-
-.featured-products-section::before {
-  content: '';
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background-color: rgba(22, 163, 74, 0.05);
-  border-radius: 50%;
-  top: -150px;
-  left: -150px;
-}
-
-.featured-products-section::after {
-  content: '';
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background-color: rgba(249, 115, 22, 0.05);
-  border-radius: 50%;
-  bottom: -150px;
-  right: -150px;
-}
-
-.section-subtitle {
-  font-size: 0.875rem;
-  letter-spacing: 2px;
-  position: relative;
-  display: inline-block;
-}
-
-.section-subtitle::before, .section-subtitle::after {
-  content: '';
-  position: absolute;
-  height: 1px;
-  background-color: #16a34a;
-  top: 50%;
-  width: 30px;
-}
-
-.section-subtitle::before {
-  left: -40px;
-}
-
-.section-subtitle::after {
-  right: -40px;
+// Custom animation for product cards
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
 }
 
 .product-card {
-  position: relative;
-  border-radius: 16px;
+  transition: all 0.3s ease;
+  background-color: white;
+  border-radius: 0.5rem;
   overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-}
-
-.product-badge {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background-color: #16a34a;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 30px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  z-index: 2;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.product-badge.new {
-  background-color: #3b82f6;
-}
-
-.product-badge.sale {
-  background-color: #f97316;
-}
-
-.product-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  opacity: 0;
-  transition: all 0.3s ease;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .product-image {
+    height: 16rem;
+    background-color: #f9fafb;
+  }
+  
+  .product-info {
+    height: auto;
+    min-height: 15rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .btn-add-cart, .btn-buy-now {
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+  
+  .btn-add-cart {
+    background-color: #16a34a;
+    &:hover {
+      background-color: #15803d;
+    }
+  }
+  
+  .btn-buy-now {
+    background-color: #f97316;
+    &:hover {
+      background-color: #ea580c;
+    }
+  }
 }
 
-.product-card:hover .product-overlay {
-  opacity: 1;
-}
-
-.product-action-btn {
-  transform: translateY(20px);
-  transition: all 0.3s ease;
-  opacity: 0;
-}
-
-.product-card:hover .product-action-btn {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.product-card:hover .product-action-btn:nth-child(2) {
-  transition-delay: 0.1s;
-}
-
-.product-card:hover .product-action-btn:nth-child(3) {
-  transition-delay: 0.2s;
-}
-
-.product-title {
-  transition: all 0.3s ease;
-}
-
-.product-card:hover .product-title {
-  color: #16a34a;
-}
-
-.buy-now-btn {
-  border-radius: 30px !important;
-  transition: all 0.3s ease;
-}
-
-.buy-now-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
-}
-
-.view-all-btn {
-  transition: all 0.3s ease;
-  border-width: 2px !important;
-}
-
-.view-all-btn:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.2);
-}
-
-.two-lines-ellipsis {
+// Using @apply for utility classes
+.line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-:root {
-  --swiper-theme-color: #16a34a !important;
-  --swiper-navigation-size: 30px !important;
-}
-
-.featured-swiper {
-  padding: 30px 10px !important;
-  overflow: visible;
-}
-
-.swiper-pagination {
-  position: relative;
-  margin-top: 20px;
-}
-
-.text-shadow {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.swiper-pagination-bullet {
-  width: 10px;
-  height: 10px;
-  transition: all 0.3s ease;
-}
-
-.swiper-pagination-bullet-active {
-  width: 20px;
-  border-radius: 5px;
-}
-
-.testimonials-section {
-  background-color: #ffffff;
-  position: relative;
-  overflow: hidden;
-}
-
-.testimonials-section::before {
-  content: '';
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background-color: rgba(22, 163, 74, 0.05);
-  border-radius: 50%;
-  top: -200px;
-  right: -200px;
-  z-index: 0;
-}
-
-.testimonials-section::after {
-  content: '';
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background-color: rgba(249, 115, 22, 0.05);
-  border-radius: 50%;
-  bottom: -150px;
-  left: -150px;
-  z-index: 0;
-}
-
-.testimonial-card {
-  border-radius: 16px;
-  position: relative;
-  z-index: 1;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(22, 163, 74, 0.1);
-  transition: all 0.3s ease;
-}
-
-.testimonial-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-  border-color: rgba(22, 163, 74, 0.2);
-}
-
-.testimonial-quote-icon {
-  display: inline-block;
-  background-color: rgba(22, 163, 74, 0.1);
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.testimonial-text {
-  min-height: 120px;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.testimonial-avatar {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border: 3px solid white;
-}
-
-.testimonial-name {
-  transition: all 0.3s ease;
-}
-
-.testimonial-card:hover .testimonial-name {
-  color: #16a34a;
-}
-
-.testimonials-swiper {
-  padding: 30px 10px !important;
-  overflow: visible;
 }
 </style> 
