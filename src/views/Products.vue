@@ -394,7 +394,13 @@ async function fetchProducts() {
       }
       
       // Kiểm tra nếu dữ liệu không hợp lệ
-      if (!data || !Array.isArray(data.products)) {
+      if (!data) {
+        console.error('No data received from API');
+        throw new Error('No data received');
+      }
+      
+      // Kiểm tra cấu trúc dữ liệu
+      if (!data.products || !Array.isArray(data.products)) {
         console.error('Invalid data format:', data);
         throw new Error('Invalid data format');
       }
