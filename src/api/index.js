@@ -8,9 +8,12 @@ const API_TIMEOUT = 30000; // 30 seconds
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json; charset=utf-8'
   },
   timeout: API_TIMEOUT,
+  responseType: 'json',
+  responseEncoding: 'utf8'
 });
 
 // Biến để theo dõi yêu cầu refresh token

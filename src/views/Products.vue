@@ -393,72 +393,36 @@ async function fetchProducts() {
         throw new Error('Invalid API response format');
       }
       
+      // Kiểm tra nếu dữ liệu không hợp lệ
+      if (!data || !Array.isArray(data.products)) {
+        console.error('Invalid data format:', data);
+        throw new Error('Invalid data format');
+      }
+      
       // Extract pagination info from the actual API response structure
       totalProducts.value = data.totalItems || 0
       totalPages.value = data.totalPages || 1
       currentPage.value = data.currentPage || 0
       
-      // Map products using the actual API response structure
-      // Kiểm tra cấu trúc phản hồi từ API
-      let fetchedProducts = [];
+      // Update products list
+      products.value = data.products.map(product => ({
+        ...product,
+        // Đảm bảo các trường bắt buộc có giá trị mặc định
+        name: product.name || 'Không có tên',
+        price: product.price || 0,
+        image: product.image || '/assets/images/products/default.png'
+      }));
       
-      if (data.products && Array.isArray(data.products)) {
-        // Cấu trúc thay thế: { products: [...], totalItems, totalPages }
-        fetchedProducts = data.products;
-        totalProducts.value = data.totalItems || fetchedProducts.length;
-        totalPages.value = data.totalPages || 1;
-      } else if (Array.isArray(data)) {
-        // Mảng trực tiếp không có phân trang
-        fetchedProducts = data;
-        totalProducts.value = fetchedProducts.length;
-        totalPages.value = 1;
-      }
-      
-      // Apply price filters (client-side)
-      let filteredProducts = fetchedProducts
-      
-      if (filters.value.price.under1m || 
-          filters.value.price.from1mTo5m || 
-          filters.value.price.from5mTo10m || 
-          filters.value.price.above10m) {
-        
-        filteredProducts = fetchedProducts.filter(p => {
-          if (filters.value.price.under1m && p.price < 1000000) return true
-          if (filters.value.price.from1mTo5m && p.price >= 1000000 && p.price < 5000000) return true
-          if (filters.value.price.from5mTo10m && p.price >= 5000000 && p.price < 10000000) return true
-          if (filters.value.price.above10m && p.price >= 10000000) return true
-          return false
-        })
-      }
-      
-      products.value = filteredProducts
-        .filter(p => p.status === 'ACTIVE') // Đảm bảo chỉ hiển thị sản phẩm đang bán
-        .map(p => ({
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          price: p.price,
-          originalPrice: p.originalPrice,
-          image: p.image ? (p.image.startsWith('http') ? p.image : `${import.meta.env.VITE_API_URL}${p.image}`) : defaultImage,
-          rating: p.rating,
-          slug: p.slug,
-          categoryId: p.categoryId,
-          stock: p.stock || 0,
-          status: p.status
-        }))
-    } catch (e) {
-      console.error('Error with main API endpoint, trying fallback:', e)
-      
-      if (e.response) {
-        console.error('Error response:', e.response.status, e.response.data);
-        // Kiểm tra nếu response là HTML
-        if (typeof e.response.data === 'string' && e.response.data.includes('<!DOCTYPE html>')) {
-          console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với cấu hình CORS hoặc API endpoint');
-        }
-      }
-      
-      // Try fallback with direct URL
-      throw e
+      error.value = null;
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      error.value = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.';
+      products.value = [];
+      totalProducts.value = 0;
+      totalPages.value = 1;
+      currentPage.value = 0;
+    } finally {
+      isLoading.value = false;
     }
   } catch (err) {
     console.error('Error fetching products:', err)
@@ -491,8 +455,6 @@ async function fetchProducts() {
         status: 'ACTIVE'
       }
     ]
-  } finally {
-    isLoading.value = false
   }
 }
 
