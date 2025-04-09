@@ -313,26 +313,21 @@ async function fetchFeaturedProducts() {
   error.value = null
   
   try {
-    // Fetch products with limit=3 to get only featured ones
-    const response = await api.product.getProducts({
-      page: 0,
-      size: 3,
-      sort: 'sold',
-      direction: 'desc'
-    })
+    // Fetch featured products using the new endpoint
+    const response = await api.product.getFeaturedProducts()
     
-    console.log('API Response in Home.vue:', response.data);
+    console.log('API Response in Home.vue:', response);
     
     // Kiểm tra cấu trúc phản hồi API
     let productsData = [];
     
-    if (response.data && typeof response.data === 'object') {
-      if (response.data.products && Array.isArray(response.data.products)) {
+    if (response && typeof response === 'object') {
+      if (response.products && Array.isArray(response.products)) {
         // Cấu trúc { products: [...], totalItems, totalPages }
-        productsData = response.data.products;
-      } else if (Array.isArray(response.data)) {
+        productsData = response.products;
+      } else if (Array.isArray(response)) {
         // Cấu trúc mảng trực tiếp
-        productsData = response.data;
+        productsData = response;
       }
     }
     
@@ -349,11 +344,11 @@ async function fetchFeaturedProducts() {
       }));
     } else {
       // Nếu không có sản phẩm nào, sử dụng dữ liệu mẫu
-      console.warn('Không có sản phẩm nào được trả về từ API');
+      console.warn('Không có sản phẩm nổi bật nào được trả về từ API');
       useDefaultProducts();
     }
   } catch (err) {
-    console.error('Error fetching products:', err);
+    console.error('Error fetching featured products:', err);
     
     if (err.response) {
       console.error('Error response:', err.response.status, err.response.data);
@@ -364,7 +359,7 @@ async function fetchFeaturedProducts() {
       }
     }
     
-    error.value = 'Không thể tải sản phẩm. Vui lòng thử lại sau.';
+    error.value = 'Không thể tải sản phẩm nổi bật. Vui lòng thử lại sau.';
     
     // Sử dụng dữ liệu mẫu khi API bị lỗi
     useDefaultProducts();

@@ -224,6 +224,10 @@ export const productApi = {
     return apiClient.get('/products', { params })
       .then(response => response.data);
   },
+  getFeaturedProducts() {
+    return apiClient.get('/products/featured')
+      .then(response => response.data);
+  },
   getProduct(id) {
     return apiClient.get(`/products/${id}`)
       .then(response => response.data);
