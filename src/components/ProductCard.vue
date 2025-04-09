@@ -6,8 +6,28 @@
     </div>
     
     <div class="h-full flex flex-col">
-      <div class="h-48 overflow-hidden group">
-        <img :src="product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+      <div class="product-image-container relative group">
+        <img :src="product.image" :alt="product.name" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500">
+        
+        <!-- Wishlist button -->
+        <button class="wishlist-button">
+          <i class="far fa-heart"></i>
+        </button>
+        
+        <!-- Quick view button -->
+        <button @click="navigateToProduct" class="quick-view-button">
+          <i class="fas fa-eye"></i>
+        </button>
+        
+        <!-- Add to Cart Button - fixed position at bottom -->
+        <div class="add-to-cart-container">
+          <button 
+            @click="addToCartAction"
+            class="add-to-cart-button"
+          >
+            Add To Cart
+          </button>
+        </div>
       </div>
       
       <div class="p-4 flex-grow flex flex-col">
@@ -16,65 +36,22 @@
         </h3>
         
         <!-- Star rating -->
-        <div class="flex items-center mb-3">
-          <div class="flex">
-            <i v-for="i in 5" :key="i" class="fas fa-star" :class="i <= product.rating ? 'text-yellow-400' : 'text-gray-300'"></i>
+        <div class="flex items-center mb-2">
+          <div class="flex gap-1">
+            <i v-for="i in 5" :key="i" class="fas fa-star text-sm" :class="i <= product.rating ? 'text-yellow-400' : 'text-gray-300'"></i>
           </div>
           <span class="text-sm text-gray-500 ml-1">
-            <span v-if="product.sold">{{ product.sold }} đã bán</span>
-            <span v-else>Chưa có đánh giá</span>
+            ({{ product.sold || '0' }})
           </span>
         </div>
         
-        <!-- Mô tả ngắn -->
-        <p v-if="product.description" class="text-sm text-gray-600 mb-3 line-clamp-2">
-          {{ product.description }}
-        </p>
-        
         <div class="mt-auto">
-          <!-- Price or "Hết hàng" text -->
-          <div v-if="product.stock > 0" class="flex items-baseline mb-4">
-            <span class="text-xl font-bold text-green-600">{{ formatPrice(product.price) }}</span>
+          <!-- Price -->
+          <div class="flex items-baseline gap-1">
+            <span class="text-xl font-bold text-red-500">${{ formatSimplePrice(product.price) }}</span>
             <span v-if="product.originalPrice" class="text-sm text-gray-500 line-through ml-2">
-              {{ formatPrice(product.originalPrice) }}
+              ${{ formatSimplePrice(product.originalPrice) }}
             </span>
-          </div>
-          <div v-else class="mb-4">
-            <span class="text-xl font-bold text-red-500">Hết hàng</span>
-          </div>
-          
-          <div class="product-actions">
-            <div v-if="product.stock > 0" class="button-container">
-              <button 
-                @click="addToCartAction"
-                class="btn-cart relative"
-              >
-                <span class="icon"><i class="fas fa-cart-plus"></i></span>
-                <span class="label">Thêm vào giỏ</span>
-                <span v-if="showAddedAnimation" class="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce">
-                  +1
-                </span>
-              </button>
-              <button 
-                @click="navigateToProduct"
-                class="btn-buy"
-              >
-                <span class="icon"><i class="fas fa-shopping-bag"></i></span>
-                <span class="label">Mua ngay</span>
-              </button>
-            </div>
-            <div v-else>
-              <div class="text-center text-red-500 text-sm mb-2">
-                <i class="fas fa-exclamation-circle mr-1"></i> Hết hàng
-              </div>
-              <button 
-                @click="contactUs"
-                class="btn-contact w-full"
-              >
-                <span class="icon"><i class="fas fa-phone"></i></span>
-                <span class="label">Liên hệ đặt hàng</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -108,6 +85,11 @@ const formatPrice = (price) => {
   }).format(price);
 }
 
+// Simple price format for the exact design
+const formatSimplePrice = (price) => {
+  return price;
+}
+
 const hasDiscount = computed(() => {
   return props.product.originalPrice && props.product.originalPrice > props.product.price
 })
@@ -118,9 +100,10 @@ const discountPercent = computed(() => {
   return Math.round(discount)
 })
 
-const navigateToProduct = () => {
+const navigateToProduct = (event) => {
+  event.stopPropagation();
   if (props.product.stock > 0) {
-    router.push(`/product/${props.product.id}`)
+    router.push(`/product/${product.id}`)
   }
 }
 
@@ -145,11 +128,6 @@ const addToCartAction = (event) => {
     notificationService.cart(props.product)
   }
 }
-
-const contactUs = () => {
-  // Có thể chuyển người dùng đến trang liên hệ hoặc hiển thị thông tin liên hệ
-  router.push('/contact')
-}
 </script>
 
 <style lang="scss" scoped>
@@ -162,136 +140,87 @@ const contactUs = () => {
   overflow: hidden;
 }
 
-.product-actions {
-  margin-top: auto;
-}
-
-.button-container {
-  display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 8px;
-}
-
-.btn-cart, .btn-buy {
+/* Product Image Container */
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+  height: 240px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  border-radius: $border-radius-sm;
-  font-weight: 500;
+  background-color: #f8f8f8;
+}
+
+/* Quick view and wishlist buttons */
+.quick-view-button, .wishlist-button {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
   transition: all 0.3s ease;
-  border: none;
-  outline: none;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  height: 36px;
-  font-size: 13px;
-  text-transform: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 10;
 }
 
-.btn-cart {
-  background-color: #f0fdf4;
-  color: $primary-color;
-  border: 1px solid #dcfce7;
+.wishlist-button {
+  top: 10px;
+  left: 10px;
 }
 
-.btn-buy {
+.quick-view-button {
+  top: 10px;
+  right: 10px;
+}
+
+.group:hover .quick-view-button,
+.group:hover .wishlist-button {
+  opacity: 1;
+}
+
+.quick-view-button:hover, 
+.wishlist-button:hover {
   background-color: $primary-color;
-  color: $white;
-  box-shadow: 0 4px 6px rgba(22, 163, 74, 0.15);
+  color: white;
 }
 
-.btn-cart:hover {
-  background-color: #dcfce7;
-  transform: translateY(-2px);
+/* Add To Cart Button */
+.add-to-cart-container {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 0;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 5;
 }
 
-.btn-buy:hover {
-  background-color: $primary-dark;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px rgba(22, 163, 74, 0.2);
-}
-
-.btn-cart:active, .btn-buy:active {
+.group:hover .add-to-cart-container {
   transform: translateY(0);
 }
 
-.btn-cart:disabled, .btn-buy:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.icon {
-  margin-right: 4px;
-  font-size: 12px;
-}
-
-@media (max-width: $breakpoint-sm) {
-  .label {
-    display: none;
-  }
-  
-  .icon {
-    margin-right: 0;
-    font-size: 14px;
-  }
-  
-  .btn-cart, .btn-buy {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-  }
-  
-  .button-container {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-  }
-}
-
-.btn-contact {
+.add-to-cart-button {
+  width: 100%;
+  background-color: #16a34a;
+  color: #fff;
+  font-weight: 500;
+  padding: 12px 0;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  border-radius: $border-radius-sm;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  height: 36px;
-  font-size: 13px;
-  text-transform: none;
-  background-color: #f59e0b;
-  color: $white;
-  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.15);
 }
 
-.btn-contact:hover {
-  background-color: #d97706;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px rgba(245, 158, 11, 0.2);
-}
-
-.btn-contact:active {
-  transform: translateY(0);
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-.animate-bounce {
-  animation: bounce 0.8s ease infinite;
+.add-to-cart-button:hover {
+  background-color: #15803d;
 }
 </style> 
