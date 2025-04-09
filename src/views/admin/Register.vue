@@ -311,24 +311,41 @@ const handleSubmit = async () => {
   errorMessage.value = '';
   
   try {
+    // Kiểm tra email hợp lệ trước khi gửi OTP
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.value.email)) {
+      errorMessage.value = 'Email không hợp lệ. Vui lòng kiểm tra lại.';
+      return;
+    }
+
     // Gửi OTP trước (nếu chưa có OTP)
     if (!form.value.otp) {
-      const response = await api.auth.sendOtp(form.value.email);
-      
-      if (response && response.success) {
-        // Lưu thông tin đăng ký vào sessionStorage (không bao gồm mật khẩu)
-        saveRegistrationData();
+      try {
+        const response = await api.auth.sendOtp(form.value.email);
         
-        // Chuyển đến trang xác minh OTP
-        router.push({
-          path: '/admin/verify-otp',
-          query: { 
-            email: form.value.email,
-            action: 'register'
-          }
-        });
-      } else {
-        errorMessage.value = response?.message || 'Không thể gửi mã OTP. Vui lòng thử lại sau.';
+        if (response && response.success) {
+          // Lưu thông tin đăng ký vào sessionStorage (không bao gồm mật khẩu)
+          saveRegistrationData();
+          
+          // Chuyển đến trang xác minh OTP
+          router.push({
+            path: '/admin/verify-otp',
+            query: { 
+              email: form.value.email,
+              action: 'register'
+            }
+          });
+        } else {
+          errorMessage.value = response?.message || 'Không thể gửi mã OTP. Vui lòng thử lại sau.';
+        }
+      } catch (otpError) {
+        console.error('OTP sending error:', otpError);
+        if (otpError.response?.status === 429) {
+          errorMessage.value = 'Quá nhiều yêu cầu gửi OTP. Vui lòng thử lại sau 1 phút.';
+        } else if (otpError.response?.status === 400) {
+          errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.';
+        } else {
+          errorMessage.value = 'Không thể gửi mã OTP. Vui lòng kiểm tra kết nối mạng và thử lại.';
+        }
       }
     } else {
       // Nếu đã có OTP thì đăng ký

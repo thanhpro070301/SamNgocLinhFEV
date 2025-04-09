@@ -13,7 +13,8 @@ const apiClient = axios.create({
   },
   timeout: API_TIMEOUT,
   responseType: 'json',
-  responseEncoding: 'utf8'
+  responseEncoding: 'utf8',
+  withCredentials: true // Cho phép gửi cookies trong cross-origin requests
 });
 
 // Biến để theo dõi yêu cầu refresh token
@@ -53,7 +54,18 @@ apiClient.interceptors.request.use(
 
 // Interceptor kiểm tra response
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Kiểm tra nếu response là HTML thay vì JSON
+    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+      console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với CORS hoặc API endpoint');
+      return Promise.reject({
+        success: false,
+        message: 'API response format error',
+        response: response
+      });
+    }
+    return response;
+  },
   async (error) => {
     try {
       const originalRequest = error.config;
@@ -115,7 +127,17 @@ apiClient.interceptors.response.use(
       }
       
       // Xử lý lỗi khác
-      if (error.response && error.response.data) {
+      if (error.response) {
+        // Kiểm tra nếu response là HTML
+        if (typeof error.response.data === 'string' && error.response.data.includes('<!DOCTYPE html>')) {
+          console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với CORS hoặc API endpoint');
+          return Promise.reject({
+            success: false,
+            message: 'API response format error',
+            response: error.response
+          });
+        }
+        
         // Trả về lỗi từ API
         return Promise.reject(error.response.data);
       }
