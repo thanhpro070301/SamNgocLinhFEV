@@ -1,65 +1,78 @@
 <template>
   <v-app>
     <!-- Hero Section -->
-    <v-container fluid class="hero-section pa-0">
-      <v-row no-gutters class="align-center">
-        <v-col cols="12" md="6" class="pa-8 pa-md-16">
-          <v-card flat class="bg-transparent">
-            <v-card-title class="text-h2 font-weight-bold text-primary mb-4 animate__animated animate__fadeInRight">
-              Sâm Ngọc Linh<br>
-              <span class="text-green">Chất Lượng Cao</span>
-            </v-card-title>
-            <v-card-text class="text-h6 text-grey-darken-1 mb-8 animate__animated animate__fadeInRight animate__delay-1s">
-              Sản phẩm từ thiên nhiên, mang đến những dưỡng chất quý giá cho sức khỏe và sắc đẹp của bạn.
-            </v-card-text>
-            <v-card-actions class="gap-4 animate__animated animate__fadeInRight animate__delay-2s">
-              <v-btn
-                to="/products"
-                color="primary"
-                size="x-large"
-                class="text-white"
-                prepend-icon="mdi-shopping"
+    <div class="hero-wrapper">
+      <v-container fluid class="hero-section pa-0">
+        <div class="hero-overlay"></div>
+        <v-row no-gutters class="align-center">
+          <v-col cols="12" md="6" class="pa-8 pa-md-16 hero-content">
+            <v-card flat class="bg-transparent">
+              <div class="logo-mark animate__animated animate__fadeIn animate__delay-1s">
+                <div class="logo-circle">
+                  <span>Sâm Ngọc Linh</span>
+                </div>
+              </div>
+              <v-card-title class="text-h2 font-weight-bold text-primary mb-4 animate__animated animate__fadeInRight">
+                Sâm Ngọc Linh<br>
+                <span class="text-green">Chất Lượng Cao</span>
+              </v-card-title>
+              <v-card-text class="text-h6 text-grey-darken-1 mb-8 animate__animated animate__fadeInRight animate__delay-1s">
+                Sản phẩm từ thiên nhiên, mang đến những dưỡng chất quý giá cho sức khỏe và sắc đẹp của bạn.
+              </v-card-text>
+              <v-card-actions class="gap-4 animate__animated animate__fadeInRight animate__delay-2s">
+                <v-btn
+                  to="/products"
+                  color="primary"
+                  size="x-large"
+                  class="text-white hero-btn"
+                  prepend-icon="mdi-shopping"
+                  elevation="8"
+                >
+                  Xem sản phẩm
+                </v-btn>
+                <v-btn
+                  to="/about"
+                  variant="outlined"
+                  color="primary"
+                  size="x-large"
+                  prepend-icon="mdi-information"
+                  class="hero-btn-outline"
+                >
+                  Tìm hiểu thêm
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+          <v-col cols="12" md="6" class="pa-0">
+            <div class="hero-image-container">
+              <div class="hero-circle animate__animated animate__zoomIn"></div>
+              <div class="hero-circle-2 animate__animated animate__zoomIn animate__delay-1s"></div>
+              <v-img
+                :src="samTuoiImage"
+                cover
+                height="100vh"
+                class="animate__animated animate__fadeInLeft hero-image"
               >
-                Xem sản phẩm
-              </v-btn>
-              <v-btn
-                to="/about"
-                variant="outlined"
-                color="primary"
-                size="x-large"
-                prepend-icon="mdi-information"
-              >
-                Tìm hiểu thêm
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="6" class="pa-0">
-          <v-img
-            :src="samTuoiImage"
-            cover
-            height="100vh"
-            class="animate__animated animate__fadeInLeft"
-          >
-            <div class="d-flex fill-height align-center justify-center">
-              <v-card
-                class="rounded-circle pa-4 bg-white animate__animated animate__pulse animate__infinite"
-                style="max-width: 400px; max-height: 400px;"
-              >
-                <v-img
-                  :src="samTuoiImage"
-                  class="rounded-circle"
-                  cover
-                ></v-img>
-              </v-card>
+                <div class="d-flex fill-height align-center justify-center">
+                  <v-card
+                    class="rounded-circle pa-4 bg-white animate__animated animate__pulse animate__infinite product-image-container"
+                  >
+                    <v-img
+                      :src="samTuoiImage"
+                      class="rounded-circle product-image"
+                      cover
+                    ></v-img>
+                  </v-card>
+                </div>
+              </v-img>
             </div>
-          </v-img>
-        </v-col>
-      </v-row>
-    </v-container>
+          </v-col>
+        </v-row>
+      </v-container>
+    </div>
 
     <!-- Benefits Section -->
-    <v-container class="py-16">
+    <v-container class="py-16 benefits-section">
       <v-row class="justify-center">
         <v-col
           v-for="(benefit, index) in benefits"
@@ -71,16 +84,18 @@
           :class="`animate__fadeInUp animate__delay-${index + 1}s`"
         >
           <v-card
-            class="h-100 text-center pa-6"
-            elevation="2"
+            class="h-100 text-center pa-6 benefit-card"
+            elevation="0"
             hover
           >
-            <v-icon
-              :icon="benefit.icon"
-              size="64"
-              color="primary"
-              class="mb-4"
-            ></v-icon>
+            <div class="benefit-icon-container mb-4">
+              <v-icon
+                :icon="benefit.icon"
+                size="36"
+                color="primary"
+                class="benefit-icon"
+              ></v-icon>
+            </div>
             <v-card-title class="text-h6 font-weight-bold">
               {{ benefit.title }}
             </v-card-title>
@@ -93,166 +108,277 @@
     </v-container>
 
     <!-- Featured Products -->
-    <v-container class="py-16">
-      <v-row>
-        <v-col cols="12" class="text-center mb-12">
-          <div class="text-h4 font-weight-bold mb-4 animate__animated animate__fadeInDown">
-            Sản Phẩm Nổi Bật
-          </div>
-          <div class="text-body-1 text-grey-darken-1 max-w-2xl mx-auto animate__animated animate__fadeInDown animate__delay-1s">
-            Sâm Ngọc Linh được mệnh danh là "quốc bảo" của Việt Nam với nhiều công dụng quý giá cho sức khỏe.
-          </div>
-        </v-col>
-      </v-row>
+    <div class="featured-products-section py-16">
+      <v-container>
+        <v-row>
+          <v-col cols="12" class="text-center mb-12">
+            <div class="section-subtitle text-uppercase font-weight-medium text-primary mb-2 animate__animated animate__fadeInDown">
+              Sản phẩm đặc biệt
+            </div>
+            <div class="text-h3 font-weight-bold mb-4 animate__animated animate__fadeInDown animate__delay-1s">
+              Sản Phẩm Nổi Bật
+            </div>
+            <div class="text-body-1 text-grey-darken-1 max-w-2xl mx-auto animate__animated animate__fadeInDown animate__delay-2s">
+              Sâm Ngọc Linh được mệnh danh là "quốc bảo" của Việt Nam với nhiều công dụng quý giá cho sức khỏe.
+            </div>
+          </v-col>
+        </v-row>
 
-      <v-row v-if="isLoading" class="justify-center">
-        <v-progress-circular
-          indeterminate
-          color="primary"
-          size="64"
-        ></v-progress-circular>
-      </v-row>
-
-      <v-row v-else-if="error" class="justify-center">
-        <v-col cols="12" class="text-center">
-          <v-alert
-            type="error"
-            class="mb-4"
-          >
-            {{ error }}
-          </v-alert>
-          <v-btn
+        <v-row v-if="isLoading" class="justify-center">
+          <v-progress-circular
+            indeterminate
             color="primary"
-            @click="fetchFeaturedProducts"
-          >
-            Thử lại
-          </v-btn>
-        </v-col>
-      </v-row>
+            size="64"
+          ></v-progress-circular>
+        </v-row>
 
-      <v-row v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div 
-          v-for="(product, index) in featuredProducts" 
-          :key="product.id" 
-          class="product-card group flex flex-col h-full"
-          data-aos="fade-up"
-          :data-aos-delay="index * 100"
-        >
-          <div class="product-image overflow-hidden rounded-t-lg bg-gray-100 h-64 flex items-center justify-center">
-            <router-link :to="`/product/${product.id}`" class="w-full h-full flex items-center justify-center">
-              <img 
-                :src="product.image" 
-                :alt="product.name" 
-                class="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
+        <v-row v-else-if="error" class="justify-center">
+          <v-col cols="12" class="text-center">
+            <v-alert
+              type="error"
+              class="mb-4"
+            >
+              {{ error }}
+            </v-alert>
+            <v-btn
+              color="primary"
+              @click="fetchFeaturedProducts"
+            >
+              Thử lại
+            </v-btn>
+          </v-col>
+        </v-row>
+
+        <div v-else class="swiper-container animate__animated animate__fadeIn">
+          <swiper
+            :modules="[Navigation, Pagination, Autoplay, EffectCoverflow]"
+            :slides-per-view="1"
+            :loop="true"
+            :autoplay="{
+              delay: 3000,
+              disableOnInteraction: false
+            }"
+            :pagination="{ 
+              clickable: true,
+              dynamicBullets: true
+            }"
+            :navigation="true"
+            :effect="'coverflow'"
+            :breakpoints="{
+              '640': {
+                slidesPerView: 2,
+                spaceBetween: 20
+              },
+              '1024': {
+                slidesPerView: 3,
+                spaceBetween: 30
+              }
+            }"
+            :coverflow-effect="{
+              rotate: 50,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              slideShadows: true
+            }"
+            class="featured-swiper"
+          >
+            <swiper-slide
+              v-for="(product, index) in featuredProducts"
+              :key="product.id"
+              class="animate__animated animate__fadeInUp"
+              :style="{ 'animation-delay': `${index * 0.2}s` }"
+            >
+              <v-card
+                class="product-card h-100 overflow-hidden"
+                elevation="4"
+                hover
               >
-            </router-link>
-          </div>
-          <div class="product-info p-6 bg-white rounded-b-lg shadow-md group-hover:shadow-xl transition-shadow flex flex-col h-60">
-            <router-link :to="`/product/${product.id}`">
-              <h3 class="product-title text-xl font-semibold text-gray-800 mb-2 h-14 line-clamp-2">{{ product.name }}</h3>
-            </router-link>
-            <div class="flex items-center mb-2">
-              <div class="flex text-yellow-400">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-              </div>
-              <span class="text-sm text-gray-500 ml-2">(4.5)</span>
-            </div>
-            <p class="product-description text-gray-600 mb-4 h-12 line-clamp-2">{{ product.description }}</p>
-            <div class="flex flex-col mt-auto">
-              <span class="product-price text-xl font-bold text-green-600 mb-2">{{ formatPrice(product.price) }}</span>
-              <div class="flex space-x-2">
-                <button 
-                  @click="addToCart(product)" 
-                  class="btn-add-cart h-10 px-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
+                <div class="product-badge" v-if="index === 0">Hot</div>
+                <div class="product-badge new" v-else-if="index === 1">Mới</div>
+                <div class="product-badge sale" v-else-if="index === 2">Sale</div>
+                
+                <v-img
+                  :src="product.image"
+                  height="280"
+                  cover
+                  class="product-image"
                 >
-                  <i class="fas fa-shopping-cart mr-1"></i> Thêm
-                </button>
-                <button 
-                  @click="buyNow(product)" 
-                  class="btn-buy-now h-10 px-2 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
-                >
-                  <i class="fas fa-bolt mr-1"></i> Mua ngay
-                </button>
-              </div>
-            </div>
-          </div>
+                  <template v-slot:placeholder>
+                    <v-row class="fill-height ma-0" align="center" justify="center">
+                      <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                    </v-row>
+                  </template>
+                  <div class="product-overlay">
+                    <v-btn
+                      icon="mdi-eye"
+                      color="white"
+                      variant="text"
+                      size="large"
+                      :to="`/product/${product.id}`"
+                      class="product-action-btn"
+                    ></v-btn>
+                    <v-btn
+                      icon="mdi-cart"
+                      color="white"
+                      variant="text"
+                      size="large"
+                      @click="addToCart(product)"
+                      class="product-action-btn"
+                    ></v-btn>
+                    <v-btn
+                      icon="mdi-heart"
+                      color="white"
+                      variant="text"
+                      size="large"
+                      class="product-action-btn"
+                    ></v-btn>
+                  </div>
+                </v-img>
+                
+                <v-card-text class="pa-6">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <div class="text-subtitle-2 text-primary">Sâm Ngọc Linh</div>
+                    <v-rating
+                      :model-value="4.5"
+                      color="amber"
+                      density="compact"
+                      half-increments
+                      size="small"
+                      readonly
+                    ></v-rating>
+                  </div>
+                  
+                  <h3 class="product-title text-h6 font-weight-bold mb-2 text-truncate">
+                    {{ product.name }}
+                  </h3>
+                  
+                  <p class="product-description text-body-2 text-grey-darken-1 mb-4 two-lines-ellipsis">
+                    {{ product.description }}
+                  </p>
+                  
+                  <div class="d-flex justify-space-between align-center">
+                    <span class="text-h5 font-weight-bold text-primary">
+                      {{ formatPrice(product.price) }}
+                    </span>
+                    <v-btn
+                      color="secondary"
+                      variant="elevated"
+                      @click="buyNow(product)"
+                      class="buy-now-btn"
+                    >
+                      Mua ngay
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </swiper-slide>
+          </swiper>
         </div>
-      </v-row>
-      
-      <div class="text-center mt-12" data-aos="fade-up">
-        <router-link 
-          to="/products" 
-          class="btn-view-all inline-flex items-center px-6 py-3 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
-        >
-          Xem tất cả sản phẩm
-          <i class="fas fa-arrow-right ml-2"></i>
-        </router-link>
-      </div>
-    </v-container>
+
+        <v-row class="justify-center mt-12">
+          <v-btn
+            to="/products"
+            color="primary"
+            variant="outlined"
+            size="large"
+            class="rounded-pill px-8 py-3 animate__animated animate__fadeInUp view-all-btn"
+          >
+            Xem tất cả sản phẩm
+            <v-icon end>mdi-arrow-right</v-icon>
+          </v-btn>
+        </v-row>
+      </v-container>
+    </div>
 
     <!-- Testimonials Section -->
-    <v-container class="py-16">
-      <v-row>
-        <v-col cols="12" class="text-center mb-12">
-          <div class="text-h4 font-weight-bold mb-4 animate__animated animate__fadeInDown">
-            Đánh Giá Từ Khách Hàng
-          </div>
-          <div class="text-body-1 text-grey-darken-1 max-w-2xl mx-auto animate__animated animate__fadeInDown animate__delay-1s">
-            Những đánh giá chân thực từ khách hàng đã sử dụng sản phẩm của chúng tôi.
-          </div>
-        </v-col>
-      </v-row>
+    <div class="testimonials-section py-16">
+      <v-container>
+        <v-row>
+          <v-col cols="12" class="text-center mb-12">
+            <div class="section-subtitle text-uppercase font-weight-medium text-primary mb-2 animate__animated animate__fadeInDown">
+              Khách hàng nói gì
+            </div>
+            <div class="text-h3 font-weight-bold mb-4 animate__animated animate__fadeInDown animate__delay-1s">
+              Đánh Giá Từ Khách Hàng
+            </div>
+            <div class="text-body-1 text-grey-darken-1 max-w-2xl mx-auto animate__animated animate__fadeInDown animate__delay-2s">
+              Những đánh giá chân thực từ khách hàng đã sử dụng sản phẩm của chúng tôi.
+            </div>
+          </v-col>
+        </v-row>
 
-      <v-row>
-        <v-col
-          v-for="(testimonial, index) in testimonials"
-          :key="index"
-          cols="12"
-          md="4"
-          class="animate__animated"
-          :class="`animate__fadeInUp animate__delay-${index + 1}s`"
+        <swiper
+          :modules="[Navigation, Pagination, Autoplay]"
+          :slides-per-view="1"
+          :space-between="30"
+          :loop="true"
+          :autoplay="{
+            delay: 5000,
+            disableOnInteraction: false
+          }"
+          :pagination="{ 
+            clickable: true,
+            dynamicBullets: true
+          }"
+          :breakpoints="{
+            '640': { slidesPerView: 2 },
+            '1024': { slidesPerView: 3 }
+          }"
+          class="testimonials-swiper"
         >
-          <v-card
-            class="h-100 pa-6"
-            elevation="2"
-            hover
+          <swiper-slide
+            v-for="(testimonial, index) in testimonials"
+            :key="index"
+            class="animate__animated animate__fadeInUp"
+            :style="{ 'animation-delay': `${index * 0.2}s` }"
           >
-            <v-rating
-              :model-value="testimonial.rating"
-              color="amber"
-              density="compact"
-              half-increments
-              readonly
-              class="mb-4"
-            ></v-rating>
-            <p class="text-body-1 text-grey-darken-1 mb-4 font-italic">
-              "{{ testimonial.comment }}"
-            </p>
-            <div class="d-flex align-center">
-              <v-avatar
-                color="primary"
-                size="48"
-                class="me-4"
-              >
-                <v-icon icon="mdi-account" color="white"></v-icon>
-              </v-avatar>
-              <div>
-                <div class="text-subtitle-1 font-weight-bold">
-                  {{ testimonial.name }}
-                </div>
-                <div class="text-caption text-grey">
-                  {{ testimonial.role }}
+            <v-card
+              class="testimonial-card h-100 pa-6"
+              elevation="3"
+              hover
+            >
+              <div class="testimonial-quote-icon mb-4">
+                <v-icon icon="mdi-format-quote-open" color="primary" size="36"></v-icon>
+              </div>
+              
+              <p class="testimonial-text text-body-1 text-grey-darken-1 mb-6 font-italic">
+                "{{ testimonial.comment }}"
+              </p>
+              
+              <v-rating
+                :model-value="testimonial.rating"
+                color="amber"
+                density="compact"
+                half-increments
+                readonly
+                class="mb-4"
+              ></v-rating>
+              
+              <v-divider class="mb-4"></v-divider>
+              
+              <div class="d-flex align-center">
+                <v-avatar
+                  color="primary"
+                  size="56"
+                  class="me-4 testimonial-avatar"
+                >
+                  <v-icon icon="mdi-account" color="white" size="28"></v-icon>
+                </v-avatar>
+                <div>
+                  <div class="text-subtitle-1 font-weight-bold testimonial-name">
+                    {{ testimonial.name }}
+                  </div>
+                  <div class="text-caption text-grey testimonial-role">
+                    {{ testimonial.role }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
+            </v-card>
+          </swiper-slide>
+        </swiper>
+      </v-container>
+    </div>
   </v-app>
 </template>
 
@@ -260,17 +386,18 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Navigation, Pagination } from 'swiper/modules'
+import { Navigation, Pagination, Autoplay, EffectCoverflow } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
+import 'swiper/css/effect-coverflow'
 import 'animate.css'
 import api from '@/api'
 import cart from '@/store/cart'
 import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
-const modules = [Navigation, Pagination]
+const modules = [Navigation, Pagination, Autoplay, EffectCoverflow]
 
 // Fix image path
 const samTuoiImage = '/assets/images/products/sam-tuoi.png'
@@ -428,28 +555,387 @@ onMounted(() => {
 </script>
 
 <style>
+.hero-wrapper {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/assets/images/pattern.png') repeat;
+  opacity: 0.05;
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-circle {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: rgba(22, 163, 74, 0.1);
+  border-radius: 50%;
+  top: 20%;
+  right: 10%;
+  z-index: 0;
+}
+
+.hero-circle-2 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: rgba(249, 115, 22, 0.1);
+  border-radius: 50%;
+  bottom: 15%;
+  right: 25%;
+  z-index: 0;
+}
+
+.hero-btn {
+  border-radius: 30px !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3);
+}
+
+.hero-btn-outline {
+  border-radius: 30px !important;
+  border-width: 2px !important;
+  transition: all 0.3s ease;
+}
+
+.hero-btn:hover, .hero-btn-outline:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(22, 163, 74, 0.2);
+}
+
+.product-image-container {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 400px;
+  max-height: 400px;
+  z-index: 2;
+}
+
+.logo-mark {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.logo-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: bold;
+  color: #16a34a;
+  text-align: center;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px;
+}
+
+.benefit-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  margin: 0 auto;
+  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.2);
+}
+
+.benefit-card {
+  border-radius: 16px;
+  border: 1px solid rgba(22, 163, 74, 0.1);
+  transition: all 0.3s ease;
+}
+
+.benefit-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(22, 163, 74, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(22, 163, 74, 0.1), 0 10px 10px -5px rgba(22, 163, 74, 0.04) !important;
+}
+
+.featured-products-section {
+  background-color: #f8fafc;
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-products-section::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background-color: rgba(22, 163, 74, 0.05);
+  border-radius: 50%;
+  top: -150px;
+  left: -150px;
+}
+
+.featured-products-section::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background-color: rgba(249, 115, 22, 0.05);
+  border-radius: 50%;
+  bottom: -150px;
+  right: -150px;
+}
+
+.section-subtitle {
+  font-size: 0.875rem;
+  letter-spacing: 2px;
+  position: relative;
+  display: inline-block;
+}
+
+.section-subtitle::before, .section-subtitle::after {
+  content: '';
+  position: absolute;
+  height: 1px;
+  background-color: #16a34a;
+  top: 50%;
+  width: 30px;
+}
+
+.section-subtitle::before {
+  left: -40px;
+}
+
+.section-subtitle::after {
+  right: -40px;
+}
+
+.product-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.product-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background-color: #16a34a;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.product-badge.new {
+  background-color: #3b82f6;
+}
+
+.product-badge.sale {
+  background-color: #f97316;
+}
+
+.product-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover .product-overlay {
+  opacity: 1;
+}
+
+.product-action-btn {
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.product-card:hover .product-action-btn {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.product-card:hover .product-action-btn:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.product-card:hover .product-action-btn:nth-child(3) {
+  transition-delay: 0.2s;
+}
+
+.product-title {
+  transition: all 0.3s ease;
+}
+
+.product-card:hover .product-title {
+  color: #16a34a;
+}
+
+.buy-now-btn {
+  border-radius: 30px !important;
+  transition: all 0.3s ease;
+}
+
+.buy-now-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+}
+
+.view-all-btn {
+  transition: all 0.3s ease;
+  border-width: 2px !important;
+}
+
+.view-all-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.2);
+}
+
+.two-lines-ellipsis {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+:root {
+  --swiper-theme-color: #16a34a !important;
+  --swiper-navigation-size: 30px !important;
+}
+
+.featured-swiper {
+  padding: 30px 10px !important;
+  overflow: visible;
+}
+
+.swiper-pagination {
+  position: relative;
+  margin-top: 20px;
+}
+
 .text-shadow {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.hero-section {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+.swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  transition: all 0.3s ease;
 }
 
-.v-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.swiper-pagination-bullet-active {
+  width: 20px;
+  border-radius: 5px;
 }
 
-.v-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+.testimonials-section {
+  background-color: #ffffff;
+  position: relative;
+  overflow: hidden;
 }
 
-.swiper {
-  padding: 20px 0;
+.testimonials-section::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background-color: rgba(22, 163, 74, 0.05);
+  border-radius: 50%;
+  top: -200px;
+  right: -200px;
+  z-index: 0;
 }
 
-.swiper-slide {
-  height: auto;
+.testimonials-section::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background-color: rgba(249, 115, 22, 0.05);
+  border-radius: 50%;
+  bottom: -150px;
+  left: -150px;
+  z-index: 0;
+}
+
+.testimonial-card {
+  border-radius: 16px;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(22, 163, 74, 0.1);
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(22, 163, 74, 0.2);
+}
+
+.testimonial-quote-icon {
+  display: inline-block;
+  background-color: rgba(22, 163, 74, 0.1);
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.testimonial-text {
+  min-height: 120px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.testimonial-avatar {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 3px solid white;
+}
+
+.testimonial-name {
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover .testimonial-name {
+  color: #16a34a;
+}
+
+.testimonials-swiper {
+  padding: 30px 10px !important;
+  overflow: visible;
 }
 </style> 
