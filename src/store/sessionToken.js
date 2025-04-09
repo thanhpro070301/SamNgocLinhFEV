@@ -1,6 +1,10 @@
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import api from '@/api'
+import CryptoJS from 'crypto-js'
+
+// Khóa mã hóa (trong thực tế nên lưu an toàn hơn)
+const ENCRYPTION_KEY = 'SamNgocLinhApp@2023'
 
 // Tạo store quản lý session token
 const sessionToken = {
@@ -16,7 +20,13 @@ const sessionToken = {
       // Lấy danh sách session từ localStorage
       const sessionsString = localStorage.getItem('admin_sessions')
       if (sessionsString) {
-        this.activeSessions.value = JSON.parse(sessionsString)
+        try {
+          const decrypted = this.decrypt(sessionsString)
+          this.activeSessions.value = JSON.parse(decrypted)
+        } catch (e) {
+          console.error('Failed to decrypt sessions, resetting', e)
+          this.activeSessions.value = []
+        }
       }
       
       // Lấy token hiện tại từ localStorage
@@ -85,12 +95,24 @@ const sessionToken = {
     try {
       if (!this.refreshToken.value) return false
 
-      const response = await api.auth.refreshToken(this.refreshToken.value)
-      if (response && response.token) {
-        this.currentToken.value = response.token
-        this.refreshToken.value = response.refreshToken
-        this.saveState()
-        return true
+      try {
+        const response = await api.auth.refreshToken(this.refreshToken.value)
+        if (response && response.success && response.data) {
+          this.currentToken.value = response.data.token
+          this.refreshToken.value = response.data.refreshToken
+          
+          // Cập nhật phiên hiện tại
+          const session = this.getCurrentSession()
+          if (session) {
+            session.expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 giờ mới
+            session.lastActivity = new Date().toISOString()
+          }
+          
+          this.saveState()
+          return true
+        }
+      } catch (error) {
+        console.error('Token refresh failed:', error)
       }
       return false
     } catch (error) {
@@ -100,10 +122,11 @@ const sessionToken = {
   },
   
   // Tạo token mới khi đăng nhập
-  createToken(user, rememberMe = false) {
-    // Tạo token mới với UUID
-    const tokenId = uuidv4()
-    const refreshTokenId = uuidv4()
+  createToken(user, token, refreshToken, rememberMe = false) {
+    if (!token || !user) {
+      console.error('Invalid token or user data')
+      return null
+    }
     
     // Thời gian hết hạn: 1 giờ hoặc 30 ngày nếu remember me
     const expiresAt = new Date()
@@ -120,18 +143,14 @@ const sessionToken = {
       language: navigator.language
     }
     
-    // IP Address (trong thực tế sẽ lấy từ server)
-    const ipAddress = "127.0.0.1" // giả lập
-    
     // Tạo đối tượng session
     const session = {
-      tokenId,
-      refreshTokenId,
+      tokenId: token,
+      refreshTokenId: refreshToken,
       userId: user.id,
       userName: user.name,
       userEmail: user.email,
       userRole: user.role,
-      ipAddress,
       device,
       createdAt: new Date().toISOString(),
       expiresAt: expiresAt.toISOString(),
@@ -143,19 +162,44 @@ const sessionToken = {
     this.activeSessions.value.push(session)
     
     // Lưu token hiện tại
-    this.currentToken.value = tokenId
-    this.refreshToken.value = refreshTokenId
+    this.currentToken.value = token
+    this.refreshToken.value = refreshToken
     
     // Lưu vào localStorage
     this.saveState()
     
-    return { token: tokenId, refreshToken: refreshTokenId }
+    return { token, refreshToken }
+  },
+  
+  // Mã hóa dữ liệu
+  encrypt(data) {
+    try {
+      return CryptoJS.AES.encrypt(data, ENCRYPTION_KEY).toString()
+    } catch (e) {
+      console.error('Encryption failed', e)
+      return data // Fallback, không nên xảy ra
+    }
+  },
+  
+  // Giải mã dữ liệu
+  decrypt(encryptedData) {
+    try {
+      const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY)
+      return bytes.toString(CryptoJS.enc.Utf8)
+    } catch (e) {
+      console.error('Decryption failed', e)
+      throw e
+    }
   },
   
   // Lưu trạng thái vào localStorage
   saveState() {
     try {
-      localStorage.setItem('admin_sessions', JSON.stringify(this.activeSessions.value))
+      // Mã hóa thông tin session
+      const sessionsJson = JSON.stringify(this.activeSessions.value)
+      const encryptedSessions = this.encrypt(sessionsJson)
+      
+      localStorage.setItem('admin_sessions', encryptedSessions)
       localStorage.setItem('admin_current_token', this.currentToken.value)
       localStorage.setItem('admin_refresh_token', this.refreshToken.value)
     } catch (error) {
@@ -253,29 +297,17 @@ const sessionToken = {
     return false
   },
   
-  // Xóa tất cả token của một user
-  removeUserTokens(userId) {
-    this.activeSessions.value = this.activeSessions.value.filter(
-      session => session.userId !== userId
-    )
-    
-    // Nếu xóa token của user hiện tại, reset current token
-    const currentSession = this.getCurrentSession()
-    if (currentSession && currentSession.userId === userId) {
-      this.currentToken.value = null
-      this.refreshToken.value = null
-    }
-    
-    this.saveState()
+  // Lấy session hiện tại
+  getCurrentSession() {
+    return this.activeSessions.value.find(s => s.tokenId === this.currentToken.value)
   },
   
-  // Lấy thông tin session hiện tại
-  getCurrentSession() {
-    if (!this.currentToken.value) return null
-    
-    return this.activeSessions.value.find(
-      session => session.tokenId === this.currentToken.value
-    )
+  // Lấy danh sách sessions
+  getSessions() {
+    return [...this.activeSessions.value].map(session => ({
+      ...session,
+      isCurrent: session.tokenId === this.currentToken.value
+    }))
   },
   
   // Lấy danh sách tất cả các phiên đăng nhập của người dùng
@@ -299,7 +331,7 @@ const sessionToken = {
   })
 }
 
-// Khởi tạo store khi import
+// Khởi tạo khi import
 sessionToken.init()
 
 export default sessionToken 

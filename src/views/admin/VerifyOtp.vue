@@ -98,15 +98,31 @@ const errorMessage = ref('');
 const successMessage = ref('');
 const otpValue = ref('');
 const email = ref('');
-const name = ref('');
-const phone = ref('');
-const password = ref('');
 const action = ref('');
 
 // Resend OTP logic
 const isResendDisabled = ref(false);
 const resendCountdown = ref(60);
 let countdownInterval = null;
+
+// Lấy dữ liệu đăng ký từ sessionStorage
+const getRegistrationData = () => {
+  const data = sessionStorage.getItem('registration_data');
+  if (data) {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error('Error parsing registration data from session storage', e);
+      return null;
+    }
+  }
+  return null;
+};
+
+// Xóa dữ liệu đăng ký
+const clearRegistrationData = () => {
+  sessionStorage.removeItem('registration_data');
+};
 
 const startResendCountdown = () => {
   isResendDisabled.value = true;
@@ -125,13 +141,21 @@ const resendOtp = async () => {
   if (isResendDisabled.value) return;
   
   try {
-    await api.auth.sendOtp(email.value);
-    successMessage.value = 'Mã OTP mới đã được gửi đến email của bạn.';
-    errorMessage.value = '';
-    startResendCountdown();
+    isLoading.value = true;
+    const response = await api.auth.sendOtp(email.value);
+    if (response && response.success) {
+      successMessage.value = 'Mã OTP mới đã được gửi đến email của bạn.';
+      errorMessage.value = '';
+      startResendCountdown();
+    } else {
+      errorMessage.value = response?.message || 'Không thể gửi lại OTP. Vui lòng thử lại sau.';
+      successMessage.value = '';
+    }
   } catch (error) {
-    errorMessage.value = 'Không thể gửi lại OTP. Vui lòng thử lại sau.';
+    errorMessage.value = error.message || 'Không thể gửi lại OTP. Vui lòng thử lại sau.';
     successMessage.value = '';
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -147,47 +171,38 @@ const handleSubmit = async () => {
   
   try {
     // Xác thực OTP
-    await api.auth.verifyOtp(email.value, otpValue.value);
+    const response = await api.auth.verifyOtp(email.value, otpValue.value);
+    
+    if (!response || !response.success) {
+      errorMessage.value = response?.message || 'Xác thực OTP thất bại. Vui lòng thử lại.';
+      return;
+    }
     
     // Nếu xác thực thành công và đang trong quá trình đăng ký
     if (action.value === 'register') {
-      const registerData = {
-        name: name.value,
-        email: email.value,
-        password: password.value,
-        phone: phone.value,
-        otp: otpValue.value
-      };
+      const registrationData = getRegistrationData();
       
-      const result = await auth.register(registerData);
-      
-      if (result.success) {
-        successMessage.value = 'Đăng ký thành công!';
-        
-        // Tự động đăng nhập sau khi đăng ký
-        const loginResult = await auth.login({
-          email: email.value,
-          password: password.value
-        });
-        
-        if (loginResult) {
-          // Chuyển hướng sau 1 giây
-          setTimeout(() => {
-            router.push('/admin/dashboard');
-          }, 1000);
-        } else {
-          // Chuyển hướng đến trang đăng nhập sau 1 giây
-          setTimeout(() => {
-            router.push('/admin/login');
-          }, 1000);
-        }
-      } else {
-        errorMessage.value = result.message || 'Đăng ký thất bại. Vui lòng thử lại sau.';
+      if (!registrationData) {
+        errorMessage.value = 'Thông tin đăng ký không hợp lệ. Vui lòng thử lại.';
+        router.push('/admin/register');
+        return;
       }
+      
+      // Chuyển về trang đăng ký để hoàn tất, với OTP đã xác thực
+      router.push({
+        path: '/admin/register',
+        query: { 
+          email: email.value,
+          otp: otpValue.value,
+          verified: 'true'
+        }
+      });
     } else {
-      // Trường hợp chỉ xác thực OTP
+      // Trường hợp chỉ xác thực OTP (không phải đăng ký)
       successMessage.value = 'Xác thực OTP thành công!';
       setTimeout(() => {
+        // Xóa dữ liệu đăng ký nếu có
+        clearRegistrationData();
         router.push('/admin/login');
       }, 1000);
     }
@@ -198,7 +213,7 @@ const handleSubmit = async () => {
     } else if (error.response?.status === 429) {
       errorMessage.value = 'Quá nhiều yêu cầu. Vui lòng thử lại sau.';
     } else {
-      errorMessage.value = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
+      errorMessage.value = error.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.';
     }
   } finally {
     isLoading.value = false;
@@ -210,10 +225,16 @@ onMounted(() => {
   
   if (route.query.email) {
     email.value = route.query.email;
-    name.value = route.query.name || '';
-    phone.value = route.query.phone || '';
-    password.value = route.query.password || '';
     action.value = route.query.action || '';
+    
+    // Nếu action là register, kiểm tra dữ liệu từ sessionStorage
+    if (action.value === 'register') {
+      const registrationData = getRegistrationData();
+      if (!registrationData) {
+        // Không tìm thấy dữ liệu đăng ký
+        console.warn('Registration data not found in session storage');
+      }
+    }
     
     // Bắt đầu đếm ngược cho nút gửi lại
     startResendCountdown();
