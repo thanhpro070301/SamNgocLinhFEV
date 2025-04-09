@@ -767,69 +767,68 @@ async function fetchAllProducts() {
     
     console.log('Đang tải sản phẩm với params:', params);
     
-    // Sử dụng axios trực tiếp
-    const axios = (await import('axios')).default;
-    const response = await axios.get('/products', {
-      baseURL: 'http://localhost:8080/api',
-      params,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : undefined
-      }
-    });
-    
-    console.log('API trả về:', response.data);
-    
-    // Kiểm tra cấu trúc và xử lý dữ liệu từ API
-    if (response.data) {
-      let apiProducts = [];
+    // Sử dụng api client từ api/index.js thay vì axios trực tiếp
+    try {
+      const response = await (await import('@/api')).productApi.getProducts(params);
+      console.log('API trả về:', response);
       
-      // Kiểm tra cấu trúc phản hồi từ API
-      if (response.data.content && Array.isArray(response.data.content)) {
-        // Cấu trúc phổ biến: { content: [...], totalElements, totalPages }
-        apiProducts = response.data.content;
-        totalItems.value = response.data.totalElements || apiProducts.length;
-        totalPages.value = response.data.totalPages || 1;
-      } else if (response.data.products && Array.isArray(response.data.products)) {
-        // Cấu trúc thay thế: { products: [...], totalItems, totalPages }
-        apiProducts = response.data.products;
-        totalItems.value = response.data.totalItems || apiProducts.length;
-        totalPages.value = response.data.totalPages || 1;
-      } else if (Array.isArray(response.data)) {
-        // Mảng trực tiếp không có phân trang
-        apiProducts = response.data;
-        totalItems.value = apiProducts.length;
-        totalPages.value = 1;
-      }
-      
-      console.log(`Đã tải ${apiProducts.length} sản phẩm`);
-      
-      if (apiProducts.length > 0) {
-        // Cập nhật danh sách sản phẩm
-        products.value = apiProducts.map(p => ({
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          price: p.price,
-          originalPrice: p.originalPrice,
-          image: p.image || '/assets/images/products/sam-tuoi.png',
-          categoryId: p.categoryId,
-          categoryName: getCategoryName(p.categoryId),
-          stock: p.stock || 0,
-          status: p.status || 'INACTIVE',
-          slug: p.slug || slugify(p.name)
-        }));
+      // Kiểm tra cấu trúc và xử lý dữ liệu từ API
+      if (response) {
+        let apiProducts = [];
         
-        console.log(`Đã tải tổng cộng ${products.value.length} sản phẩm từ API`);
+        // Kiểm tra cấu trúc phản hồi từ API
+        if (response.content && Array.isArray(response.content)) {
+          // Cấu trúc phổ biến: { content: [...], totalElements, totalPages }
+          apiProducts = response.content;
+          totalItems.value = response.totalElements || apiProducts.length;
+          totalPages.value = response.totalPages || 1;
+        } else if (response.products && Array.isArray(response.products)) {
+          // Cấu trúc thay thế: { products: [...], totalItems, totalPages }
+          apiProducts = response.products;
+          totalItems.value = response.totalItems || apiProducts.length;
+          totalPages.value = response.totalPages || 1;
+        } else if (Array.isArray(response)) {
+          // Mảng trực tiếp không có phân trang
+          apiProducts = response;
+          totalItems.value = apiProducts.length;
+          totalPages.value = 1;
+        }
+        
+        console.log(`Đã tải ${apiProducts.length} sản phẩm`);
+        
+        if (apiProducts.length > 0) {
+          // Cập nhật danh sách sản phẩm
+          products.value = apiProducts.map(p => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || '',
+            price: p.price,
+            originalPrice: p.originalPrice,
+            image: p.image || '/assets/images/products/sam-tuoi.png',
+            categoryId: p.categoryId,
+            categoryName: getCategoryName(p.categoryId),
+            stock: p.stock || 0,
+            status: p.status || 'INACTIVE',
+            slug: p.slug || slugify(p.name)
+          }));
+          
+          console.log(`Đã tải tổng cộng ${products.value.length} sản phẩm từ API`);
+        } else {
+          products.value = [];
+          console.log('Không có sản phẩm nào được tải');
+        }
       } else {
         products.value = [];
-        console.log('Không có sản phẩm nào được tải');
+        totalItems.value = 0;
+        totalPages.value = 0;
+        console.log('Không có dữ liệu từ API');
       }
-    } else {
+    } catch (err) {
+      console.error('Lỗi khi tải sản phẩm:', err);
+      error.value = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.';
       products.value = [];
       totalItems.value = 0;
       totalPages.value = 0;
-      console.log('Không có dữ liệu từ API');
     }
   } catch (err) {
     console.error('Lỗi khi tải sản phẩm:', err);

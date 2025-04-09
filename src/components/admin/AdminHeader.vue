@@ -197,15 +197,10 @@ async function logout() {
       return
     }
     
-    // Gọi API đăng xuất
-    const axios = (await import('axios')).default
-    
+    // Gọi API đăng xuất sử dụng API client
     try {
-      await axios.post('http://localhost:8080/api/auth/logout', {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const { authApi } = await import('@/api');
+      await authApi.logout();
       console.log('Đăng xuất thành công từ API')
     } catch (error) {
       console.error('Không thể gọi API đăng xuất:', error)
