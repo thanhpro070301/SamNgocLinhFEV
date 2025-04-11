@@ -777,8 +777,8 @@ function showAllProducts() {
   currentPage.value = 0;
   console.log('Showing all products');
   
-  // Use the fallback data to ensure all products are shown
-  useFallbackProducts();
+  // Use the API instead of fallback data
+  fetchProducts();
   error.value = null;
 }
 
