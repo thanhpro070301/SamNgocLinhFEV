@@ -9,7 +9,7 @@
             class="flex-shrink-0 flex items-center px-2 transition-opacity duration-150 hover:opacity-85 mr-2"
           >
             <div class="w-8 h-8 bg-green-100 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
-              <img src="/assets/images/products/sam-tuoi.png" alt="Logo" class="w-full h-full object-cover">
+              <img src="/assets/images/logo-sam.png" alt="Logo" class="w-full h-full object-cover">
             </div>
           </router-link>
           
@@ -135,7 +135,7 @@
           <!-- Mobile logo -->
           <router-link to="/admin/dashboard" class="flex items-center">
             <div class="w-8 h-8 bg-green-100 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
-              <img src="/assets/images/products/sam-tuoi.png" alt="Logo" class="w-full h-full object-cover">
+              <img src="/assets/images/logo-sam.png" alt="Logo" class="w-full h-full object-cover">
             </div>
             <span class="ml-2 text-base font-medium text-gray-900">Admin</span>
           </router-link>

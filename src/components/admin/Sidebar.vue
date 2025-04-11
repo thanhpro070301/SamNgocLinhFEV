@@ -14,7 +14,7 @@
           <!-- Logo & Brand -->
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-full bg-white shadow-lg p-2 flex items-center justify-center">
-              <img src="/assets/images/products/sam-tuoi.png" alt="Logo" class="w-full h-full object-contain">
+              <img src="/assets/images/logo-sam.png" alt="Logo" class="w-full h-full object-contain">
             </div>
             <div>
               <h3 class="text-white text-lg font-semibold">Sam Ngọc Linh</h3>

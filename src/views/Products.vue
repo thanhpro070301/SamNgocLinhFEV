@@ -364,18 +364,35 @@ const getImageSrc = (image) => {
 // API calls
 async function fetchCategories() {
   try {
-    const response = await api.category.getCategories()
-    categories.value = response.data
+    const response = await api.category.getCategories();
+    
+    if (response.data && Array.isArray(response.data)) {
+      // New API format
+      categories.value = response.data;
+    } else if (response.data && Array.isArray(response.data.content)) {
+      // New API format with pagination
+      categories.value = response.data.content;
+    } else if (Array.isArray(response)) {
+      // Direct array response
+      categories.value = response;
+    } else {
+      // Fallback to default categories
+      useFallbackCategories();
+    }
   } catch (err) {
-    console.error('Error fetching categories:', err)
-    // Fallback data
-    categories.value = [
-      { id: 1, name: 'Sâm tươi' },
-      { id: 2, name: 'Cao sâm' },
-      { id: 3, name: 'Rượu sâm' },
-      { id: 4, name: 'Trà sâm' }
-    ]
+    console.error('Error fetching categories:', err);
+    useFallbackCategories();
   }
+}
+
+// Function to use fallback category data
+function useFallbackCategories() {
+  categories.value = [
+    { id: 1, name: 'Sâm tươi' },
+    { id: 2, name: 'Cao sâm' },
+    { id: 3, name: 'Rượu sâm' },
+    { id: 4, name: 'Trà sâm' }
+  ];
 }
 
 async function fetchProducts() {
@@ -395,6 +412,30 @@ async function fetchProducts() {
     // Add categoryId param for filtering at API level
     if (selectedCategory.value) {
       params.categoryId = selectedCategory.value;
+    }
+    
+    // Add price range filters
+    const priceFilters = [];
+
+    // Each filter can be active independently
+    if (filters.value.price.under1m) {
+      priceFilters.push({ minPrice: 0, maxPrice: 1000000 });
+    }
+    if (filters.value.price.from1mTo5m) {
+      priceFilters.push({ minPrice: 1000000, maxPrice: 5000000 });
+    }
+    if (filters.value.price.from5mTo10m) {
+      priceFilters.push({ minPrice: 5000000, maxPrice: 10000000 });
+    }
+    if (filters.value.price.above10m) {
+      priceFilters.push({ minPrice: 10000000, maxPrice: 1000000000 });
+    }
+
+    // Add price range parameters if any filters are selected
+    if (priceFilters.length > 0) {
+      // For most precise server filtering, we could send the min of all mins and max of all maxes
+      params.minPrice = Math.min(...priceFilters.map(f => f.minPrice));
+      params.maxPrice = Math.max(...priceFilters.map(f => f.maxPrice));
     }
     
     // Add sort parameter
@@ -432,19 +473,31 @@ async function fetchProducts() {
       
       console.log('API Response:', response);
       
-      // Check if we got a valid response with products
-      const hasValidProducts = response && 
-                             ((response.products && Array.isArray(response.products) && response.products.length > 0) || 
-                              (Array.isArray(response) && response.length > 0));
-      
-      if (!hasValidProducts) {
-        console.log('No products returned from API, using fallback data');
-        useFallbackProducts();
-        return; // Skip the rest of the processing since we're using fallback data
-      }
-      
-      // Process response according to the API documentation format
-      if (response && response.products && Array.isArray(response.products)) {
+      // Handle the new API response format
+      if (response && response.data && Array.isArray(response.data.content)) {
+        // New API format from samngoclinhproject.onrender.com
+        products.value = response.data.content.map(product => ({
+          id: product.id,
+          name: product.name || 'Không có tên',
+          description: product.description || '',
+          price: product.price || 0,
+          originalPrice: product.originalPrice || product.price || 0,
+          image: product.image || '/assets/images/products/default.png',
+          stock: typeof product.stock === 'number' ? product.stock : 10,
+          sold: product.sold || 0,
+          rating: product.rating || 4.5,
+          categoryId: product.categoryId,
+          categoryName: product.categoryName
+        }));
+        
+        // Update pagination information from new API
+        totalProducts.value = response.data.totalElements || 0;
+        totalPages.value = response.data.totalPages || 1;
+        currentPage.value = response.data.number || 0;
+        
+        console.log(`Processed ${products.value.length} products successfully`);
+      } else if (response && response.products && Array.isArray(response.products)) {
+        // Old API format - fallback
         products.value = response.products.map(product => ({
           id: product.id,
           name: product.name || 'Không có tên',
@@ -463,8 +516,6 @@ async function fetchProducts() {
         totalProducts.value = response.totalItems || 0;
         totalPages.value = response.totalPages || 1;
         currentPage.value = response.currentPage || 0;
-        
-        console.log(`Processed ${products.value.length} products successfully`);
       } else if (Array.isArray(response)) {
         // Handle direct array response (fallback)
         products.value = response.map(product => ({
@@ -501,6 +552,31 @@ async function fetchProducts() {
         );
         totalProducts.value = products.value.length;
       }
+      
+      // Additional client-side filtering for price if API doesn't support it
+      if (filters.value.price.under1m || filters.value.price.from1mTo5m || 
+          filters.value.price.from5mTo10m || filters.value.price.above10m) {
+        
+        // Apply price filters
+        products.value = products.value.filter(product => {
+          const price = product.price;
+          
+          // If at least one price filter matches, keep the product
+          if ((filters.value.price.under1m && price < 1000000) ||
+              (filters.value.price.from1mTo5m && price >= 1000000 && price <= 5000000) ||
+              (filters.value.price.from5mTo10m && price > 5000000 && price <= 10000000) ||
+              (filters.value.price.above10m && price > 10000000)) {
+            return true;
+          }
+          
+          // If no price filter is selected, show all products
+          return !filters.value.price.under1m && !filters.value.price.from1mTo5m && 
+                 !filters.value.price.from5mTo10m && !filters.value.price.above10m;
+        });
+        
+        totalProducts.value = products.value.length;
+      }
+      
     } catch (fetchError) {
       console.error('Error in API request:', fetchError);
       useFallbackProducts();
@@ -513,6 +589,29 @@ async function fetchProducts() {
     // Apply client-side category filtering to fallback data if needed
     if (selectedCategory.value) {
       products.value = products.value.filter(product => product.categoryId === selectedCategory.value);
+      totalProducts.value = products.value.length;
+    }
+    
+    // Apply client-side price filtering to fallback data
+    if (filters.value.price.under1m || filters.value.price.from1mTo5m || 
+        filters.value.price.from5mTo10m || filters.value.price.above10m) {
+      
+      products.value = products.value.filter(product => {
+        const price = product.price;
+        
+        // If at least one price filter matches, keep the product
+        if ((filters.value.price.under1m && price < 1000000) ||
+            (filters.value.price.from1mTo5m && price >= 1000000 && price <= 5000000) ||
+            (filters.value.price.from5mTo10m && price > 5000000 && price <= 10000000) ||
+            (filters.value.price.above10m && price > 10000000)) {
+          return true;
+        }
+        
+        // If no price filter is selected, show all products
+        return !filters.value.price.under1m && !filters.value.price.from1mTo5m && 
+               !filters.value.price.from5mTo10m && !filters.value.price.above10m;
+      });
+      
       totalProducts.value = products.value.length;
     }
   } finally {

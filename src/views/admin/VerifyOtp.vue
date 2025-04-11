@@ -5,7 +5,7 @@
         <div class="text-center">
           <div class="flex justify-center mb-6">
             <div class="w-20 h-20 bg-green-100 rounded-full overflow-hidden flex-shrink-0 transform transition-transform duration-300 hover:scale-110">
-              <img src="@/assets/images/products/sam-tuoi.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
+              <img src="@/assets/images/logo-sam.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
             </div>
           </div>
           <h2 class="text-3xl font-extrabold text-gray-900">Xác thực OTP</h2>

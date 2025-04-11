@@ -235,7 +235,7 @@ export const authApi = {
 export const productApi = {
   getProducts(params = {}) {
     return apiClient.get('/products', { params })
-      .then(response => response.data);
+      .then(response => response);
   },
   getFeaturedProducts() {
     return apiClient.get('/products', { 
@@ -275,7 +275,7 @@ export const productApi = {
 export const categoryApi = {
   getCategories() {
     return apiClient.get('/categories')
-      .then(response => response.data);
+      .then(response => response);
   },
   getCategory(id) {
     return apiClient.get(`/categories/${id}`)
@@ -283,7 +283,7 @@ export const categoryApi = {
   },
   getCategoryProducts(id, params = {}) {
     return apiClient.get(`/categories/${id}/products`, { params })
-      .then(response => response.data);
+      .then(response => response);
   },
   createCategory(categoryData) {
     return apiClient.post('/categories', categoryData)

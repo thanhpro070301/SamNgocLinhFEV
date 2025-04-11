@@ -6,7 +6,7 @@
         <div>
           <div class="flex items-center mb-4">
             <div class="w-10 h-10 bg-green-100 rounded-full overflow-hidden mr-2">
-              <img src="@/assets/images/products/sam-tuoi.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
+              <img src="@/assets/images/logo-sam.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover">
             </div>
             <span class="text-xl font-semibold text-white">Sâm Ngọc Linh</span>
           </div>

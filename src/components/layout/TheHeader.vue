@@ -6,7 +6,7 @@
         <div class="flex-shrink-0">
           <router-link to="/" class="flex items-center group">
             <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full overflow-hidden mr-3 shadow-glass border border-white/30 transition duration-300 group-hover:shadow-glass-hover">
-              <img src="/assets/images/products/sam-tuoi.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
+              <img src="/assets/images/logo-sam.png" alt="Sâm Ngọc Linh" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-500">
             </div>
             <span class="text-xl font-medium text-slate-800 dark:text-white tracking-wide transition duration-300 group-hover:text-green-600 dark:group-hover:text-green-400">Sâm Ngọc Linh</span>
           </router-link>
