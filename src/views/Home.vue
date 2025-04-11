@@ -244,21 +244,21 @@ const testimonials = [
     title: 'Khách hàng thân thiết',
     text: 'Tôi đã sử dụng Sâm Ngọc Linh được 3 tháng và sức khỏe đã cải thiện đáng kể. Giấc ngủ sâu hơn và tinh thần luôn tỉnh táo.',
     rating: 5,
-    avatar: '/images/avatars/user1.jpg'
+    avatar: '/assets/images/spider.png'
   },
   {
     name: 'Trần Thị B',
     title: 'Giám đốc công ty ABC',
     text: 'Sâm Ngọc Linh thực sự là sản phẩm tuyệt vời! Tôi cảm thấy năng lượng dồi dào hơn, tập trung tốt hơn và làm việc hiệu quả hơn.',
     rating: 5,
-    avatar: '/images/avatars/user2.jpg'
+    avatar: '/assets/images/venom.png'
   },
   {
     name: 'Lê Văn C',
     title: 'Bác sĩ y khoa',
     text: 'Với kinh nghiệm làm việc trong ngành y, tôi đánh giá cao chất lượng và độ tinh khiết của Sâm Ngọc Linh. Đây là sản phẩm tôi thường xuyên giới thiệu cho bệnh nhân.',
     rating: 5,
-    avatar: '/images/avatars/user3.jpg'
+    avatar: '/assets/images/ben.png'
   }
 ];
 

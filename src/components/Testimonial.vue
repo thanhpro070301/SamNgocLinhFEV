@@ -25,11 +25,11 @@
       
       <!-- Author info -->
       <div class="testimonial-author flex items-center">
-        <div class="author-avatar w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white dark:border-slate-600 shadow-md">
+        <div class="author-avatar w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-white dark:border-slate-600 shadow-md bg-white flex items-center justify-center">
           <img 
             :src="testimonial.avatar || '/images/avatar-placeholder.png'" 
             :alt="testimonial.name" 
-            class="w-full h-full object-cover"
+            class="w-full h-full object-contain"
           >
         </div>
         

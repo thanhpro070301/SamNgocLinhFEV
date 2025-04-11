@@ -114,7 +114,7 @@ import { useRouter } from 'vue-router';
 import NeuButton from './NeuButton.vue';
 
 // Use the correct path to the sam image
-const samImageUrl = ref('/images/sam-ngoc-linh.png');
+const samImageUrl = ref('/assets/images/logo-sam.png');
 const tiltRef = ref(null);
 const router = useRouter();
 
