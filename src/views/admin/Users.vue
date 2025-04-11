@@ -1,8 +1,5 @@
 <template>
-  <div class="admin-dashboard bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <AdminHeader />
-    
+  <div class="users-admin-page min-h-screen bg-gray-50">
     <!-- Main Content -->
     <main class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -309,8 +306,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import AdminHeader from '@/components/admin/AdminHeader.vue'
-import samTuoiImage from '@/assets/images/products/sam-tuoi.png'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
+import api from '@/api'
+import notificationService from '@/utils/notificationService'
 
 // Danh sách người dùng mẫu
 const users = ref([

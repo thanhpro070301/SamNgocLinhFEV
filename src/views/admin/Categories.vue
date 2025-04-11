@@ -1,8 +1,5 @@
 <template>
-  <div class="categories-management admin-dashboard bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <AdminHeader />
-    
+  <div class="categories-admin-page min-h-screen bg-gray-50">
     <!-- Main Content -->
     <main class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -276,66 +273,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import AdminHeader from '@/components/admin/AdminHeader.vue'
+import { ref, computed, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
+import api from '@/api'
+import notificationService from '@/utils/notificationService'
 
-// Sample data - replace with API calls in production
-const categories = ref([
-  {
-    id: 1,
-    name: 'Sâm tươi',
-    slug: 'sam-tuoi',
-    description: 'Các sản phẩm sâm Ngọc Linh tươi',
-    parent_id: null,
-    status: 'active',
-    productCount: 10
-  },
-  {
-    id: 2,
-    name: 'Cao sâm',
-    slug: 'cao-sam',
-    description: 'Các sản phẩm cao sâm Ngọc Linh',
-    parent_id: null,
-    status: 'active',
-    productCount: 5
-  },
-  {
-    id: 3,
-    name: 'Rượu sâm',
-    slug: 'ruou-sam',
-    description: 'Các loại rượu ngâm sâm Ngọc Linh',
-    parent_id: null,
-    status: 'active',
-    productCount: 3
-  },
-  {
-    id: 4,
-    name: 'Sâm tươi 10 năm',
-    slug: 'sam-tuoi-10-nam',
-    description: 'Sâm tươi có tuổi đời 10 năm',
-    parent_id: 1,
-    status: 'active',
-    productCount: 2
-  },
-  {
-    id: 5,
-    name: 'Sâm tươi 15 năm',
-    slug: 'sam-tuoi-15-nam',
-    description: 'Sâm tươi có tuổi đời 15 năm',
-    parent_id: 1,
-    status: 'active',
-    productCount: 3
-  },
-  {
-    id: 6,
-    name: 'Trà sâm',
-    slug: 'tra-sam',
-    description: 'Các sản phẩm trà sâm Ngọc Linh',
-    parent_id: 2,
-    status: 'inactive',
-    productCount: 0
-  }
-])
+// State for loading and errors
+const isLoading = ref(false)
+const error = ref(null)
+
+// Categories data
+const categories = ref([])
 
 // Search and filter
 const searchQuery = ref('')
@@ -355,6 +304,124 @@ const categoryForm = ref({
   description: '',
   parent_id: null,
   status: 'active'
+})
+
+// Fetch categories from API
+async function fetchCategories() {
+  try {
+    isLoading.value = true
+    error.value = null
+    
+    const response = await api.category.getCategories()
+    
+    // Check if response is valid and has data
+    if (response && response.data) {
+      categories.value = response.data.map(cat => ({
+        ...cat,
+        productCount: cat.products?.length || 0
+      }))
+    } else if (Array.isArray(response)) {
+      // Handle case where API returns array directly
+      categories.value = response.map(cat => ({
+        ...cat,
+        productCount: cat.products?.length || 0
+      }))
+    } else {
+      // Fall back to empty array if response format is unexpected
+      console.error('Unexpected API response format:', response)
+      categories.value = []
+      notificationService.show('Không thể tải danh mục. Định dạng dữ liệu không hợp lệ.', {
+        title: 'Lỗi dữ liệu',
+        type: 'error'
+      })
+    }
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+    error.value = err.message || 'Đã xảy ra lỗi khi tải danh mục'
+    categories.value = []
+    
+    // Show error notification
+    notificationService.show(error.value, {
+      title: 'Lỗi kết nối',
+      type: 'error'
+    })
+    
+    // Use demo data if API fails
+    useDemoData()
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Use demo data if API fails
+function useDemoData() {
+  categories.value = [
+    {
+      id: 1,
+      name: 'Sâm tươi',
+      slug: 'sam-tuoi',
+      description: 'Các sản phẩm sâm Ngọc Linh tươi',
+      parent_id: null,
+      status: 'active',
+      productCount: 10
+    },
+    {
+      id: 2,
+      name: 'Cao sâm',
+      slug: 'cao-sam',
+      description: 'Các sản phẩm cao sâm Ngọc Linh',
+      parent_id: null,
+      status: 'active',
+      productCount: 5
+    },
+    {
+      id: 3,
+      name: 'Rượu sâm',
+      slug: 'ruou-sam',
+      description: 'Các loại rượu ngâm sâm Ngọc Linh',
+      parent_id: null,
+      status: 'active',
+      productCount: 3
+    },
+    {
+      id: 4,
+      name: 'Sâm tươi 10 năm',
+      slug: 'sam-tuoi-10-nam',
+      description: 'Sâm tươi có tuổi đời 10 năm',
+      parent_id: 1,
+      status: 'active',
+      productCount: 2
+    },
+    {
+      id: 5,
+      name: 'Sâm tươi 15 năm',
+      slug: 'sam-tuoi-15-nam',
+      description: 'Sâm tươi có tuổi đời 15 năm',
+      parent_id: 1,
+      status: 'active',
+      productCount: 3
+    },
+    {
+      id: 6,
+      name: 'Trà sâm',
+      slug: 'tra-sam',
+      description: 'Các sản phẩm trà sâm Ngọc Linh',
+      parent_id: 2,
+      status: 'inactive',
+      productCount: 0
+    }
+  ]
+  
+  // Show notification about using demo data
+  notificationService.show('Đang sử dụng dữ liệu mẫu do không thể kết nối với máy chủ', {
+    title: 'Chế độ demo',
+    type: 'warning'
+  })
+}
+
+// Initialize data on component mount
+onMounted(async () => {
+  await fetchCategories()
 })
 
 // Filtered categories based on search query and status filter

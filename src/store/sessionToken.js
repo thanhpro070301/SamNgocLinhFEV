@@ -1,337 +1,455 @@
-import { ref, computed } from 'vue'
-import { v4 as uuidv4 } from 'uuid'
-import api from '@/api'
-import CryptoJS from 'crypto-js'
+import { ref } from 'vue'
+import { clearAllAuthData } from '@/utils/clearAuth'
 
-// Khóa mã hóa (trong thực tế nên lưu an toàn hơn)
-const ENCRYPTION_KEY = 'SamNgocLinhApp@2023'
-
-// Tạo store quản lý session token
-const sessionToken = {
-  // Dữ liệu token
-  activeSessions: ref([]),
-  currentToken: ref(null),
-  refreshToken: ref(null),
-  refreshInterval: null,
+// Session token service
+const createSessionToken = () => {
+  // State 
+  const currentToken = ref(null)
+  const refreshToken = ref(null)
+  const tokenExpiry = ref(null)
+  const currentSession = ref(null)
+  const activeSessions = ref([])
   
   // Khởi tạo store từ localStorage
-  init() {
+  const initFromLocalStorage = () => {
     try {
-      // Lấy danh sách session từ localStorage
-      const sessionsString = localStorage.getItem('admin_sessions')
-      if (sessionsString) {
-        try {
-          const decrypted = this.decrypt(sessionsString)
-          this.activeSessions.value = JSON.parse(decrypted)
-        } catch (e) {
-          console.error('Failed to decrypt sessions, resetting', e)
-          this.activeSessions.value = []
+      console.log('Initializing session token from storage')
+      
+      // Kiểm tra cả localStorage và sessionStorage
+      const localToken = localStorage.getItem('authToken')
+      const sessionToken = sessionStorage.getItem('authToken')
+      
+      console.log('Storage check:', {
+        localStorage: { hasToken: !!localToken },
+        sessionStorage: { hasToken: !!sessionToken }
+      })
+      
+      // Sử dụng token từ bất kỳ nguồn nào, ưu tiên localStorage
+      const token = localToken || sessionToken
+      
+      if (!token) {
+        console.log('No token found in any storage')
+        return { success: false, error: 'No token found' }
+      }
+      
+      // Đồng bộ giữa localStorage và sessionStorage
+      if (localToken && !sessionToken) {
+        console.log('Syncing from localStorage to sessionStorage')
+        sessionStorage.setItem('authToken', localToken)
+        sessionStorage.setItem('admin_current_token', localToken)
+        sessionStorage.setItem('isAuthenticated', 'true')
+        
+        if (localStorage.getItem('tokenExpiresAt')) {
+          sessionStorage.setItem('tokenExpiresAt', localStorage.getItem('tokenExpiresAt'))
+        } else if (localStorage.getItem('expiresAt')) {
+          sessionStorage.setItem('tokenExpiresAt', localStorage.getItem('expiresAt'))
+          sessionStorage.setItem('expiresAt', localStorage.getItem('expiresAt'))
         }
+        
+        if (localStorage.getItem('userDetails')) {
+          sessionStorage.setItem('userDetails', localStorage.getItem('userDetails'))
+        } else if (localStorage.getItem('currentUser')) {
+          sessionStorage.setItem('currentUser', localStorage.getItem('currentUser'))
+        }
+      } else if (sessionToken && !localToken) {
+        console.log('Syncing from sessionStorage to localStorage')
+        localStorage.setItem('authToken', sessionToken)
+        localStorage.setItem('admin_current_token', sessionToken)
+        localStorage.setItem('isAuthenticated', 'true')
+        
+        if (sessionStorage.getItem('tokenExpiresAt')) {
+          localStorage.setItem('tokenExpiresAt', sessionStorage.getItem('tokenExpiresAt'))
+        } else if (sessionStorage.getItem('expiresAt')) {
+          localStorage.setItem('tokenExpiresAt', sessionStorage.getItem('expiresAt'))
+          localStorage.setItem('expiresAt', sessionStorage.getItem('expiresAt'))
+        }
+        
+        if (sessionStorage.getItem('userDetails')) {
+          localStorage.setItem('userDetails', sessionStorage.getItem('userDetails'))
+        } else if (sessionStorage.getItem('currentUser')) {
+          localStorage.setItem('currentUser', sessionStorage.getItem('currentUser'))
+        }
+      } else if (localToken && sessionToken && localToken !== sessionToken) {
+        // Tokens don't match - prefer localStorage version
+        console.log('Token mismatch between localStorage and sessionStorage - using localStorage version')
+        sessionStorage.setItem('authToken', localToken)
+        sessionStorage.setItem('admin_current_token', localToken)
       }
       
-      // Lấy token hiện tại từ localStorage
-      const currentTokenString = localStorage.getItem('admin_current_token')
-      if (currentTokenString) {
-        this.currentToken.value = currentTokenString
-      }
-
-      // Lấy refresh token từ localStorage
-      const refreshTokenString = localStorage.getItem('admin_refresh_token')
-      if (refreshTokenString) {
-        this.refreshToken.value = refreshTokenString
-      }
+      // Khởi tạo từ thông tin user - ưu tiên userDetails hơn currentUser
+      const userStr = localStorage.getItem('userDetails') || 
+                     sessionStorage.getItem('userDetails') || 
+                     localStorage.getItem('currentUser') || 
+                     sessionStorage.getItem('currentUser')
+                     
+      const expiresAtStr = localStorage.getItem('expiresAt') || 
+                          localStorage.getItem('tokenExpiresAt') || 
+                          sessionStorage.getItem('expiresAt') || 
+                          sessionStorage.getItem('tokenExpiresAt')
       
-      // Xóa các session hết hạn
-      this.cleanExpiredSessions()
-
-      // Bắt đầu kiểm tra session định kỳ
-      this.startSessionCheck()
-    } catch (error) {
-      console.error('Error initializing session token store:', error)
-      this.resetAll()
-    }
-  },
-
-  // Bắt đầu kiểm tra session định kỳ
-  startSessionCheck() {
-    // Kiểm tra mỗi 5 phút
-    this.refreshInterval = setInterval(() => {
-      this.checkAndRefreshSession()
-    }, 5 * 60 * 1000)
-  },
-
-  // Dừng kiểm tra session
-  stopSessionCheck() {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval)
-      this.refreshInterval = null
-    }
-  },
-
-  // Kiểm tra và refresh session
-  async checkAndRefreshSession() {
-    try {
-      if (!this.currentToken.value || !this.refreshToken.value) return
-
-      const session = this.getCurrentSession()
-      if (!session) return
-
-      // Kiểm tra thời gian còn lại của token
-      const now = new Date()
-      const expiresAt = new Date(session.expiresAt)
-      const timeLeft = expiresAt - now
-
-      // Nếu còn ít hơn 15 phút, refresh token
-      if (timeLeft < 15 * 60 * 1000) {
-        await this.refreshSession()
-      }
-    } catch (error) {
-      console.error('Error checking session:', error)
-    }
-  },
-
-  // Refresh session
-  async refreshSession() {
-    try {
-      if (!this.refreshToken.value) return false
-
-      try {
-        const response = await api.auth.refreshToken(this.refreshToken.value)
-        if (response && response.success && response.data) {
-          this.currentToken.value = response.data.token
-          this.refreshToken.value = response.data.refreshToken
+      // Thiết lập token mới
+      currentToken.value = token
+      tokenExpiry.value = expiresAtStr ? parseInt(expiresAtStr) : null
+      
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr)
           
-          // Cập nhật phiên hiện tại
-          const session = this.getCurrentSession()
-          if (session) {
-            session.expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 giờ mới
-            session.lastActivity = new Date().toISOString()
+          // Tạo session mới
+          const session = {
+            id: Date.now().toString(),
+            token: token,
+            refreshToken: null,
+            userId: userData.id || Date.now().toString(),
+            userEmail: userData.email || 'admin@example.com',
+            userName: userData.name || 'Admin',
+            userRole: userData.role || 'ADMIN',
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAtStr ? new Date(parseInt(expiresAtStr)).toISOString() : null,
+            lastActivity: new Date().toISOString(),
+            rememberMe: false
           }
           
-          this.saveState()
-          return true
+          currentSession.value = session
+          activeSessions.value = [session]
+          
+          console.log('Session restored with token and user data')
+        } catch (e) {
+          console.error('Error parsing user data:', e)
         }
-      } catch (error) {
-        console.error('Token refresh failed:', error)
+      } else {
+        // Tạo default session nếu không có user data
+        const session = {
+          id: Date.now().toString(),
+          token: token,
+          refreshToken: null,
+          userId: Date.now().toString(),
+          userEmail: 'admin@example.com',
+          userName: 'Admin',
+          userRole: 'ADMIN',
+          createdAt: new Date().toISOString(),
+          expiresAt: expiresAtStr ? new Date(parseInt(expiresAtStr)).toISOString() : null,
+          lastActivity: new Date().toISOString(),
+          rememberMe: false
+        }
+        
+        currentSession.value = session
+        activeSessions.value = [session]
+        
+        console.log('Default session created with token only')
       }
-      return false
-    } catch (error) {
-      console.error('Error refreshing session:', error)
-      return false
-    }
-  },
-  
-  // Tạo token mới khi đăng nhập
-  createToken(user, token, refreshToken, rememberMe = false) {
-    if (!token || !user) {
-      console.error('Invalid token or user data')
-      return null
-    }
-    
-    // Thời gian hết hạn: 1 giờ hoặc 30 ngày nếu remember me
-    const expiresAt = new Date()
-    if (rememberMe) {
-      expiresAt.setDate(expiresAt.getDate() + 30) // 30 ngày
-    } else {
-      expiresAt.setHours(expiresAt.getHours() + 1) // 1 giờ
-    }
-    
-    // Thông tin thiết bị
-    const device = {
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      language: navigator.language
-    }
-    
-    // Tạo đối tượng session
-    const session = {
-      tokenId: token,
-      refreshTokenId: refreshToken,
-      userId: user.id,
-      userName: user.name,
-      userEmail: user.email,
-      userRole: user.role,
-      device,
-      createdAt: new Date().toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      lastActivity: new Date().toISOString(),
-      rememberMe
-    }
-    
-    // Thêm vào danh sách active sessions
-    this.activeSessions.value.push(session)
-    
-    // Lưu token hiện tại
-    this.currentToken.value = token
-    this.refreshToken.value = refreshToken
-    
-    // Lưu vào localStorage
-    this.saveState()
-    
-    return { token, refreshToken }
-  },
-  
-  // Mã hóa dữ liệu
-  encrypt(data) {
-    try {
-      return CryptoJS.AES.encrypt(data, ENCRYPTION_KEY).toString()
-    } catch (e) {
-      console.error('Encryption failed', e)
-      return data // Fallback, không nên xảy ra
-    }
-  },
-  
-  // Giải mã dữ liệu
-  decrypt(encryptedData) {
-    try {
-      const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY)
-      return bytes.toString(CryptoJS.enc.Utf8)
-    } catch (e) {
-      console.error('Decryption failed', e)
-      throw e
-    }
-  },
-  
-  // Lưu trạng thái vào localStorage
-  saveState() {
-    try {
-      // Mã hóa thông tin session
-      const sessionsJson = JSON.stringify(this.activeSessions.value)
-      const encryptedSessions = this.encrypt(sessionsJson)
       
-      localStorage.setItem('admin_sessions', encryptedSessions)
-      localStorage.setItem('admin_current_token', this.currentToken.value)
-      localStorage.setItem('admin_refresh_token', this.refreshToken.value)
+      return { success: true }
     } catch (error) {
-      console.error('Error saving session state:', error)
+      console.error('Error initializing from localStorage:', error)
+      return { success: false, error: error.message }
     }
-  },
+  }
   
-  // Xóa tất cả dữ liệu
-  resetAll() {
-    this.activeSessions.value = []
-    this.currentToken.value = null
-    this.refreshToken.value = null
-    this.stopSessionCheck()
-    
+  // Tạo token mới
+  const createToken = (token, refreshToken = null, rememberMe = false) => {
     try {
-      localStorage.removeItem('admin_sessions')
-      localStorage.removeItem('admin_current_token')
-      localStorage.removeItem('admin_refresh_token')
+      console.log('Creating new session token')
+      
+      // Clear existing tokens first
+      clearAllAuthData()
+      
+      // Lưu token vào state
+      currentToken.value = token
+      
+      if (refreshToken) {
+        refreshToken.value = refreshToken
+      }
+      
+      // Tính thời gian hết hạn
+      const now = Date.now()
+      const expiresAt = rememberMe
+        ? now + (30 * 24 * 60 * 60 * 1000) // 30 ngày
+        : now + (3 * 60 * 60 * 1000) // 3 giờ
+      tokenExpiry.value = expiresAt
+      
+      // Lấy thông tin user
+      const userStr = localStorage.getItem('userDetails') || sessionStorage.getItem('userDetails')
+      let userData = null
+      
+      if (userStr) {
+        try {
+          userData = JSON.parse(userStr)
+        } catch (e) {
+          console.error('Error parsing user data:', e)
+        }
+      }
+      
+      // Tạo session mới
+      const session = {
+        id: Date.now().toString(),
+        token: token,
+        refreshToken: refreshToken,
+        userId: userData?.id || Date.now().toString(),
+        userEmail: userData?.email || 'admin@example.com',
+        userName: userData?.name || 'Admin',
+        userRole: userData?.role || 'ADMIN',
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(expiresAt).toISOString(),
+        lastActivity: new Date().toISOString(),
+        rememberMe: rememberMe
+      }
+      
+      currentSession.value = session
+      
+      // Thêm vào danh sách sessions
+      activeSessions.value.push(session)
+      
+      // Lưu vào localStorage và sessionStorage
+      saveState()
+      
+      return { success: true, data: session }
     } catch (error) {
-      console.error('Error resetting session state:', error)
+      console.error('Error creating token:', error)
+      return { success: false, error: error.message }
     }
-  },
+  }
   
-  // Xóa token
-  removeToken(tokenId) {
-    this.activeSessions.value = this.activeSessions.value.filter(
-      session => session.tokenId !== tokenId
-    )
+  // Reset token và tất cả sessions
+  const resetAll = () => {
+    console.log('Resetting all session tokens')
     
-    if (this.currentToken.value === tokenId) {
-      this.currentToken.value = null
-      this.refreshToken.value = null
-    }
+    currentToken.value = null
+    refreshToken.value = null
+    tokenExpiry.value = null
+    currentSession.value = null
+    activeSessions.value = []
     
-    this.saveState()
-  },
-  
-  // Xóa các session hết hạn
-  cleanExpiredSessions() {
-    const now = new Date()
-    this.activeSessions.value = this.activeSessions.value.filter(session => {
-      const expiresAt = new Date(session.expiresAt)
-      return now <= expiresAt
-    })
+    // Xóa khỏi cả localStorage và sessionStorage
+    clearAllAuthData()
     
-    this.saveState()
-  },
+    return { success: true }
+  }
   
   // Kiểm tra token có hợp lệ không
-  isValidToken(tokenId) {
+  const isTokenValid = () => {
+    if (!currentToken.value || !tokenExpiry.value) {
+      return false
+    }
+    
+    const now = Date.now()
+    return now < tokenExpiry.value
+  }
+  
+  // Cập nhật hoạt động
+  const updateActivity = () => {
+    if (!currentSession.value) return false
+    
+    currentSession.value.lastActivity = new Date().toISOString()
+    return true
+  }
+  
+  // Lưu state vào localStorage và sessionStorage
+  const saveState = () => {
     try {
-      if (!tokenId) return false
+      const token = currentToken.value || ''
+      const isAuthenticated = token ? 'true' : 'false'
       
-      const session = this.activeSessions.value.find(s => s.tokenId === tokenId)
-      if (!session) return false
+      // Lưu vào localStorage
+      localStorage.setItem('authToken', token)
+      localStorage.setItem('admin_current_token', token)
+      localStorage.setItem('isAuthenticated', isAuthenticated)
       
-      // Kiểm tra token có hết hạn chưa
-      const now = new Date()
-      const expiresAt = new Date(session.expiresAt)
-      
-      if (now > expiresAt) {
-        // Nếu hết hạn, xóa token
-        this.removeToken(tokenId)
-        return false
+      if (tokenExpiry.value) {
+        localStorage.setItem('tokenExpiresAt', tokenExpiry.value.toString())
+        localStorage.setItem('expiresAt', tokenExpiry.value.toString())
       }
       
-      // Cập nhật thời gian hoạt động cuối
-      session.lastActivity = new Date().toISOString()
-      this.saveState()
+      // Lưu vào sessionStorage
+      sessionStorage.setItem('authToken', token)
+      sessionStorage.setItem('admin_current_token', token)
+      sessionStorage.setItem('isAuthenticated', isAuthenticated)
+      
+      if (tokenExpiry.value) {
+        sessionStorage.setItem('tokenExpiresAt', tokenExpiry.value.toString())
+        sessionStorage.setItem('expiresAt', tokenExpiry.value.toString())
+      }
+      
+      // Lưu thông tin session hiện tại
+      if (currentSession.value) {
+        const sessionInfo = JSON.stringify(currentSession.value)
+        localStorage.setItem('currentSession', sessionInfo)
+        sessionStorage.setItem('currentSession', sessionInfo)
+      }
       
       return true
     } catch (error) {
-      console.error('Error validating token:', error)
+      console.error('Error saving state:', error)
       return false
     }
-  },
+  }
   
-  // Kiểm tra token hiện tại có hợp lệ không
-  isCurrentTokenValid() {
-    return this.isValidToken(this.currentToken.value)
-  },
-  
-  // Cập nhật hoạt động cho token
-  updateActivity(tokenId = null) {
-    const token = tokenId || this.currentToken.value
-    if (!token) return false
-    
-    const session = this.activeSessions.value.find(s => s.tokenId === token)
-    if (session) {
-      session.lastActivity = new Date().toISOString()
-      this.saveState()
-      return true
+  // Fix token synchronization function
+  const syncTokens = () => {
+    try {
+      console.log('Synchronizing tokens between localStorage and sessionStorage');
+      
+      // Get tokens from both storage types
+      const localToken = localStorage.getItem('authToken');
+      const sessionToken = sessionStorage.getItem('authToken');
+      
+      // Get authentication state from both storage types
+      const localAuthState = localStorage.getItem('isAuthenticated');
+      const sessionAuthState = sessionStorage.getItem('isAuthenticated');
+      
+      // Get expiration time from both storage types
+      const localExpiresAt = localStorage.getItem('expiresAt') || localStorage.getItem('tokenExpiresAt');
+      const sessionExpiresAt = sessionStorage.getItem('expiresAt') || sessionStorage.getItem('tokenExpiresAt');
+      
+      // Get user details from both storage types
+      const localUserDetails = localStorage.getItem('userDetails');
+      const sessionUserDetails = sessionStorage.getItem('userDetails');
+      
+      console.log('Current token state:', {
+        localStorage: { 
+          hasToken: !!localToken, 
+          isAuthenticated: localAuthState, 
+          hasExpiry: !!localExpiresAt,
+          hasUser: !!localUserDetails
+        },
+        sessionStorage: { 
+          hasToken: !!sessionToken, 
+          isAuthenticated: sessionAuthState,
+          hasExpiry: !!sessionExpiresAt,
+          hasUser: !!sessionUserDetails
+        }
+      });
+      
+      // Synchronize from localStorage to sessionStorage if localStorage has token
+      if (localToken && (!sessionToken || localToken !== sessionToken)) {
+        console.log('Synchronizing from localStorage to sessionStorage');
+        sessionStorage.setItem('authToken', localToken);
+        sessionStorage.setItem('isAuthenticated', 'true');
+        
+        if (localExpiresAt) {
+          sessionStorage.setItem('expiresAt', localExpiresAt);
+          sessionStorage.setItem('tokenExpiresAt', localExpiresAt);
+        }
+        
+        if (localUserDetails) {
+          sessionStorage.setItem('userDetails', localUserDetails);
+        }
+      }
+      // Synchronize from sessionStorage to localStorage if sessionStorage has token
+      else if (sessionToken && (!localToken || sessionToken !== localToken)) {
+        console.log('Synchronizing from sessionStorage to localStorage');
+        localStorage.setItem('authToken', sessionToken);
+        localStorage.setItem('isAuthenticated', 'true');
+        
+        if (sessionExpiresAt) {
+          localStorage.setItem('expiresAt', sessionExpiresAt);
+          localStorage.setItem('tokenExpiresAt', sessionExpiresAt);
+        }
+        
+        if (sessionUserDetails) {
+          localStorage.setItem('userDetails', sessionUserDetails);
+        }
+      }
+      // Ensure expiresAt and tokenExpiresAt are in sync within the same storage
+      else {
+        // Sync expiresAt and tokenExpiresAt in localStorage
+        if (localStorage.getItem('expiresAt') && !localStorage.getItem('tokenExpiresAt')) {
+          localStorage.setItem('tokenExpiresAt', localStorage.getItem('expiresAt'));
+        } else if (!localStorage.getItem('expiresAt') && localStorage.getItem('tokenExpiresAt')) {
+          localStorage.setItem('expiresAt', localStorage.getItem('tokenExpiresAt'));
+        }
+        
+        // Sync expiresAt and tokenExpiresAt in sessionStorage
+        if (sessionStorage.getItem('expiresAt') && !sessionStorage.getItem('tokenExpiresAt')) {
+          sessionStorage.setItem('tokenExpiresAt', sessionStorage.getItem('expiresAt'));
+        } else if (!sessionStorage.getItem('expiresAt') && sessionStorage.getItem('tokenExpiresAt')) {
+          sessionStorage.setItem('expiresAt', sessionStorage.getItem('tokenExpiresAt'));
+        }
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error synchronizing tokens:', error);
+      return { success: false, error: error.message };
     }
-    
-    return false
-  },
+  };
   
-  // Lấy session hiện tại
-  getCurrentSession() {
-    return this.activeSessions.value.find(s => s.tokenId === this.currentToken.value)
-  },
+  // Updated token validation function
+  const validateTokenWithAPI = async (token = null) => {
+    try {
+      // Synchronize tokens first to ensure we have all valid tokens
+      syncTokens();
+      
+      // Get token from parameters or from storage
+      token = token || currentToken.value || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      
+      if (!token) {
+        console.log('No token found for validation');
+        return false;
+      }
+      
+      // Check expiration time
+      const expiresAt = parseInt(localStorage.getItem('expiresAt') || localStorage.getItem('tokenExpiresAt') || sessionStorage.getItem('expiresAt') || sessionStorage.getItem('tokenExpiresAt') || '0');
+      const now = Date.now();
+      
+      // If we have a clear expiration time and it's expired, don't even call the API
+      if (expiresAt && now >= expiresAt) {
+        console.log('Token is expired, clearing auth data');
+        resetAll();
+        return false;
+      }
+      
+      // Make API call to validate token
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+      // Ensure we don't double the /api prefix
+      const apiPath = apiUrl.endsWith('/api') ? '/auth/check-token' : '/api/auth/check-token';
+      const response = await fetch(`${apiUrl}${apiPath}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ token })
+      });
+      
+      if (!response.ok) {
+        console.log('Token validation failed, API returned error:', response.status);
+        resetAll();
+        return false;
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.data?.valid) {
+        // Update last activity
+        updateActivity();
+        return true;
+      }
+      
+      // If token is invalid, clear all auth data
+      console.log('Token is invalid according to API');
+      resetAll();
+      return false;
+    } catch (error) {
+      console.error('Error validating token with API:', error);
+      return false;
+    }
+  };
   
-  // Lấy danh sách sessions
-  getSessions() {
-    return [...this.activeSessions.value].map(session => ({
-      ...session,
-      isCurrent: session.tokenId === this.currentToken.value
-    }))
-  },
-  
-  // Lấy danh sách tất cả các phiên đăng nhập của người dùng
-  getAllSessions() {
-    return this.activeSessions.value
-  },
-  
-  // Lấy số lượng phiên đăng nhập hiện tại
-  getSessionCount: computed(() => {
-    return sessionToken.activeSessions.value.length
-  }),
-  
-  // Lấy danh sách phiên đăng nhập của người dùng hiện tại
-  getCurrentUserSessions: computed(() => {
-    const currentSession = sessionToken.getCurrentSession()
-    if (!currentSession) return []
-    
-    return sessionToken.activeSessions.value.filter(
-      session => session.userId === currentSession.userId
-    )
-  })
+  return {
+    currentToken,
+    tokenExpiry,
+    currentSession,
+    activeSessions,
+    initFromLocalStorage,
+    createToken,
+    resetAll,
+    isTokenValid,
+    updateActivity,
+    saveState,
+    syncTokens,
+    validateTokenWithAPI
+  }
 }
 
-// Khởi tạo khi import
-sessionToken.init()
-
-export default sessionToken 
+export default createSessionToken() 

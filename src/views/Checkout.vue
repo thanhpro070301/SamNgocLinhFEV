@@ -1,436 +1,410 @@
 <template>
-  <div class="checkout-page py-8">
-    <div class="container mx-auto px-4">
-      <h1 class="text-2xl font-bold mb-6">Thanh toán</h1>
+  <div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Page Title -->
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Thanh toán</h1>
+        <p class="text-gray-600">Hoàn tất thông tin đặt hàng của bạn</p>
+      </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Form thanh toán -->
-        <div class="md:col-span-2">
-          <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 class="text-xl font-semibold mb-4">Thông tin giao hàng</h2>
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Shipping Information (Left Side) - Takes 2/3 width on large screens -->
+        <div class="lg:col-span-2">
+          <div class="bg-white/40 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Thông tin giao hàng</h2>
             
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">Họ</label>
-                <input v-model="customerInfo.firstName" type="text" class="w-full border rounded-md p-2" />
+            <form @submit.prevent="submitOrder">
+              <!-- Name fields (2 columns) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Họ <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    v-model="firstName" 
+                    type="text" 
+                    required
+                    class="w-full py-3 px-4 bg-white/60 backdrop-blur-sm border border-green-300 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none text-gray-800 placeholder-gray-400 transition-all duration-200"
+                    placeholder="Nhập họ của bạn"
+                  >
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Tên <span class="text-red-500">*</span>
+                  </label>
+                  <input 
+                    v-model="lastName" 
+                    type="text" 
+                    required
+                    class="w-full py-3 px-4 bg-white/60 backdrop-blur-sm border border-green-300 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none text-gray-800 placeholder-gray-400 transition-all duration-200"
+                    placeholder="Nhập tên của bạn"
+                  >
+                </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Tên</label>
-                <input v-model="customerInfo.lastName" type="text" class="w-full border rounded-md p-2" />
+              
+              <!-- Email & Phone -->
+              <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Email <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  v-model="email" 
+                  type="email" 
+                  required
+                  class="w-full py-3 px-4 bg-white/60 backdrop-blur-sm border border-green-300 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none text-gray-800 placeholder-gray-400 transition-all duration-200"
+                  placeholder="Nhập email của bạn"
+                >
               </div>
-            </div>
-            
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Email</label>
-              <input v-model="customerInfo.email" type="email" class="w-full border rounded-md p-2" />
-            </div>
-            
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Số điện thoại</label>
-              <input v-model="customerInfo.phone" type="tel" class="w-full border rounded-md p-2" />
-            </div>
-            
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Địa chỉ</label>
-              <input v-model="customerInfo.address" type="text" class="w-full border rounded-md p-2" />
-            </div>
-            
-            <div class="mb-4">
-              <label class="block text-sm font-medium mb-1">Ghi chú</label>
-              <textarea v-model="customerInfo.notes" class="w-full border rounded-md p-2" rows="3"></textarea>
-            </div>
-          </div>
-          
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Phương thức thanh toán</h2>
-            
-            <div class="mb-4">
-              <div class="flex items-center mb-2">
-                <input type="radio" id="cod" name="payment" class="mr-2" v-model="paymentMethod" value="cod" checked />
-                <label for="cod">Thanh toán khi nhận hàng (COD)</label>
+              
+              <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Số điện thoại <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  v-model="phone" 
+                  type="tel" 
+                  required
+                  class="w-full py-3 px-4 bg-white/60 backdrop-blur-sm border border-green-300 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none text-gray-800 placeholder-gray-400 transition-all duration-200"
+                  placeholder="Nhập số điện thoại của bạn"
+                >
               </div>
-              <div class="flex items-center mb-2">
-                <input type="radio" id="bank" name="payment" class="mr-2" v-model="paymentMethod" value="bank" />
-                <label for="bank">Chuyển khoản ngân hàng</label>
+              
+              <!-- Address -->
+              <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Địa chỉ <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  v-model="address" 
+                  type="text" 
+                  required
+                  class="w-full py-3 px-4 bg-white/60 backdrop-blur-sm border border-green-300 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none text-gray-800 placeholder-gray-400 transition-all duration-200"
+                  placeholder="Nhập địa chỉ của bạn"
+                >
               </div>
-              <div class="flex items-center">
-                <input type="radio" id="card" name="payment" class="mr-2" v-model="paymentMethod" value="card" />
-                <label for="card">Thẻ tín dụng/Ghi nợ</label>
+              
+              <!-- Notes -->
+              <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Ghi chú
+                </label>
+                <textarea 
+                  v-model="notes" 
+                  rows="3"
+                  class="w-full py-3 px-4 bg-white/60 backdrop-blur-sm border border-green-300 rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none text-gray-800 placeholder-gray-400 transition-all duration-200"
+                  placeholder="Thêm ghi chú về đơn hàng của bạn (không bắt buộc)"
+                ></textarea>
               </div>
-            </div>
+              
+              <!-- Payment Methods -->
+              <div class="mt-8 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Phương thức thanh toán</h3>
+                
+                <div class="space-y-4">
+                  <label class="flex items-center p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-green-300 cursor-pointer transition-all hover:shadow-md" :class="{'bg-blue-50/70 border-blue-400': paymentMethod === 'cod'}">
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="cod" 
+                      v-model="paymentMethod"
+                      class="h-5 w-5 text-blue-500 focus:ring-blue-400"
+                    >
+                    <div class="ml-3">
+                      <span class="block text-gray-800 font-medium" :class="{'text-blue-700': paymentMethod === 'cod'}">Thanh toán khi nhận hàng (COD)</span>
+                      <span class="text-gray-500 text-sm">Thanh toán bằng tiền mặt khi nhận hàng</span>
+                    </div>
+                  </label>
+                  
+                  <label class="flex items-center p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-green-300 cursor-pointer transition-all hover:shadow-md" :class="{'bg-blue-50/70 border-blue-400': paymentMethod === 'bank'}">
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="bank" 
+                      v-model="paymentMethod"
+                      class="h-5 w-5 text-blue-500 focus:ring-blue-400"
+                    >
+                    <div class="ml-3">
+                      <span class="block text-gray-800 font-medium" :class="{'text-blue-700': paymentMethod === 'bank'}">Chuyển khoản ngân hàng</span>
+                      <span class="text-gray-500 text-sm">Thanh toán qua chuyển khoản ngân hàng</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
         
-        <!-- Tóm tắt đơn hàng -->
-        <div class="md:col-span-1">
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Thông tin đơn hàng</h2>
+        <!-- Order Summary (Right Side) - Takes 1/3 width on large screens -->
+        <div>
+          <div class="bg-white/50 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-6 sticky top-24">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Tóm tắt đơn hàng</h2>
             
-            <div v-if="cartItems.length === 0" class="text-center py-4 border-t border-b text-gray-500">
-              Giỏ hàng của bạn đang trống
-            </div>
-            
-            <div v-else class="border-t border-b py-4 mb-4">
-              <div v-for="item in cartItems" :key="item.id" class="flex justify-between items-center mb-3">
-                <div>
-                  <p class="font-medium">{{ item.name }}</p>
+            <!-- Order Items -->
+            <div class="divide-y divide-gray-200/60">
+              <div v-if="cartItems.length === 0" class="py-4 text-gray-500 text-center">
+                Giỏ hàng trống
+              </div>
+              
+              <div v-for="item in cartItems" :key="item.id" class="py-4 flex items-center space-x-4">
+                <div class="w-16 h-16 flex-shrink-0 bg-white/70 rounded-lg overflow-hidden border border-green-200">
+                  <img :src="item.image" :alt="item.name" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-medium text-gray-800 truncate">{{ item.name }}</h4>
                   <p class="text-sm text-gray-500">SL: {{ item.quantity }}</p>
                 </div>
-                <p>{{ formatPrice(item.price * item.quantity) }}</p>
+                <div class="text-sm font-medium text-gray-800">
+                  {{ formatPrice(item.price * item.quantity) }}
+                </div>
               </div>
             </div>
             
-            <div class="mb-4">
-              <div class="flex justify-between mb-2">
-                <p>Tạm tính</p>
-                <p>{{ formatPrice(cartTotal) }}</p>
+            <!-- Order Total -->
+            <div class="mt-6 space-y-4">
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Tạm tính:</span>
+                <span>{{ formatPrice(subTotal) }}</span>
               </div>
-              <div class="flex justify-between mb-2">
-                <p>Phí vận chuyển</p>
-                <p>{{ formatPrice(shippingFee) }}</p>
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Phí vận chuyển:</span>
+                <span>{{ formatPrice(shippingFee) }}</span>
               </div>
-              <div class="flex justify-between font-bold">
-                <p>Tổng cộng</p>
-                <p>{{ formatPrice(cartTotal + shippingFee) }}</p>
+              <div class="border-t border-gray-200/60 my-2 pt-4 flex justify-between items-center">
+                <span class="text-gray-800 font-medium">Tổng cộng:</span>
+                <span class="text-green-600 font-bold text-xl">{{ formatPrice(grandTotal) }}</span>
               </div>
+              
+              <!-- Place Order Button -->
+              <button 
+                @click="submitOrder"
+                :disabled="isSubmitting || cartItems.length === 0"
+                class="w-full py-3 px-4 mt-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-xl shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center"
+              >
+                <i class="fas fa-shopping-bag mr-2"></i>
+                {{ isSubmitting ? 'Đang xử lý...' : 'Đặt hàng' }}
+              </button>
+              
+              <!-- Back to Cart Button -->
+              <router-link 
+                to="/cart" 
+                class="w-full py-2 px-4 mt-3 bg-white/70 hover:bg-white/90 text-gray-700 font-medium rounded-xl shadow-sm border border-green-200 transition-all flex items-center justify-center text-sm"
+              >
+                <i class="fas fa-arrow-left mr-2"></i>
+                Quay lại giỏ hàng
+              </router-link>
             </div>
-            
-            <button 
-              @click="placeOrder" 
-              class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
-              :disabled="cartItems.length === 0"
-            >
-              Đặt hàng
-            </button>
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- Order Success Modal -->
-    <transition name="fade">
-      <div v-if="showSuccessModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-          
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          
-          <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-            <div class="bg-white">
-              <div class="flex flex-col items-center p-6 pt-8">
-                <!-- Success animation -->
-                <div class="success-checkmark mb-4">
-                  <div class="check-icon">
-                    <span class="icon-line line-tip"></span>
-                    <span class="icon-line line-long"></span>
-                    <div class="icon-circle"></div>
-                    <div class="icon-fix"></div>
-                  </div>
-                </div>
-                
-                <h3 class="text-2xl font-bold text-gray-900 mb-2" id="modal-title">Đặt hàng thành công!</h3>
-                <p class="text-gray-500 text-center mb-6">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận.</p>
-                
-                <div class="border border-gray-200 rounded-lg p-5 w-full mb-6 bg-gray-50">
-                  <div class="flex justify-between mb-3">
-                    <span class="text-gray-600">Mã đơn hàng:</span>
-                    <span class="font-semibold">#{{ orderId }}</span>
-                  </div>
-                  <div class="flex justify-between mb-3">
-                    <span class="text-gray-600">Tổng tiền:</span>
-                    <span class="font-semibold">{{ formatPrice(cartTotal + shippingFee) }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Phương thức thanh toán:</span>
-                    <span class="font-semibold">{{ getPaymentMethod(paymentMethod) }}</span>
-                  </div>
-                </div>
-                
-                <div class="flex flex-col gap-2 w-full">
-                  <button @click="closeSuccessModal" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-3 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    Tiếp tục mua sắm
-                  </button>
-                  <button @click="viewOrders" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    Xem đơn hàng của tôi
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
-import cart from '@/store/cart'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import cart from '@/store/cart';
+import notificationService from '@/utils/notificationService';
+import { useAuthStore } from '@/store/auth';
 
-const router = useRouter()
+const router = useRouter();
+const auth = useAuthStore();
 
-const cartItems = computed(() => cart.cartItems.value)
-const cartTotal = computed(() => cart.cartTotal.value)
-const shippingFee = ref(30000) // Phí vận chuyển cố định
+// Form Data
+const firstName = ref('');
+const lastName = ref('');
+const email = ref('');
+const phone = ref('');
+const address = ref('');
+const notes = ref('');
+const paymentMethod = ref('cod');
+const isSubmitting = ref(false);
 
-const customerInfo = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  address: '',
-  notes: ''
-})
+// Cart Data
+const cartItems = computed(() => cart.cartItems.value);
+const subTotal = computed(() => cart.cartTotal.value);
+const shippingFee = computed(() => {
+  // Free shipping for orders over 1,000,000 VND
+  return subTotal.value > 1000000 ? 0 : 30000;
+});
+const grandTotal = computed(() => subTotal.value + shippingFee.value);
 
-const paymentMethod = ref('cod')
-const showSuccessModal = ref(false)
-const orderId = ref(Math.floor(Math.random() * 1000000)) // Random order ID for demo
-let redirectTimeout = null
-
-// Format giá tiền
+// Format price to VND currency
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { 
     style: 'currency', 
     currency: 'VND',
     maximumFractionDigits: 0
-  }).format(price)
-}
+  }).format(price);
+};
 
-// Get readable payment method
-const getPaymentMethod = (method) => {
-  switch(method) {
-    case 'cod': return 'Thanh toán khi nhận hàng (COD)'
-    case 'bank': return 'Chuyển khoản ngân hàng'
-    case 'card': return 'Thẻ tín dụng/Ghi nợ'
-    default: return 'Thanh toán khi nhận hàng (COD)'
+// Submit Order
+const submitOrder = async () => {
+  try {
+    if (cartItems.value.length === 0) {
+      notificationService.showError('Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.');
+      return;
+    }
+    
+    isSubmitting.value = true;
+    
+    // Simulate API request with a delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Create order object
+    const order = {
+      customerInfo: {
+        firstName: firstName.value,
+        lastName: lastName.value,
+        email: email.value,
+        phone: phone.value,
+        address: address.value,
+        notes: notes.value
+      },
+      items: cartItems.value,
+      paymentMethod: paymentMethod.value,
+      subtotal: subTotal.value,
+      shippingFee: shippingFee.value,
+      total: grandTotal.value,
+      orderDate: new Date().toISOString()
+    };
+    
+    console.log('Order placed:', order);
+    
+    // Clear cart
+    cart.clearCart();
+    
+    // Show success notification
+    notificationService.show('Đơn hàng của bạn đã được đặt thành công! Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.', {
+      title: 'Đặt hàng thành công',
+      type: 'success',
+      duration: 4000
+    });
+    
+    // Redirect to success page
+    router.push('/order-success');
+  } catch (error) {
+    console.error('Order submission error:', error);
+    notificationService.showError('Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại sau.');
+  } finally {
+    isSubmitting.value = false;
   }
-}
+};
 
-// Đặt hàng
-const placeOrder = () => {
+// Load user data if authenticated
+onMounted(async () => {
+  if (auth.isAuthenticated) {
+    // Ensure we have the latest user profile
+    await auth.fetchUserProfile();
+    
+    if (auth.user) {
+      const user = auth.user;
+      
+      // Check for name in various possible formats
+      if (user.firstName) {
+        firstName.value = user.firstName;
+      } else if (user.fname) {
+        firstName.value = user.fname;
+      } else if (user.first_name) {
+        firstName.value = user.first_name;
+      }
+      
+      if (user.lastName) {
+        lastName.value = user.lastName;
+      } else if (user.lname) {
+        lastName.value = user.lname;
+      } else if (user.last_name) {
+        lastName.value = user.last_name;
+      } else if (user.surname) {
+        lastName.value = user.surname;
+      }
+      
+      // Log user info to check structure
+      console.log('User info for checkout:', user);
+      
+      // Handle possible name in a single field
+      if ((!firstName.value || !lastName.value) && user.name) {
+        const nameParts = user.name.split(' ');
+        if (nameParts.length > 1) {
+          lastName.value = nameParts.pop();
+          firstName.value = nameParts.join(' ');
+        } else if (nameParts.length === 1) {
+          lastName.value = nameParts[0];
+        }
+      }
+      
+      if (user.email) email.value = user.email;
+      if (user.phone) phone.value = user.phone;
+      // Address and notes are left empty for manual entry
+    }
+  }
+  
+  // If cart is empty, redirect back to cart page
   if (cartItems.value.length === 0) {
-    alert('Giỏ hàng của bạn đang trống')
-    return
+    notificationService.show('Giỏ hàng của bạn đang trống', {
+      title: 'Không thể thanh toán',
+      type: 'info',
+      duration: 3000
+    });
+    router.push('/cart');
   }
-  
-  // TODO: Gửi thông tin đơn hàng đến server
-  // Hiển thị modal thành công
-  showSuccessModal.value = true
-  
-  // Xóa giỏ hàng
-  cart.clearCart()
-  
-  // Set up auto-redirect after 8 seconds
-  redirectTimeout = setTimeout(() => {
-    closeSuccessModal()
-  }, 8000)
-}
-
-// Đóng modal và chuyển về trang chủ
-const closeSuccessModal = () => {
-  showSuccessModal.value = false
-  if (redirectTimeout) {
-    clearTimeout(redirectTimeout)
-  }
-  router.push('/')
-}
-
-// Chuyển đến trang đơn hàng của tôi
-const viewOrders = () => {
-  showSuccessModal.value = false
-  if (redirectTimeout) {
-    clearTimeout(redirectTimeout)
-  }
-  router.push('/my-orders')
-}
-
-// Clean up timeout
-onBeforeUnmount(() => {
-  if (redirectTimeout) {
-    clearTimeout(redirectTimeout)
-  }
-})
+});
 </script>
 
 <style scoped>
-/* Fade transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+/* Custom focus styling for radio buttons */
+input[type="radio"]:checked {
+  background-color: #8b5cf6; /* purple-500 */
+  border-color: #8b5cf6;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Success Checkmark Animation */
-.success-checkmark {
-  width: 80px;
-  height: 80px;
-  position: relative;
+.bg-white\/30, .bg-white\/40, .bg-white\/50, .bg-white\/60, .bg-white\/70 {
+  animation: fadeIn 0.5s ease-out;
 }
 
-.success-checkmark .check-icon {
-  width: 80px;
-  height: 80px;
-  position: relative;
-  border-radius: 50%;
-  box-sizing: content-box;
-  border: 4px solid #16a34a;
+/* Hover effects for payment methods */
+input[type="radio"]:checked + div {
+  color: #7c3aed; /* purple-600 */
 }
 
-.success-checkmark .check-icon::before {
-  top: 3px;
-  left: -2px;
-  width: 30px;
-  transform-origin: 100% 50%;
-  border-radius: 100px 0 0 100px;
+/* Add hover effect to form inputs */
+input:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25); /* purple-500 with opacity */
+  border-color: #8b5cf6 !important; /* purple-500 */
+  outline: none;
 }
 
-.success-checkmark .check-icon::after {
-  top: 0;
-  left: 30px;
-  width: 60px;
-  transform-origin: 0 50%;
-  border-radius: 0 100px 100px 0;
-  animation: rotate-circle 4.25s ease-in;
+/* Improve the aesthetics of form inputs on hover */
+input:hover, textarea:hover {
+  border-color: #a78bfa; /* purple-400 */
 }
 
-.success-checkmark .check-icon::before,
-.success-checkmark .check-icon::after {
-  content: '';
-  height: 100px;
-  position: absolute;
-  background: #FFFFFF;
-  transform: rotate(-45deg);
+/* Ensure address field stands out since it needs manual entry */
+input[type="text"][placeholder="Nhập địa chỉ của bạn"] {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(139, 92, 246, 0.5); /* purple-500 with opacity */
 }
 
-.success-checkmark .check-icon .icon-line {
-  height: 5px;
-  background-color: #16a34a;
-  display: block;
-  border-radius: 2px;
-  position: absolute;
-  z-index: 10;
+input[type="text"][placeholder="Nhập địa chỉ của bạn"]:focus {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: #8b5cf6 !important; /* purple-500 */
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
 }
 
-.success-checkmark .check-icon .icon-line.line-tip {
-  top: 46px;
-  left: 14px;
-  width: 25px;
-  transform: rotate(45deg);
-  animation: icon-line-tip 0.75s;
+/* Add a glow effect on focus for all inputs */
+input:focus, textarea:focus {
+  animation: focusGlow 0.3s ease forwards;
 }
 
-.success-checkmark .check-icon .icon-line.line-long {
-  top: 38px;
-  right: 8px;
-  width: 47px;
-  transform: rotate(-45deg);
-  animation: icon-line-long 0.75s;
-}
-
-.success-checkmark .check-icon .icon-circle {
-  top: -4px;
-  left: -4px;
-  z-index: 10;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  position: absolute;
-  box-sizing: content-box;
-  border: 4px solid #16a34a;
-  opacity: 0.5;
-  animation: circle-fill-anim 1s;
-}
-
-.success-checkmark .check-icon .icon-fix {
-  top: 8px;
-  width: 5px;
-  left: 26px;
-  z-index: 1;
-  height: 85px;
-  position: absolute;
-  transform: rotate(-45deg);
-  background-color: white;
-}
-
-@keyframes rotate-circle {
-  0% {
-    transform: rotate(-45deg);
-  }
-  5% {
-    transform: rotate(-45deg);
-  }
-  12% {
-    transform: rotate(-405deg);
-  }
-  100% {
-    transform: rotate(-405deg);
-  }
-}
-
-@keyframes icon-line-tip {
-  0% {
-    width: 0;
-    left: 1px;
-    top: 19px;
-  }
-  54% {
-    width: 0;
-    left: 1px;
-    top: 19px;
-  }
-  70% {
-    width: 50px;
-    left: -8px;
-    top: 37px;
-  }
-  84% {
-    width: 17px;
-    left: 21px;
-    top: 48px;
-  }
-  100% {
-    width: 25px;
-    left: 14px;
-    top: 46px;
-  }
-}
-
-@keyframes icon-line-long {
-  0% {
-    width: 0;
-    right: 46px;
-    top: 54px;
-  }
-  65% {
-    width: 0;
-    right: 46px;
-    top: 54px;
-  }
-  84% {
-    width: 55px;
-    right: 0px;
-    top: 35px;
-  }
-  100% {
-    width: 47px;
-    right: 8px;
-    top: 38px;
-  }
-}
-
-@keyframes circle-fill-anim {
-  0% {
-    opacity: 0;
-    transform: scale(0);
-  }
-  100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
+@keyframes focusGlow {
+  0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+  100% { box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.25); }
 }
 </style> 

@@ -1,21 +1,19 @@
 <template>
   <div class="products-admin-page min-h-screen bg-gray-50">
-    <AdminHeader />
-    
-    <div class="container mx-auto px-4 py-8 mt-12">
+    <div class="container mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Quản lý sản phẩm</h1>
         <button 
-          @click="openAddProductModal"
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center mt-1"
+          @click="isModalOpen = true; isEditMode = false; resetProductForm()"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center"
         >
-          <i class="fas fa-plus mr-2"></i> Thêm sản phẩm
+          <i class="fas fa-plus mr-2"></i> Thêm sản phẩm mới
         </button>
       </div>
       
-      <!-- Filter Section -->
-      <div class="bg-white rounded-lg shadow-md p-5 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Filter Section - Improved for mobile-->
+      <div class="bg-white rounded-lg shadow-md p-4 sm:p-5 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Search -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Tìm kiếm</label>
@@ -112,8 +110,10 @@
         <p class="mt-4 text-gray-600">Đang tải dữ liệu...</p>
       </div>
       
-      <!-- Products Table -->
+      <!-- Products Table - Improved mobile view -->
       <div v-else-if="products.length > 0" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Large screens - Table view with improved text handling -->
+        <div class="hidden md:block">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
@@ -148,101 +148,67 @@
                   : 'hover:bg-gray-50'
               ]"
             >
-              <!-- Product Info -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
-                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+                    <div class="h-10 w-10 flex-shrink-0">
                     <img 
                       :src="product.image || '/assets/images/products/sam-tuoi.png'" 
                       :alt="product.name"
-                      class="h-full w-full object-cover object-center"
+                        class="h-10 w-10 rounded-md object-cover"
                       @error="$event.target.src = '/assets/images/products/sam-tuoi.png'"
                     >
                       </div>
                   <div class="ml-4 max-w-xs">
-                    <div class="text-sm font-semibold text-gray-900 line-clamp-1">
-                      {{ product.name }}
-                    </div>
-                    <div class="text-xs text-gray-500 mt-1">{{ product.slug }}</div>
+                      <div class="text-sm font-medium text-gray-900 line-clamp-1">{{ product.name }}</div>
+                      <div class="text-xs text-gray-500 truncate">{{ product.slug }}</div>
                       </div>
                     </div>
                   </td>
-                  
-                  <!-- Category -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 font-medium">
-                  <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs">
+                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 max-w-[150px] line-clamp-1">
                     {{ categories.find(c => c.id === product.categoryId)?.name || 'Chưa phân loại' }}
                   </span>
-                </div>
                   </td>
-                  
-                  <!-- Price -->
-                  <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex flex-col">
-                  <div class="text-sm font-medium" :class="{'text-green-600': product.stock > 0, 'text-gray-500': product.stock <= 0}">
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <div :class="{'text-green-600': product.stock > 0, 'text-gray-500': product.stock <= 0}">
                     {{ formatPrice(product.price) }}
                   </div>
                   <div v-if="product.originalPrice && product.originalPrice > product.price" class="text-xs text-gray-500 line-through">
                     {{ formatPrice(product.originalPrice) }}
-                  </div>
                     </div>
                   </td>
-                  
-                  <!-- Stock -->
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="relative">
                     <input 
                       type="number" 
                       v-model.number="product.stock" 
                       min="0"
                       @change="quickUpdateStock(product)"
                       :disabled="isUpdating[product.id]"
-                      class="w-20 px-3 py-1.5 border rounded-md text-center focus:ring-blue-500 focus:outline-none"
+                      class="w-16 px-2 py-1 border rounded-md text-center focus:ring-blue-500 focus:outline-none"
                       :class="{
                         'bg-red-50 border-red-300 text-red-700 focus:border-red-500': product.stock <= 0,
                         'bg-yellow-50 border-yellow-300 text-yellow-700 focus:border-yellow-500': product.stock > 0 && product.stock <= 5,
                         'bg-green-50 border-green-300 text-green-700 focus:border-green-500': product.stock > 5
                       }"
                     >
-                    <!-- Mũi tên lên xuống tùy chỉnh, nếu cần -->
-                  </div>
                   <div v-if="isUpdating[product.id]" class="ml-2 animate-spin h-4 w-4 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
-                  
-                  <!-- Badge cải tiến cho trạng thái tồn kho -->
-                  <div v-if="product.stock <= 0" class="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 border border-red-200 shadow-sm">
-                    Hết hàng
-                  </div>
-                  <div v-else-if="product.stock <= 5" class="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 shadow-sm">
-                    Sắp hết ({{product.stock}})
-                  </div>
-                  <div v-else class="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm">
-                    Còn hàng
-                  </div>
                 </div>
                   </td>
-                  
-                  <!-- Status -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
                   <select 
                     v-model="product.status"
                     @change="quickUpdateStatus(product)"
                     :disabled="isUpdating[product.id]"
-                    class="px-3 py-1.5 text-sm font-semibold rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-2"
+                    class="px-2 py-1 text-xs font-semibold rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-2"
                     :class="getStatusClass(product.status)"
                   >
                     <option value="ACTIVE">Đang bán</option>
                     <option value="INACTIVE">Không bán</option>
                   </select>
-                  <div v-if="isUpdating[product.id]" class="ml-2 animate-spin h-4 w-4 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
-                </div>
                   </td>
-                  
-                  <!-- Actions -->
               <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                <div class="flex items-center justify-center space-x-3">
+                  <div class="flex justify-center space-x-2">
                       <button 
                     @click="openEditProductModal(product)"
                     :class="[
@@ -267,10 +233,137 @@
                 </tr>
               </tbody>
             </table>
-          
-          <!-- Pagination -->
+        </div>
+        
+        <!-- Tablet and Mobile view - Card layout with improved text handling -->
+        <div class="md:hidden">
+          <ul class="divide-y divide-gray-200">
+            <li 
+              v-for="product in filteredProducts"
+              :key="product.id"
+              class="p-4"
+              :class="[
+                product.stock <= 0 
+                  ? 'bg-red-50/30' 
+                  : 'bg-white'
+              ]"
+            >
+              <!-- Product header with image and actions -->
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center">
+                  <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+                    <img 
+                      :src="product.image || '/assets/images/products/sam-tuoi.png'" 
+                      :alt="product.name"
+                      class="h-full w-full object-cover object-center"
+                      @error="$event.target.src = '/assets/images/products/sam-tuoi.png'"
+                    >
+                  </div>
+                  <div class="ml-3 w-40 sm:w-48">
+                    <div class="font-semibold text-gray-900 text-sm line-clamp-2">{{ product.name }}</div>
+                    <div class="text-xs text-gray-500 mt-1 truncate">{{ product.slug }}</div>
+                  </div>
+                </div>
+                
+                <!-- Actions on right - Improved for tablet -->
+                <div class="flex space-x-2 ml-2 flex-shrink-0">
+                  <button 
+                    @click="openEditProductModal(product)"
+                    :class="[
+                      'p-2 sm:p-2.5 rounded-md transition-colors', 
+                      product.stock <= 0 
+                        ? 'text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100' 
+                        : 'text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100'
+                    ]"
+                    title="Chỉnh sửa"
+                  >
+                    <i class="fas fa-edit text-base"></i>
+                  </button>
+                  <button 
+                    @click="confirmDeleteProduct(product.id)"
+                    class="text-red-600 hover:text-red-900 bg-red-50 p-2 sm:p-2.5 rounded-md hover:bg-red-100 transition-colors"
+                    title="Xóa"
+                  >
+                    <i class="fas fa-trash-alt text-base"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Product info grid improved for tablets -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
+                <!-- Category -->
+                <div>
+                  <div class="text-gray-500 mb-1">Danh mục:</div>
+                  <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs inline-block line-clamp-1">
+                    {{ categories.find(c => c.id === product.categoryId)?.name || 'Chưa phân loại' }}
+                  </span>
+                </div>
+                
+                <!-- Price -->
+                <div>
+                  <div class="text-gray-500 mb-1">Giá:</div>
+                  <div class="font-medium text-sm" :class="{'text-green-600': product.stock > 0, 'text-gray-500': product.stock <= 0}">
+                    {{ formatPrice(product.price) }}
+                  </div>
+                  <div v-if="product.originalPrice && product.originalPrice > product.price" class="text-xs text-gray-500 line-through">
+                    {{ formatPrice(product.originalPrice) }}
+                  </div>
+                </div>
+                
+                <!-- Stock -->
+                <div>
+                  <div class="text-gray-500 mb-1">Tồn kho:</div>
+                  <div class="flex items-center">
+                    <input 
+                      type="number" 
+                      v-model.number="product.stock" 
+                      min="0"
+                      @change="quickUpdateStock(product)"
+                      :disabled="isUpdating[product.id]"
+                      class="w-16 px-2 py-1 border rounded-md text-center focus:ring-blue-500 focus:outline-none"
+                      :class="{
+                        'bg-red-50 border-red-300 text-red-700 focus:border-red-500': product.stock <= 0,
+                        'bg-yellow-50 border-yellow-300 text-yellow-700 focus:border-yellow-500': product.stock > 0 && product.stock <= 5,
+                        'bg-green-50 border-green-300 text-green-700 focus:border-green-500': product.stock > 5
+                      }"
+                    >
+                    <div v-if="isUpdating[product.id]" class="ml-2 animate-spin h-4 w-4 border-t-2 border-b-2 border-blue-500 rounded-full"></div>
+                  </div>
+                  <div class="mt-1">
+                    <div v-if="product.stock <= 0" class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 border border-red-200 shadow-sm inline-block">
+                      Hết hàng
+                    </div>
+                    <div v-else-if="product.stock <= 5" class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 shadow-sm inline-block">
+                      Sắp hết ({{product.stock}})
+                    </div>
+                    <div v-else class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm inline-block">
+                      Còn hàng
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Status -->
+                <div>
+                  <div class="text-gray-500 mb-1">Trạng thái:</div>
+                  <select 
+                    v-model="product.status"
+                    @change="quickUpdateStatus(product)"
+                    :disabled="isUpdating[product.id]"
+                    class="px-2 py-1 text-sm font-semibold rounded-md border focus:outline-none focus:ring-2 focus:ring-offset-2"
+                    :class="getStatusClass(product.status)"
+                  >
+                    <option value="ACTIVE">Đang bán</option>
+                    <option value="INACTIVE">Không bán</option>
+                  </select>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Pagination improved for tablets -->
         <div v-if="totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div class="flex-1 flex justify-between sm:hidden">
+          <div class="flex-1 flex justify-between md:hidden">
             <button
               @click="prevPage"
               :disabled="currentPage === 0"
@@ -281,6 +374,9 @@
             >
               Trước
             </button>
+            <span class="text-sm text-gray-700 px-2 py-2">
+              {{ currentPage + 1 }}/{{ totalPages }}
+            </span>
             <button
               @click="nextPage"
               :disabled="currentPage >= totalPages - 1"
@@ -292,7 +388,7 @@
               Sau
             </button>
           </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div class="hidden md:flex-1 md:flex md:items-center md:justify-between">
               <div>
                 <p class="text-sm text-gray-700">
                 Hiển thị <span class="font-medium">{{ currentPage * pageSize + 1 }}</span> đến 
@@ -352,7 +448,7 @@
             Bạn chưa có sản phẩm nào trong hệ thống. Hãy thêm sản phẩm đầu tiên để bắt đầu quản lý cửa hàng của bạn!
           </p>
           <button 
-            @click="openAddProductModal"
+            @click="isModalOpen = true; isEditMode = false; resetProductForm()"
             class="inline-flex items-center px-5 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <i class="fas fa-plus mr-2"></i> Thêm sản phẩm mới
@@ -380,35 +476,35 @@
       </div>
     </div>
     
-    <!-- Add/Edit Product Modal -->
+    <!-- Add/Edit Product Modal - Improved mobile view with better text handling -->
     <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới' }}
+        <div class="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900 truncate max-w-[80%]">
+            {{ isEditMode ? 'Chỉnh sửa: ' + productForm.name : 'Thêm sản phẩm mới' }}
                 </h3>
           <button @click="closeModal" class="text-gray-400 hover:text-gray-500">
             <i class="fas fa-times"></i>
           </button>
         </div>
         
-        <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-4 sm:p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <!-- Product Name -->
-            <div class="col-span-2">
+            <div class="col-span-1 md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Tên sản phẩm <span class="text-red-500">*</span></label>
                     <input
                 type="text" 
                       v-model="productForm.name"
                 @input="updateSlug"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
                 placeholder="Nhập tên sản phẩm"
                 required
               >
             </div>
             
             <!-- Product Slug -->
-            <div class="col-span-2">
+            <div class="col-span-1 md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Slug <span class="text-red-500">*</span>
                 <span class="text-gray-500 text-xs font-normal">(Dùng cho URL)</span>
@@ -501,7 +597,7 @@
                   </div>
                   
                   <!-- Description -->
-            <div class="col-span-2">
+            <div class="col-span-1 md:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả sản phẩm</label>
                     <textarea
                       v-model="productForm.description"
@@ -513,18 +609,18 @@
           </div>
                   </div>
                   
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-end gap-3">
           <button 
             type="button" 
             @click="closeModal" 
-            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mb-2 sm:mb-0"
           >
             Hủy
           </button>
           <button 
             type="button"
             @click="saveProduct"
-            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
           </button>
@@ -580,9 +676,11 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
-import AdminHeader from '@/components/admin/AdminHeader.vue'
 import api from '@/api'
-import notificationService from '@/utils/notificationService'
+import { useNotificationService } from '@/composables/useNotificationService'
+
+// Initialize notification service
+const notificationService = useNotificationService();
 
 // State
 const products = ref([])
@@ -676,13 +774,23 @@ function updateSlug() {
   }
 }
 
-// Format price
+// Format price with proper spacing and currency symbol
 function formatPrice(price) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
+  if (!price && price !== 0) return "N/A";
+  
+  // Format the number with thousand separators
+  const formattedPrice = new Intl.NumberFormat('vi-VN', {
+    style: 'decimal',
     maximumFractionDigits: 0
-  }).format(price)
+  }).format(price);
+  
+  // On mobile screens, reduce the spacing for more compact display
+  if (window.innerWidth < 640) {
+    return `${formattedPrice}đ`;
+  }
+  
+  // On larger screens, use more spacing
+  return `${formattedPrice} đ`;
 }
 
 // Status display
@@ -716,25 +824,48 @@ async function fetchCategories() {
     try {
       // Thử gọi API danh mục
       const response = await api.category.getCategories()
-      if (response.data && response.data.length > 0) {
+      if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
         console.log('Đã tải danh mục từ API:', response.data)
         categories.value = response.data
-  } else {
-        console.log('API trả về danh mục rỗng')
-        categories.value = []
+      } else if (response && Array.isArray(response)) {
+        // Handle case where API returns array directly
+        console.log('Đã tải danh mục từ API (array):', response)
+        categories.value = response
+      } else {
+        console.log('API trả về danh mục rỗng, sử dụng danh mục mặc định')
+        // Fallback to default categories if API returns empty
+        categories.value = getDefaultCategories()
       }
     } catch (apiError) {
       console.error('Lỗi khi tải danh mục từ API:', apiError)
-      categories.value = []
+      // Use default categories as fallback on error
+      console.log('Sử dụng danh mục mặc định do lỗi API')
+      categories.value = getDefaultCategories()
+      
+      // Show notification but don't prevent user from using the page
+      notificationService.show('Không thể tải danh mục từ máy chủ. Đang sử dụng danh mục mặc định.', {
+        title: 'Lỗi kết nối',
+        type: 'warning'
+      })
     }
   } catch (error) {
     console.error('Lỗi chung khi tải danh mục:', error)
-    categories.value = []
+    categories.value = getDefaultCategories()
   }
 }
 
+// Fallback categories if API fails
+function getDefaultCategories() {
+  return [
+    { id: 'default-1', name: 'Sâm tươi' },
+    { id: 'default-2', name: 'Sâm khô' },
+    { id: 'default-3', name: 'Nước sâm' },
+    { id: 'default-4', name: 'Sản phẩm khác' }
+  ]
+}
+
 function redirectToLogin() {
-  window.location.href = '/admin/login'
+  window.location.href = '/auth/login'
 }
 
 // Cập nhật hàm fetchAllProducts dựa theo API mới
@@ -746,7 +877,7 @@ async function fetchAllProducts() {
     console.log('=== Bắt đầu tải sản phẩm ===');
     
     // Kiểm tra token trước khi gọi API
-    const token = localStorage.getItem('admin_current_token') || localStorage.getItem('token');
+    const token = localStorage.getItem('authToken') || localStorage.getItem('admin_current_token');
     if (!token) {
       error.value = 'Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.';
       isLoading.value = false;
@@ -766,11 +897,14 @@ async function fetchAllProducts() {
     }
     
     console.log('Đang tải sản phẩm với params:', params);
+    let apiRequestSuccessful = false;
     
     // Sử dụng api client từ api/index.js thay vì axios trực tiếp
     try {
-      const response = await (await import('@/api')).productApi.getProducts(params);
+      const productApi = (await import('@/api')).productApi;
+      const response = await productApi.getProducts(params);
       console.log('API trả về:', response);
+      apiRequestSuccessful = true;
       
       // Kiểm tra cấu trúc và xử lý dữ liệu từ API
       if (response) {
@@ -792,6 +926,11 @@ async function fetchAllProducts() {
           apiProducts = response;
           totalItems.value = apiProducts.length;
           totalPages.value = 1;
+        } else if (response.data && Array.isArray(response.data)) {
+          // Another common structure: { data: [...] }
+          apiProducts = response.data;
+          totalItems.value = apiProducts.length;
+          totalPages.value = 1;
         }
         
         console.log(`Đã tải ${apiProducts.length} sản phẩm`);
@@ -803,7 +942,7 @@ async function fetchAllProducts() {
             name: p.name,
             description: p.description || '',
             price: p.price,
-            originalPrice: p.originalPrice,
+            originalPrice: p.originalPrice || p.price,
             image: p.image || '/assets/images/products/sam-tuoi.png',
             categoryId: p.categoryId,
             categoryName: getCategoryName(p.categoryId),
@@ -814,52 +953,110 @@ async function fetchAllProducts() {
           
           console.log(`Đã tải tổng cộng ${products.value.length} sản phẩm từ API`);
         } else {
-          products.value = [];
-          console.log('Không có sản phẩm nào được tải');
+          console.log('Không có sản phẩm nào được tải từ API, sử dụng dữ liệu mẫu');
+          products.value = getDummyProducts();
         }
       } else {
-        products.value = [];
-        totalItems.value = 0;
-        totalPages.value = 0;
-        console.log('Không có dữ liệu từ API');
+        console.log('Không có dữ liệu từ API, sử dụng dữ liệu mẫu');
+        products.value = getDummyProducts();
+        totalItems.value = products.value.length;
+        totalPages.value = 1;
       }
     } catch (err) {
       console.error('Lỗi khi tải sản phẩm:', err);
-      error.value = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.';
-      products.value = [];
-      totalItems.value = 0;
-      totalPages.value = 0;
+      
+      // Show notification but don't prevent using the page
+      notificationService.show('Không thể tải sản phẩm từ máy chủ. Đang hiển thị dữ liệu mẫu.', {
+        title: 'Lỗi kết nối',
+        type: 'warning'
+      });
+      
+      // Load dummy products as fallback
+      products.value = getDummyProducts();
+      totalItems.value = products.value.length;
+      totalPages.value = 1;
     }
+    
+    // If categories aren't loaded yet, try to load them
+    if (categories.value.length === 0 && apiRequestSuccessful) {
+      await fetchCategories();
+    }
+    
   } catch (err) {
-    console.error('Lỗi khi tải sản phẩm:', err);
-    error.value = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.';
-    products.value = [];
-    totalItems.value = 0;
-    totalPages.value = 0;
+    console.error('Lỗi chung khi tải sản phẩm:', err);
+    error.value = 'Không thể tải danh sách sản phẩm. Đang hiển thị dữ liệu mẫu.';
+    
+    // Load dummy products as fallback
+    products.value = getDummyProducts();
+    totalItems.value = products.value.length;
+    totalPages.value = 1;
   } finally {
     isLoading.value = false;
   }
 }
 
+// Get dummy product data for when API fails
+function getDummyProducts() {
+  const defaultCategories = getDefaultCategories();
+  return [
+    {
+      id: 'dummy-1',
+      name: 'Sâm Ngọc Linh Tươi Loại 1',
+      description: 'Sâm Ngọc Linh tươi loại 1 hàng chất lượng cao',
+      price: 1200000,
+      originalPrice: 1500000,
+      image: '/assets/images/products/sam-tuoi.png',
+      categoryId: defaultCategories[0].id,
+      categoryName: defaultCategories[0].name,
+      stock: 10,
+      status: 'ACTIVE',
+      slug: 'sam-ngoc-linh-tuoi-loai-1'
+    },
+    {
+      id: 'dummy-2',
+      name: 'Sâm Ngọc Linh Khô 100g',
+      description: 'Sâm Ngọc Linh khô đóng gói 100g',
+      price: 2200000,
+      originalPrice: 2500000,
+      image: '/assets/images/products/sam-kho.png',
+      categoryId: defaultCategories[1].id,
+      categoryName: defaultCategories[1].name,
+      stock: 5,
+      status: 'ACTIVE',
+      slug: 'sam-ngoc-linh-kho-100g'
+    },
+    {
+      id: 'dummy-3',
+      name: 'Nước Sâm Ngọc Linh',
+      description: 'Nước sâm Ngọc Linh đóng chai 500ml',
+      price: 150000,
+      originalPrice: 180000,
+      image: '/assets/images/products/nuoc-sam.png',
+      categoryId: defaultCategories[2].id,
+      categoryName: defaultCategories[2].name,
+      stock: 50,
+      status: 'ACTIVE',
+      slug: 'nuoc-sam-ngoc-linh'
+    }
+  ];
+}
+
 // Modal functions
-function openAddProductModal() {
-  isEditMode.value = false
+function resetProductForm() {
   currentProductId.value = null
   
-  // Reset form
-    Object.assign(productForm, {
-      name: '',
+  // Reset form to defaults
+  Object.assign(productForm, {
+    name: '',
     slug: '',
     description: '',
-      price: 0,
+    price: 0,
     originalPrice: 0,
     image: '',
     categoryId: categories.value.length > 0 ? categories.value[0].id : null,
-      stock: 0,
+    stock: 0,
     status: 'ACTIVE'
   })
-  
-  isModalOpen.value = true
 }
 
 function openEditProductModal(product) {
@@ -1389,5 +1586,68 @@ const filterByCategory = () => {
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Improved responsive breakpoints for tablets */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .md\\:hidden ul li {
+    position: relative;
+  }
+  
+  .md\\:hidden .flex.items-start.justify-between {
+    align-items: center;
+  }
+  
+  button .fas {
+    min-width: 16px;
+  }
+  
+  /* Ensure action buttons are always visible and properly sized */
+  .md\\:hidden button {
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Improve touch targets for mobile and tablet */
+@media (max-width: 1023px) {
+  button, select, input[type="number"] {
+    min-height: 40px;
+  }
+  
+  .products-admin-page {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  
+  /* Adjust spacing for mobile card layout */
+  li {
+    position: relative;
+  }
+  
+  /* Make select fields more touch friendly */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
 }
 </style> 

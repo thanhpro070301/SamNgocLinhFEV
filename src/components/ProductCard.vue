@@ -1,58 +1,98 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden relative h-full">
-    <!-- Badge giảm giá -->
-    <div v-if="hasDiscount" class="absolute left-0 top-4 bg-red-500 text-white px-3 py-1 text-sm font-medium rounded-r-full shadow-md">
+  <div 
+    class="product-card relative w-full h-full group transform transition-all duration-300 hover:-translate-y-1"
+    :class="{'out-of-stock': product.stock <= 0}"
+  >
+    <!-- Discount badge -->
+    <div 
+      v-if="hasDiscount" 
+      class="absolute -left-2 top-4 z-20 bg-red-500 text-white px-3 py-1 text-xs font-bold rounded-r-md shadow-md"
+    >
       -{{ discountPercent }}%
     </div>
     
-    <div class="h-full flex flex-col">
-      <div class="product-image-container relative group">
-        <img :src="product.image" :alt="product.name" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500">
-        
-        <!-- Wishlist button -->
-        <button class="wishlist-button">
-          <i class="far fa-heart"></i>
-        </button>
-        
-        <!-- Quick view button -->
-        <button @click="navigateToProduct" class="quick-view-button">
-          <i class="fas fa-eye"></i>
-        </button>
-        
-        <!-- Add to Cart Button - fixed position at bottom -->
-        <div class="add-to-cart-container">
-          <button 
-            @click="addToCartAction"
-            class="add-to-cart-button"
+    <!-- Main card container -->
+    <div class="card-inner h-full flex flex-col rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <!-- Image container -->
+      <div class="relative pt-4 px-4 mb-2">
+        <div class="relative overflow-hidden rounded-lg bg-gray-50 dark:bg-slate-700 aspect-square">
+          <!-- Product Image -->
+          <img 
+            :src="getImageSrc(product.image)" 
+            :alt="product.name" 
+            class="w-full h-full object-contain transition-all duration-500 hover:scale-105"
+            loading="lazy"
+            @error="e => e.target.src = '/assets/images/products/sam-tuoi.png'"
           >
-            Add To Cart
+          
+          <!-- Out of stock overlay -->
+          <div v-if="product.stock <= 0" class="absolute inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-20">
+            <span class="px-3 py-1.5 bg-red-500 text-white font-medium rounded-lg text-sm">Hết hàng</span>
+          </div>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="absolute right-6 top-6 flex flex-col gap-2 z-20">
+          <button 
+            @click="navigateToProduct" 
+            class="action-btn bg-white dark:bg-slate-700 text-gray-700 dark:text-white hover:bg-green-500 hover:text-white"
+            aria-label="Xem chi tiết"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+          
+          <button 
+            class="action-btn bg-white dark:bg-slate-700 text-gray-700 dark:text-white hover:bg-red-500 hover:text-white" 
+            aria-label="Yêu thích"
+          >
+            <i class="far fa-heart"></i>
           </button>
         </div>
       </div>
       
-      <div class="p-4 flex-grow flex flex-col">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2 hover:text-green-600">
+      <!-- Product Info -->
+      <div class="px-5 pb-5 flex-grow flex flex-col">
+        <!-- Product name -->
+        <h3 class="font-medium text-gray-800 dark:text-white mb-2 line-clamp-2 hover:text-green-600 dark:hover:text-green-400 transition-colors text-[15px] leading-tight min-h-[2.8rem]">
           <router-link :to="`/product/${product.id}`">{{ product.name }}</router-link>
         </h3>
         
-        <!-- Star rating -->
-        <div class="flex items-center mb-2">
-          <div class="flex gap-1">
-            <i v-for="i in 5" :key="i" class="fas fa-star text-sm" :class="i <= product.rating ? 'text-yellow-400' : 'text-gray-300'"></i>
+        <!-- Rating -->
+        <div class="flex items-center mb-3">
+          <div class="flex gap-0.5">
+            <i v-for="i in 5" :key="i" class="fas fa-star text-xs" :class="i <= product.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'"></i>
           </div>
-          <span class="text-sm text-gray-500 ml-1">
+          <span class="text-xs text-gray-500 dark:text-gray-400 ml-1.5">
             ({{ product.sold || '0' }})
           </span>
         </div>
         
+        <!-- Price section -->
         <div class="mt-auto">
-          <!-- Price -->
-          <div class="flex items-baseline gap-1">
-            <span class="text-xl font-bold text-red-500">${{ formatSimplePrice(product.price) }}</span>
-            <span v-if="product.originalPrice" class="text-sm text-gray-500 line-through ml-2">
-              ${{ formatSimplePrice(product.originalPrice) }}
+          <div class="flex items-baseline gap-2 mb-3">
+            <span class="text-lg font-bold text-green-600 dark:text-green-400">
+              {{ formatPrice(product.price) }}
+            </span>
+            <span v-if="product.originalPrice" class="text-xs text-gray-500 dark:text-gray-400 line-through">
+              {{ formatPrice(product.originalPrice) }}
             </span>
           </div>
+          
+          <!-- Add to cart button or Contact button for out of stock -->
+          <button 
+            v-if="product.stock > 0"
+            @click="addToCartAction"
+            class="w-full py-2 px-3 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors flex items-center justify-center text-sm font-medium"
+          >
+            <i class="fas fa-shopping-cart mr-2"></i> Thêm vào giỏ
+          </button>
+          <button 
+            v-else
+            @click="contactForOrder"
+            class="w-full py-2 px-3 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors flex items-center justify-center text-sm font-medium"
+          >
+            <i class="fas fa-phone-alt mr-2"></i> Liên hệ đặt hàng
+          </button>
         </div>
       </div>
     </div>
@@ -75,7 +115,6 @@ const props = defineProps({
 })
 
 const emits = defineEmits(['add-to-cart'])
-const showAddedAnimation = ref(false)
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { 
@@ -85,9 +124,22 @@ const formatPrice = (price) => {
   }).format(price);
 }
 
-// Simple price format for the exact design
-const formatSimplePrice = (price) => {
-  return price;
+const getImageSrc = (image) => {
+  if (!image) return ''; // Return empty if no image
+  
+  // Check if it's already a base64 image
+  if (image.startsWith('data:image')) {
+    return image;
+  }
+  
+  // Check if it's a relative path that needs the base URL
+  if (image.startsWith('images/')) {
+    // Use import.meta.env.BASE_URL or just prepend / depending on your setup
+    return `/${image}`;
+  }
+  
+  // Otherwise return as is
+  return image;
 }
 
 const hasDiscount = computed(() => {
@@ -103,7 +155,7 @@ const discountPercent = computed(() => {
 const navigateToProduct = (event) => {
   event.stopPropagation();
   if (props.product.stock > 0) {
-    router.push(`/product/${product.id}`)
+    router.push(`/product/${props.product.id}`)
   }
 }
 
@@ -113,20 +165,21 @@ const addToCartAction = (event) => {
     cart.addToCart(props.product, 1)
     emits('add-to-cart', props.product)
     
-    // Show animation
-    showAddedAnimation.value = true
-    
-    // Hide animation after 1.5 seconds
-    setTimeout(() => {
-      showAddedAnimation.value = false
-    }, 1500)
-    
     // Emit global event
     eventBus.emit('product-added-to-cart', props.product)
     
     // Show notification
     notificationService.cart(props.product)
   }
+}
+
+const contactForOrder = (event) => {
+  event.stopPropagation();
+  // You could open a modal, redirect to contact page, or show a notification
+  notificationService.show('Vui lòng gọi số 0123456789 để đặt hàng sản phẩm này', {
+    title: 'Sản phẩm tạm hết hàng',
+    type: 'info'
+  });
 }
 </script>
 
@@ -140,87 +193,38 @@ const addToCartAction = (event) => {
   overflow: hidden;
 }
 
-/* Product Image Container */
-.product-image-container {
-  position: relative;
-  overflow: hidden;
-  height: 240px;
+.product-card {
+  height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f8f8;
+  flex-direction: column;
 }
 
-/* Quick view and wishlist buttons */
-.quick-view-button, .wishlist-button {
-  position: absolute;
-  width: 38px;
-  height: 38px;
+/* Action buttons */
+.action-btn {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  transform: translateX(50px);
   opacity: 0;
   transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  z-index: 10;
 }
 
-.wishlist-button {
-  top: 10px;
-  left: 10px;
-}
-
-.quick-view-button {
-  top: 10px;
-  right: 10px;
-}
-
-.group:hover .quick-view-button,
-.group:hover .wishlist-button {
+.product-card:hover .action-btn {
+  transform: translateX(0);
   opacity: 1;
 }
 
-.quick-view-button:hover, 
-.wishlist-button:hover {
-  background-color: $primary-color;
-  color: white;
+.action-btn:nth-child(2) {
+  transition-delay: 0.05s;
 }
 
-/* Add To Cart Button */
-.add-to-cart-container {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  padding: 0;
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-  z-index: 5;
-}
-
-.group:hover .add-to-cart-container {
-  transform: translateY(0);
-}
-
-.add-to-cart-button {
-  width: 100%;
-  background-color: #16a34a;
-  color: #fff;
-  font-weight: 500;
-  padding: 12px 0;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.add-to-cart-button:hover {
-  background-color: #15803d;
+/* Out of stock styling */
+.out-of-stock img {
+  opacity: 0.7;
 }
 </style> 

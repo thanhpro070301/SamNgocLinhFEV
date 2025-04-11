@@ -1,8 +1,5 @@
 <template>
-  <div class="admin-orders min-h-screen bg-gray-50">
-    <!-- Header -->
-    <AdminHeader />
-    
+  <div class="orders-admin-page min-h-screen bg-gray-50">
     <!-- Main Content -->
     <main class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -224,7 +221,15 @@
                           {{ getStatusName(selectedOrder?.status) }}
                         </span>
                       </p>
-                      <p class="text-sm text-gray-900">Phương thức thanh toán: {{ selectedOrder?.paymentMethod }}</p>
+                      <p class="text-sm text-gray-900">Phương thức thanh toán: {{ getPaymentMethodText(selectedOrder?.paymentMethod) }}</p>
+                      <p class="text-sm text-gray-900">Trạng thái thanh toán: 
+                        <span 
+                          class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                          :class="getPaymentStatusColor(selectedOrder?.paymentStatus)"
+                        >
+                          {{ getPaymentStatusText(selectedOrder?.paymentStatus) }}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -234,24 +239,91 @@
                   <p class="text-sm text-gray-900">{{ selectedOrder?.shippingAddress }}</p>
                 </div>
                 
+                <div v-if="selectedOrder?.notes" class="border-t border-gray-200 py-4">
+                  <h4 class="text-sm font-medium text-gray-500 mb-2">Ghi chú đơn hàng</h4>
+                  <p class="text-sm text-gray-900">{{ selectedOrder?.notes }}</p>
+                </div>
+                
+                <div class="border-t border-gray-200 py-4">
+                  <h4 class="text-sm font-medium text-gray-500 mb-2">Sản phẩm</h4>
+                  <div v-if="selectedOrder?.orderItems?.length" class="mt-2">
+                    <div v-for="(item, index) in selectedOrder.orderItems" :key="index" class="flex items-center py-2 border-b border-gray-100 last:border-b-0">
+                      <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded overflow-hidden mr-3">
+                        <img :src="item.image || '/assets/images/products/sam-tuoi.png'" :alt="item.name" class="h-full w-full object-cover">
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
+                        <p class="text-xs text-gray-500">SL: {{ item.quantity }} x {{ formatCurrency(item.price) }}</p>
+                      </div>
+                      <div class="text-sm font-medium text-gray-900">
+                        {{ formatCurrency(item.price * item.quantity) }}
+                      </div>
+                    </div>
+                    <div class="flex justify-between mt-3 pt-3 border-t border-gray-100">
+                      <span class="text-sm font-medium">Tổng tiền:</span>
+                      <span class="text-sm font-bold">{{ formatCurrency(selectedOrder?.totalAmount) }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="text-sm text-gray-500 mt-1">
+                    Không có thông tin chi tiết sản phẩm
+                  </div>
+                </div>
+                
                 <div class="border-t border-gray-200 pt-4">
-                  <div class="flex justify-between">
-                    <select 
-                      v-model="newStatus" 
-                      class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <h4 class="text-sm font-medium text-gray-500 mb-2">Cập nhật trạng thái đơn hàng</h4>
+                      <div class="flex">
+                        <select 
+                          v-model="newStatus" 
+                          class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                          <option value="PENDING">Chờ xử lý</option>
+                          <option value="PROCESSING">Đang xử lý</option>
+                          <option value="SHIPPING">Đang giao hàng</option>
+                          <option value="DELIVERED">Đã giao hàng</option>
+                          <option value="CANCELLED">Đã hủy</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 class="text-sm font-medium text-gray-500 mb-2">Cập nhật trạng thái thanh toán</h4>
+                      <div class="flex">
+                        <select 
+                          v-model="newPaymentStatus" 
+                          class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                          <option value="PENDING">Chưa thanh toán</option>
+                          <option value="PAID">Đã thanh toán</option>
+                          <option value="FAILED">Thanh toán thất bại</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="flex justify-end mt-4 space-x-3">
+                    <button 
+                      @click="saveOrderUpdates"
+                      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      :disabled="isProcessing"
                     >
-                      <option value="PENDING">Chờ xử lý</option>
-                      <option value="PROCESSING">Đang xử lý</option>
-                      <option value="SHIPPING">Đang giao hàng</option>
-                      <option value="COMPLETED">Hoàn thành</option>
-                      <option value="CANCELLED">Đã hủy</option>
-                    </select>
+                      <template v-if="isProcessing">
+                        <span class="inline-block animate-spin mr-2">
+                          <i class="fas fa-circle-notch"></i>
+                        </span>
+                        Đang xử lý...
+                      </template>
+                      <template v-else>
+                        Lưu thay đổi
+                      </template>
+                    </button>
                     
                     <button 
-                      @click="saveOrderStatus"
-                      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      @click="closeDetailModal"
+                      class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
                     >
-                      Cập nhật trạng thái
+                      Đóng
                     </button>
                   </div>
                 </div>
@@ -267,20 +339,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import AdminHeader from '@/components/admin/AdminHeader.vue'
 import { useAuthStore } from '@/store/auth'
 import api from '@/api'
+import notificationService from '@/utils/notificationService'
 
 const router = useRouter()
 const auth = useAuthStore()
 const orders = ref([])
 const isLoading = ref(false)
 const loadingError = ref(null)
-
-// Chuyển hướng nếu chưa đăng nhập
-if (!auth.isAuthenticated.value) {
-  router.push('/admin/login')
-}
 
 // State
 const searchTerm = ref('')
@@ -290,6 +357,8 @@ const itemsPerPage = 10
 const showDetailModal = ref(false)
 const selectedOrder = ref(null)
 const newStatus = ref('')
+const newPaymentStatus = ref('')
+const isProcessing = ref(false)
 
 // Status options
 const statusOptions = [
@@ -328,89 +397,200 @@ async function fetchOrders() {
   loadingError.value = null
   
   try {
+    // Check if we can use cached data first
+    const lastAdminOrdersLoaded = localStorage.getItem('lastAdminOrdersLoaded');
+    const cachedOrders = localStorage.getItem('adminCachedOrders');
+    
+    // If we have recent cached data (less than 5 minutes old), use it
+    if (cachedOrders && lastAdminOrdersLoaded && 
+        (Date.now() - parseInt(lastAdminOrdersLoaded)) < 5 * 60 * 1000) {
+      console.log('Using recent cached admin orders');
+      useAdminCachedOrders();
+      isLoading.value = false;
+      return;
+    }
+    
+    // Otherwise, fetch fresh data
+    console.log('Fetching fresh admin orders data');
     const response = await api.order.getOrders()
-    orders.value = response.data
+    
+    // Kiểm tra phản hồi từ API
+    if (Array.isArray(response)) {
+      orders.value = response
+      
+      // Cache the orders data
+      try {
+        localStorage.setItem('adminCachedOrders', JSON.stringify(response));
+        localStorage.setItem('lastAdminOrdersLoaded', Date.now().toString());
+      } catch (e) {
+        console.warn('Error saving admin orders to cache:', e);
+      }
+      
+    } else if (response && Array.isArray(response.data)) {
+      orders.value = response.data
+      
+      // Cache the orders data
+      try {
+        localStorage.setItem('adminCachedOrders', JSON.stringify(response.data));
+        localStorage.setItem('lastAdminOrdersLoaded', Date.now().toString());
+      } catch (e) {
+        console.warn('Error saving admin orders to cache:', e);
+      }
+      
+    } else if (response && typeof response === 'object') {
+      orders.value = [response] // Trường hợp API trả về đơn đơn hàng
+      
+      // Cache the orders data
+      try {
+        localStorage.setItem('adminCachedOrders', JSON.stringify([response]));
+        localStorage.setItem('lastAdminOrdersLoaded', Date.now().toString());
+      } catch (e) {
+        console.warn('Error saving admin orders to cache:', e);
+      }
+      
+    } else {
+      console.error('Invalid response format:', response)
+      loadingError.value = 'Định dạng dữ liệu không hợp lệ'
+      useAdminCachedOrders()
+    }
+    
+    console.log('Orders loaded:', orders.value)
   } catch (error) {
     console.error('Error fetching orders:', error)
-    loadingError.value = 'Không thể tải danh sách đơn hàng'
     
-    // Sử dụng dữ liệu mẫu nếu API lỗi
-    orders.value = [
-      {
-        id: 1,
-        userId: 1,
-        totalAmount: 3450000,
-        shippingFee: 30000,
-        status: "COMPLETED",
-        paymentMethod: "COD",
-        paymentStatus: "COMPLETED",
-        shippingName: "Nguyễn Văn A",
-        shippingPhone: "0123456789",
-        shippingAddress: "123 Đường ABC, Quận XYZ",
-        shippingEmail: "nguyenvana@example.com",
-        notes: "Giao hàng giờ hành chính",
-        createdAt: "2023-11-01T12:00:00",
-        updatedAt: "2023-11-01T15:30:00"
-      },
-      {
-        id: 2,
-        userId: 2,
-        totalAmount: 7800000,
-        shippingFee: 30000,
-        status: "PROCESSING",
-        paymentMethod: "TRANSFER",
-        paymentStatus: "PENDING",
-        shippingName: "Trần Thị B",
-        shippingPhone: "0987654321",
-        shippingAddress: "456 Đường DEF, Quận UVW",
-        shippingEmail: "tranthib@example.com",
-        notes: "",
-        createdAt: "2023-11-02T10:15:00",
-        updatedAt: "2023-11-02T10:15:00"
-      },
-      {
-        id: 3,
-        userId: 3,
-        totalAmount: 1250000,
-        shippingFee: 30000,
-        status: "SHIPPING",
-        paymentMethod: "COD",
-        paymentStatus: "PENDING",
-        shippingName: "Lê Văn C",
-        shippingPhone: "0369852147",
-        shippingAddress: "789 Đường GHI, Quận RST",
-        shippingEmail: "levanc@example.com",
-        notes: "Gọi trước khi giao",
-        createdAt: "2023-11-03T09:30:00",
-        updatedAt: "2023-11-03T14:20:00"
-      }
-    ]
+    // Check if it's an auth error
+    if (error?.status === 401 || error?.response?.status === 401) {
+      loadingError.value = 'Phiên đăng nhập hết hạn, đang sử dụng dữ liệu đã lưu'
+      console.log('Authentication error during order fetch, using cached data')
+    } else {
+      loadingError.value = 'Không thể tải danh sách đơn hàng'
+    }
+    
+    // Try to use cached data first
+    useAdminCachedOrders()
   } finally {
     isLoading.value = false
   }
 }
 
-// Cập nhật trạng thái đơn hàng
-async function updateOrderStatus(orderId, status) {
+// Use cached admin orders
+function useAdminCachedOrders() {
+  const cachedOrders = localStorage.getItem('adminCachedOrders');
+  if (cachedOrders) {
+    try {
+      const parsed = JSON.parse(cachedOrders);
+      orders.value = parsed;
+      console.log('Using cached admin orders data:', orders.value.length, 'orders loaded from cache');
+      return true;
+    } catch (e) {
+      console.error('Error parsing cached admin orders:', e);
+    }
+  }
+  
+  // Fall back to default orders if no cache is available
+  console.log('No cached admin orders available, using default data');
+  useDefaultOrders();
+  return false;
+}
+
+// Sử dụng dữ liệu mẫu khi API lỗi
+function useDefaultOrders() {
+  orders.value = [
+    {
+      id: 1,
+      userId: 1,
+      totalAmount: 3450000,
+      shippingFee: 30000,
+      status: "PENDING",
+      paymentMethod: "COD",
+      paymentStatus: "PENDING",
+      shippingName: "Nguyễn Văn A",
+      shippingPhone: "0123456789",
+      shippingAddress: "123 Đường ABC, Quận XYZ",
+      shippingEmail: "nguyenvana@example.com",
+      notes: "Giao hàng giờ hành chính",
+      createdAt: "2023-11-01T12:00:00",
+      updatedAt: "2023-11-01T15:30:00"
+    },
+    {
+      id: 2,
+      userId: 2,
+      totalAmount: 7800000,
+      shippingFee: 30000,
+      status: "PROCESSING",
+      paymentMethod: "bank",
+      paymentStatus: "PENDING",
+      shippingName: "Trần Thị B",
+      shippingPhone: "0987654321",
+      shippingAddress: "456 Đường DEF, Quận UVW",
+      shippingEmail: "tranthib@example.com",
+      notes: "",
+      createdAt: "2023-11-02T10:15:00",
+      updatedAt: "2023-11-02T10:15:00"
+    },
+    {
+      id: 3,
+      userId: 3,
+      totalAmount: 1250000,
+      shippingFee: 30000,
+      status: "SHIPPING",
+      paymentMethod: "COD",
+      paymentStatus: "PENDING",
+      shippingName: "Lê Văn C",
+      shippingPhone: "0369852147",
+      shippingAddress: "789 Đường GHI, Quận RST",
+      shippingEmail: "levanc@example.com",
+      notes: "Gọi trước khi giao",
+      createdAt: "2023-11-03T09:30:00",
+      updatedAt: "2023-11-03T14:20:00"
+    }
+  ]
+}
+
+// Lấy chi tiết đơn hàng theo ID
+async function fetchOrderDetail(id) {
   try {
-    await api.order.updateOrderStatus(orderId, status)
-    // Cập nhật lại danh sách đơn hàng
-    fetchOrders()
+    if (!id) return null
+    
+    const response = await api.order.getOrder(id)
+    console.log('Order detail:', response)
+    
+    if (response && response.id) {
+      return response
+    }
+    
+    return null
   } catch (error) {
-    console.error('Error updating order status:', error)
-    alert('Không thể cập nhật trạng thái đơn hàng')
+    console.error(`Error fetching order details for ID ${id}:`, error)
+    return null
   }
 }
 
-// Cập nhật trạng thái thanh toán
-async function updatePaymentStatus(orderId, paymentStatus) {
+// Cập nhật trạng thái đơn hàng
+async function updateOrderStatus(orderId, status) {
+  if (!orderId || !status) {
+    notificationService.showError('Thông tin cập nhật không hợp lệ')
+    return
+  }
+  
   try {
-    await api.order.updatePaymentStatus(orderId, paymentStatus)
+    isLoading.value = true
+    const response = await api.order.updateOrderStatus(orderId, status)
+    console.log('Order status updated:', response)
+    
+    // Thông báo thành công
+    notificationService.show('Cập nhật trạng thái đơn hàng thành công', {
+      title: 'Thành công',
+      type: 'success'
+    })
+    
     // Cập nhật lại danh sách đơn hàng
-    fetchOrders()
+    await fetchOrders()
   } catch (error) {
-    console.error('Error updating payment status:', error)
-    alert('Không thể cập nhật trạng thái thanh toán')
+    console.error('Error updating order status:', error)
+    notificationService.showError('Không thể cập nhật trạng thái đơn hàng')
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -464,37 +644,162 @@ function getStatusName(status) {
 }
 
 // View order details
-function viewOrderDetails(order) {
-  selectedOrder.value = order
-  newStatus.value = order.status
-  showDetailModal.value = true
+async function viewOrderDetails(order) {
+  try {
+    isLoading.value = true
+    
+    // Fetch detailed order information from API
+    const detailedOrder = await fetchOrderDetail(order.id)
+    
+    if (detailedOrder) {
+      selectedOrder.value = detailedOrder
+    } else {
+      // Fallback to the basic order info if detailed info cannot be fetched
+      selectedOrder.value = order
+    }
+    
+    newStatus.value = selectedOrder.value.status
+    newPaymentStatus.value = selectedOrder.value.paymentStatus
+    showDetailModal.value = true
+  } catch (error) {
+    console.error('Error viewing order details:', error)
+    notificationService.showError('Không thể tải chi tiết đơn hàng')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 // Close detail modal
 function closeDetailModal() {
   showDetailModal.value = false
   selectedOrder.value = null
+  newStatus.value = ''
+  newPaymentStatus.value = ''
+  
+  // If any changes were made, refresh the orders list
+  fetchOrders().catch(error => {
+    console.error('Error refreshing orders:', error)
+  })
 }
 
-// Save order status
-function saveOrderStatus() {
-  if (selectedOrder.value) {
-    // Call API to update order status
-    updateOrderStatus(selectedOrder.value.id, newStatus.value)
-    closeDetailModal()
+// Save order updates
+async function saveOrderUpdates() {
+  if (!selectedOrder.value || !newStatus.value || !newPaymentStatus.value) {
+    notificationService.showError('Thông tin trạng thái không hợp lệ')
+    return
+  }
+  
+  try {
+    isProcessing.value = true
+    
+    // Update order status
+    await updateOrderStatus(selectedOrder.value.id, newStatus.value)
+    
+    // Update payment status
+    await api.order.updatePaymentStatus(selectedOrder.value.id, newPaymentStatus.value)
+    
+    // Thông báo thành công
+    notificationService.show('Cập nhật trạng thái đơn hàng thành công', {
+      title: 'Thành công',
+      type: 'success'
+    })
+    
+    // Cập nhật lại danh sách đơn hàng
+    await fetchOrders()
+  } catch (error) {
+    console.error('Error saving order updates:', error)
+    notificationService.showError('Không thể lưu thay đổi đơn hàng')
+  } finally {
+    isProcessing.value = false
+  }
+}
+
+// Lấy màu cho trạng thái thanh toán
+function getPaymentStatusColor(status) {
+  switch (status) {
+    case 'PAID':
+      return 'bg-green-100 text-green-800'
+    case 'PENDING':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'FAILED':
+      return 'bg-red-100 text-red-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
+// Hiển thị tên trạng thái thanh toán
+function getPaymentStatusText(status) {
+  switch (status) {
+    case 'PAID':
+      return 'Đã thanh toán'
+    case 'PENDING':
+      return 'Chưa thanh toán'
+    case 'FAILED':
+      return 'Thanh toán thất bại'
+    default:
+      return status
+  }
+}
+
+// Hiển thị tên phương thức thanh toán
+function getPaymentMethodText(method) {
+  switch (method) {
+    case 'cod':
+      return 'Thanh toán khi nhận hàng (COD)'
+    case 'bank':
+      return 'Chuyển khoản ngân hàng'
+    default:
+      return method
   }
 }
 
 // Export orders to Excel
 function exportOrders() {
-  // In a real app, this would call a function to export to Excel
+  // TODO: Implement Excel export functionality
   console.log('Exporting orders to Excel...')
-  alert('Tính năng xuất Excel đang được phát triển')
+  notificationService.show('Tính năng xuất Excel đang được phát triển', {
+    title: 'Thông báo',
+    type: 'info'
+  })
 }
 
 // Lấy danh sách đơn hàng khi component được khởi tạo
-onMounted(() => {
-  fetchOrders()
+onMounted(async () => {
+  console.log('Orders view mounted');
+  console.log('Current route:', router.currentRoute.value.path);
+  console.log('Auth status:', auth.isAuthenticated);
+  
+  // First check if user is authenticated and has admin role
+  if (!auth.isAuthenticated) {
+    console.error('User is not authenticated, using cached data if available');
+    loadingError.value = 'Phiên đăng nhập không hợp lệ, đang sử dụng dữ liệu đã lưu';
+    useAdminCachedOrders();
+    return;
+  }
+  
+  if (!auth.isAdmin) {
+    console.error('User is not an admin, using cached data if available');
+    loadingError.value = 'Bạn không có quyền quản trị, đang sử dụng dữ liệu đã lưu';
+    useAdminCachedOrders();
+    return;
+  }
+  
+  try {
+    // Thử lấy dữ liệu đơn hàng
+    await fetchOrders();
+  } catch (error) {
+    console.error('Critical error loading orders:', error);
+    
+    // Fallback to cached data
+    loadingError.value = 'Không thể tải dữ liệu đơn hàng, đang sử dụng dữ liệu đã lưu';
+    useAdminCachedOrders();
+    
+    // Show notification only for serious errors, not auth errors
+    if (!(error?.status === 401 || error?.response?.status === 401)) {
+      notificationService.showError('Không thể tải dữ liệu đơn hàng');
+    }
+  }
 })
 </script>
 

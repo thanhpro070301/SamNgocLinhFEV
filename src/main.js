@@ -40,13 +40,32 @@ const app = createApp(App)
 // Global error handler
 app.config.errorHandler = handleError
 
-// Use plugins
-app.use(router)
+// Đăng ký Pinia trước (vì Auth store phụ thuộc vào Pinia)
 app.use(pinia)
 
-// Initialize auth store after plugins are registered
-const auth = useAuthStore()
-auth.init()
+// Đăng ký Router sau
+app.use(router)
 
-// Mount app
-app.mount('#app') 
+// Khởi tạo auth store (đảm bảo Pinia đã được đăng ký)
+const authInit = async () => {
+  try {
+    console.log('Khởi tạo auth state...')
+    const authStore = useAuthStore()
+    
+    // Thêm kiểm tra để đảm bảo authStore.init() là hàm trước khi gọi
+    if (typeof authStore.init === 'function') {
+      const result = await authStore.init()
+      console.log('Auth state initialized:', result ? 'success' : 'failed')
+    } else {
+      console.error('Auth store init method not available')
+    }
+  } catch (error) {
+    console.error('Failed to initialize auth:', error)
+  }
+}
+
+// Mount app, sau đó khởi tạo auth để tránh lỗi cycle
+app.mount('#app')
+
+// Khởi tạo auth sau khi đã mount app
+authInit() 

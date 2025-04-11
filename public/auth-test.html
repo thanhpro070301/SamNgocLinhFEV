@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #333;
+    }
+    section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      white-space: pre-wrap;
+      padding: 15px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+    }
+    .alert-success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .alert-danger {
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    .alert-warning {
+      color: #856404;
+      background-color: #fff3cd;
+      border-color: #ffeeba;
+    }
+    .alert-info {
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-ok {
+      background-color: #28a745;
+    }
+    .status-warning {
+      background-color: #ffc107;
+    }
+    .status-error {
+      background-color: #dc3545;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Công cụ kiểm tra đăng nhập và trạng thái xác thực</h1>
+  
+  <section id="login-section">
+    <h2>Test đăng nhập</h2>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="Email đăng nhập" value="">
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="Mật khẩu">
+    </div>
+    <div class="form-group">
+      <input type="checkbox" id="remember-me">
+      <label for="remember-me" style="display: inline;">Ghi nhớ đăng nhập</label>
+    </div>
+    <button onclick="testLogin()">Đăng nhập</button>
+    <div id="login-result" class="result"></div>
+  </section>
+
+  <section id="auth-state-section">
+    <h2>Kiểm tra trạng thái xác thực</h2>
+    <p>Các thông tin dưới đây sẽ giúp chẩn đoán vấn đề đồng bộ giữa localStorage, sessionStorage và backend.</p>
+    <button onclick="checkAuthState()">Kiểm tra trạng thái</button>
+    <div id="auth-state" class="result"></div>
+  </section>
+
+  <section id="auth-details-section">
+    <h2>Chi tiết thông tin xác thực</h2>
+    <div class="form-group">
+      <label>Trạng thái xác thực:</label>
+      <div id="auth-status"></div>
+    </div>
+    <div class="form-group">
+      <label>localStorage:</label>
+      <div id="local-storage-details"></div>
+    </div>
+    <div class="form-group">
+      <label>sessionStorage:</label>
+      <div id="session-storage-details"></div>
+    </div>
+    <div class="form-group">
+      <label>Backend token check:</label>
+      <div id="backend-token-details"></div>
+    </div>
+  </section>
+
+  <section id="sync-issues-section">
+    <h2>Vấn đề đồng bộ</h2>
+    <div id="sync-issues"></div>
+  </section>
+
+  <section id="fix-section">
+    <h2>Sửa chữa vấn đề</h2>
+    <button onclick="syncStorage()">Đồng bộ localStorage ⟷ sessionStorage</button>
+    <button onclick="clearAllStorage()">Xóa toàn bộ dữ liệu xác thực</button>
+    <button onclick="logout()">Đăng xuất</button>
+    <div id="fix-result" class="result"></div>
+  </section>
+
+  <script>
+    // API URL
+    const API_URL = window.location.origin;
+    
+    // Auth Keys
+    const AUTH_KEYS = ['authToken', 'isAuthenticated', 'userDetails', 'expiresAt'];
+    
+    // Check authentication state
+    async function checkAuthState() {
+      const stateElement = document.getElementById('auth-state');
+      const authStatusElement = document.getElementById('auth-status');
+      const localStorageElement = document.getElementById('local-storage-details');
+      const sessionStorageElement = document.getElementById('session-storage-details');
+      const backendTokenElement = document.getElementById('backend-token-details');
+      const syncIssuesElement = document.getElementById('sync-issues');
+      
+      stateElement.innerHTML = 'Checking authentication state...';
+      
+      try {
+        // Get auth data
+        const localAuthToken = localStorage.getItem('authToken');
+        const sessionAuthToken = sessionStorage.getItem('authToken');
+        const localIsAuth = localStorage.getItem('isAuthenticated') === 'true';
+        const sessionIsAuth = sessionStorage.getItem('isAuthenticated') === 'true';
+        
+        // Create display data
+        let localStorageHtml = '<table><tr><th>Key</th><th>Value</th></tr>';
+        let sessionStorageHtml = '<table><tr><th>Key</th><th>Value</th></tr>';
+        
+        // Add localStorage values
+        AUTH_KEYS.forEach(key => {
+          const value = localStorage.getItem(key);
+          localStorageHtml += `<tr><td>${key}</td><td>${value ? (key === 'userDetails' ? '(Object)' : value) : '(Not set)'}</td></tr>`;
+        });
+        localStorageHtml += '</table>';
+        
+        // Add sessionStorage values
+        AUTH_KEYS.forEach(key => {
+          const value = sessionStorage.getItem(key);
+          sessionStorageHtml += `<tr><td>${key}</td><td>${value ? (key === 'userDetails' ? '(Object)' : value) : '(Not set)'}</td></tr>`;
+        });
+        sessionStorageHtml += '</table>';
+        
+        // Display in elements
+        localStorageElement.innerHTML = localStorageHtml;
+        sessionStorageElement.innerHTML = sessionStorageHtml;
+        
+        // Check backend token validity
+        let backendStatus = '';
+        let tokenValid = false;
+        
+        if (localAuthToken || sessionAuthToken) {
+          const token = localAuthToken || sessionAuthToken;
+          
+          try {
+            const response = await fetch(`${API_URL}/api/auth/check-token`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ token })
+            });
+            
+            const result = await response.json();
+            tokenValid = result.data?.valid === true;
+            
+            backendStatus = `
+              <div class="${tokenValid ? 'alert alert-success' : 'alert alert-danger'}">
+                <p><strong>Status:</strong> ${tokenValid ? 'Valid' : 'Invalid'}</p>
+                ${result.data ? `<p><strong>Details:</strong> ${JSON.stringify(result.data)}</p>` : ''}
+              </div>
+            `;
+          } catch (error) {
+            backendStatus = `
+              <div class="alert alert-danger">
+                <p><strong>Error:</strong> ${error.message}</p>
+              </div>
+            `;
+          }
+        } else {
+          backendStatus = `
+            <div class="alert alert-warning">
+              <p>No token available to check</p>
+            </div>
+          `;
+        }
+        
+        backendTokenElement.innerHTML = backendStatus;
+        
+        // Check for sync issues
+        const issues = [];
+        
+        // Check token mismatch
+        if (localAuthToken && sessionAuthToken && localAuthToken !== sessionAuthToken) {
+          issues.push({
+            severity: 'error',
+            message: 'Token mismatch between localStorage and sessionStorage'
+          });
+        }
+        
+        // Check auth flag mismatch
+        if (localIsAuth !== sessionIsAuth) {
+          issues.push({
+            severity: 'error',
+            message: 'Authentication flag mismatch between localStorage and sessionStorage'
+          });
+        }
+        
+        // Check backend token validity vs client auth state
+        if ((localIsAuth || sessionIsAuth) && !tokenValid) {
+          issues.push({
+            severity: 'error',
+            message: 'Client thinks user is authenticated but server rejects the token'
+          });
+        } else if (!(localIsAuth || sessionIsAuth) && tokenValid) {
+          issues.push({
+            severity: 'warning',
+            message: 'Server accepts the token but client thinks user is not authenticated'
+          });
+        }
+        
+        // Check token exists in one storage but not the other
+        if (localAuthToken && !sessionAuthToken) {
+          issues.push({
+            severity: 'warning',
+            message: 'Token exists in localStorage but not in sessionStorage'
+          });
+        } else if (!localAuthToken && sessionAuthToken) {
+          issues.push({
+            severity: 'warning',
+            message: 'Token exists in sessionStorage but not in localStorage'
+          });
+        }
+        
+        // Display sync issues
+        if (issues.length > 0) {
+          let issuesHtml = '<div class="alert alert-warning"><h3>Found synchronization issues:</h3><ul>';
+          
+          issues.forEach(issue => {
+            issuesHtml += `<li><span class="status-indicator status-${issue.severity === 'error' ? 'error' : 'warning'}"></span> ${issue.message}</li>`;
+          });
+          
+          issuesHtml += '</ul></div>';
+          syncIssuesElement.innerHTML = issuesHtml;
+        } else {
+          syncIssuesElement.innerHTML = `
+            <div class="alert alert-success">
+              <p><span class="status-indicator status-ok"></span> No synchronization issues found</p>
+            </div>
+          `;
+        }
+        
+        // Overall auth status
+        let overallStatus = '';
+        
+        if ((localIsAuth || sessionIsAuth) && tokenValid) {
+          overallStatus = `
+            <div class="alert alert-success">
+              <p><span class="status-indicator status-ok"></span> User is authenticated and token is valid</p>
+            </div>
+          `;
+        } else if ((localIsAuth || sessionIsAuth) && !tokenValid) {
+          overallStatus = `
+            <div class="alert alert-danger">
+              <p><span class="status-indicator status-error"></span> User appears to be authenticated on client but token is invalid on server</p>
+            </div>
+          `;
+        } else if (!(localIsAuth || sessionIsAuth) && tokenValid) {
+          overallStatus = `
+            <div class="alert alert-warning">
+              <p><span class="status-indicator status-warning"></span> Token is valid on server but client shows as logged out</p>
+            </div>
+          `;
+        } else {
+          overallStatus = `
+            <div class="alert alert-info">
+              <p><span class="status-indicator status-ok"></span> User is not authenticated</p>
+            </div>
+          `;
+        }
+        
+        authStatusElement.innerHTML = overallStatus;
+        
+        // Summary
+        stateElement.innerHTML = `
+          <div class="${issues.length > 0 ? 'alert alert-warning' : 'alert alert-success'}">
+            <p><strong>Auth Status:</strong> ${(localIsAuth || sessionIsAuth) ? 'Authenticated' : 'Not authenticated'}</p>
+            <p><strong>Token Valid:</strong> ${tokenValid ? 'Yes' : 'No'}</p>
+            <p><strong>Sync Issues:</strong> ${issues.length} found</p>
+          </div>
+        `;
+        
+      } catch (error) {
+        stateElement.innerHTML = `Error checking auth state: ${error.message}`;
+      }
+    }
+    
+    // Login test
+    async function testLogin() {
+      const resultElement = document.getElementById('login-result');
+      resultElement.textContent = 'Logging in...';
+      
+      try {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('remember-me').checked;
+        
+        if (!email || !password) {
+          resultElement.textContent = 'Please enter both email and password.';
+          return;
+        }
+        
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password, rememberMe })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const authData = result.data;
+          
+          // Save auth data to localStorage
+          localStorage.setItem('authToken', authData.token);
+          localStorage.setItem('expiresAt', authData.expiresAt);
+          localStorage.setItem('isAuthenticated', 'true');
+          
+          // Save same data to sessionStorage for redundancy
+          sessionStorage.setItem('authToken', authData.token);
+          sessionStorage.setItem('expiresAt', authData.expiresAt);
+          sessionStorage.setItem('isAuthenticated', 'true');
+          
+          // Save user data if available
+          if (authData.user) {
+            localStorage.setItem('userDetails', JSON.stringify(authData.user));
+            sessionStorage.setItem('userDetails', JSON.stringify(authData.user));
+          }
+          
+          resultElement.textContent = 'Login successful!\n\n' + JSON.stringify(result, null, 2);
+          
+          // Also update the auth state display
+          checkAuthState();
+          
+        } else {
+          resultElement.textContent = 'Login failed:\n\n' + JSON.stringify(result, null, 2);
+        }
+      } catch (error) {
+        resultElement.textContent = 'Error during login: ' + error.message;
+      }
+    }
+    
+    // Logout
+    async function logout() {
+      const resultElement = document.getElementById('fix-result');
+      resultElement.textContent = 'Logging out...';
+      
+      try {
+        // Get token
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        
+        if (token) {
+          try {
+            await fetch(`${API_URL}/api/auth/logout`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+          } catch (e) {
+            console.error('Logout API error:', e);
+          }
+        }
+        
+        // Clear storage
+        AUTH_KEYS.forEach(key => {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        });
+        
+        resultElement.textContent = 'Logged out successfully';
+        
+        // Update auth state
+        checkAuthState();
+      } catch (error) {
+        resultElement.textContent = 'Error during logout: ' + error.message;
+      }
+    }
+    
+    // Sync localStorage and sessionStorage
+    function syncStorage() {
+      const resultElement = document.getElementById('fix-result');
+      resultElement.textContent = 'Synchronizing storage...';
+      
+      try {
+        // First check which storage has a valid token
+        const localToken = localStorage.getItem('authToken');
+        const sessionToken = sessionStorage.getItem('authToken');
+        
+        // Prioritize localStorage if both have tokens
+        if (localToken && sessionToken) {
+          if (localToken !== sessionToken) {
+            // Use localStorage token
+            AUTH_KEYS.forEach(key => {
+              const value = localStorage.getItem(key);
+              if (value) {
+                sessionStorage.setItem(key, value);
+              }
+            });
+          }
+        } else if (localToken) {
+          // Copy from localStorage to sessionStorage
+          AUTH_KEYS.forEach(key => {
+            const value = localStorage.getItem(key);
+            if (value) {
+              sessionStorage.setItem(key, value);
+            }
+          });
+        } else if (sessionToken) {
+          // Copy from sessionStorage to localStorage
+          AUTH_KEYS.forEach(key => {
+            const value = sessionStorage.getItem(key);
+            if (value) {
+              localStorage.setItem(key, value);
+            }
+          });
+        } else {
+          // No tokens found
+          resultElement.textContent = 'No authentication data found to sync';
+          return;
+        }
+        
+        resultElement.textContent = 'Storage synchronized successfully';
+        
+        // Update auth state
+        checkAuthState();
+      } catch (error) {
+        resultElement.textContent = 'Error synchronizing storage: ' + error.message;
+      }
+    }
+    
+    // Clear all authentication data
+    function clearAllStorage() {
+      const resultElement = document.getElementById('fix-result');
+      
+      try {
+        // Clear all auth data
+        AUTH_KEYS.forEach(key => {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        });
+        
+        resultElement.textContent = 'All authentication data cleared';
+        
+        // Update auth state
+        checkAuthState();
+      } catch (error) {
+        resultElement.textContent = 'Error clearing storage: ' + error.message;
+      }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuthState();
+    });
+  </script>
+</body>
+</html>

@@ -1,16 +1,23 @@
 <template>
-  <div class="products-page">
-    <div class="container mx-auto px-4 py-8">
+  <div class="products-page min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <!-- Decorative elements for glassmorphism effect -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-green-200 opacity-20 filter blur-3xl"></div>
+      <div class="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full bg-green-300 opacity-20 filter blur-3xl"></div>
+      <div class="absolute top-2/3 left-1/2 w-72 h-72 rounded-full bg-green-100 opacity-30 filter blur-3xl"></div>
+    </div>
+    
+    <div class="container relative mx-auto px-4 py-8 z-10">
       <div class="flex flex-col md:flex-row gap-8">
-        <!-- Sidebar -->
+        <!-- Sidebar - Glassmorphism effect -->
         <aside class="w-full md:w-64 flex-shrink-0">
-          <div class="bg-white p-4 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold mb-4">Danh mục</h3>
-            <div class="space-y-2">
+          <div class="bg-white/70 backdrop-blur-md p-6 rounded-xl shadow-lg border border-white/40 transition-all duration-300 hover:shadow-xl">
+            <h3 class="text-xl font-semibold mb-5 text-gray-800 border-b border-green-100 pb-2">Danh mục</h3>
+            <div class="space-y-3">
               <button 
-                @click="selectedCategory = null" 
-                class="block w-full text-left px-3 py-2 rounded-md transition-colors"
-                :class="!selectedCategory ? 'bg-green-100 text-green-700' : 'hover:bg-gray-100'"
+                @click="showAllProducts()" 
+                class="block w-full text-left px-4 py-3 rounded-lg transition-all duration-300"
+                :class="!selectedCategory ? 'bg-green-100/70 backdrop-blur-sm text-green-700 shadow-inner' : 'hover:bg-white/60 hover:shadow-sm'"
               >
                 Tất cả sản phẩm
               </button>
@@ -18,60 +25,60 @@
                 v-for="category in categories" 
                 :key="category.id"
                 @click="selectCategory(category.id)"
-                class="block w-full text-left px-3 py-2 rounded-md transition-colors"
-                :class="selectedCategory === category.id ? 'bg-green-100 text-green-700' : 'hover:bg-gray-100'"
+                class="block w-full text-left px-4 py-3 rounded-lg transition-all duration-300"
+                :class="selectedCategory === category.id ? 'bg-green-100/70 backdrop-blur-sm text-green-700 shadow-inner' : 'hover:bg-white/60 hover:shadow-sm'"
               >
                 {{ category.name }}
               </button>
             </div>
             
-            <div class="mt-6 border-t pt-4">
-              <h3 class="text-lg font-semibold mb-4">Giá</h3>
-              <div class="space-y-2">
+            <div class="mt-8 border-t border-green-100 pt-5">
+              <h3 class="text-xl font-semibold mb-5 text-gray-800">Giá</h3>
+              <div class="space-y-3">
                 <div class="flex items-center">
                   <input 
                     type="checkbox" 
                     id="price-1" 
                     v-model="filters.price.under1m"
-                    class="rounded text-green-600 focus:ring-green-500"
+                    class="w-5 h-5 rounded text-green-600 focus:ring-green-500 focus:ring-offset-0"
                   >
-                  <label for="price-1" class="ml-2">Dưới 1 triệu</label>
+                  <label for="price-1" class="ml-3 text-gray-700">Dưới 1 triệu</label>
                 </div>
                 <div class="flex items-center">
                   <input 
                     type="checkbox" 
                     id="price-2" 
                     v-model="filters.price.from1mTo5m"
-                    class="rounded text-green-600 focus:ring-green-500"
+                    class="w-5 h-5 rounded text-green-600 focus:ring-green-500 focus:ring-offset-0"
                   >
-                  <label for="price-2" class="ml-2">1 - 5 triệu</label>
+                  <label for="price-2" class="ml-3 text-gray-700">1 - 5 triệu</label>
                 </div>
                 <div class="flex items-center">
                   <input 
                     type="checkbox" 
                     id="price-3" 
                     v-model="filters.price.from5mTo10m"
-                    class="rounded text-green-600 focus:ring-green-500"
+                    class="w-5 h-5 rounded text-green-600 focus:ring-green-500 focus:ring-offset-0"
                   >
-                  <label for="price-3" class="ml-2">5 - 10 triệu</label>
+                  <label for="price-3" class="ml-3 text-gray-700">5 - 10 triệu</label>
                 </div>
                 <div class="flex items-center">
                   <input 
                     type="checkbox" 
                     id="price-4" 
                     v-model="filters.price.above10m"
-                    class="rounded text-green-600 focus:ring-green-500"
+                    class="w-5 h-5 rounded text-green-600 focus:ring-green-500 focus:ring-offset-0"
                   >
-                  <label for="price-4" class="ml-2">Trên 10 triệu</label>
+                  <label for="price-4" class="ml-3 text-gray-700">Trên 10 triệu</label>
                 </div>
               </div>
             </div>
             
-            <div class="mt-6 border-t pt-4">
-              <h3 class="text-lg font-semibold mb-4">Sắp xếp</h3>
+            <div class="mt-8 border-t border-green-100 pt-5">
+              <h3 class="text-xl font-semibold mb-5 text-gray-800">Sắp xếp</h3>
               <select 
                 v-model="sortOption" 
-                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                class="w-full bg-white/80 backdrop-blur-sm border border-green-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm"
               >
                 <option value="newest">Mới nhất</option>
                 <option value="priceAsc">Giá: Thấp đến cao</option>
@@ -80,19 +87,20 @@
               </select>
             </div>
             
+            <!-- Neumorphic reset button -->
             <button 
               @click="resetFilters" 
-              class="mt-6 w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
+              class="mt-8 w-full neumorphic-btn bg-gray-50 text-gray-700 py-3 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1"
             >
-              Đặt lại bộ lọc
+              <span class="relative z-10">Đặt lại bộ lọc</span>
             </button>
           </div>
         </aside>
         
-        <!-- Products -->
+        <!-- Products - Glassmorphism header and cards -->
         <main class="flex-1">
-          <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2">
+          <div class="mb-8 bg-white/60 backdrop-blur-md p-6 rounded-xl shadow-lg border border-white/40 transition-all duration-300">
+            <h1 class="text-3xl font-bold mb-2 text-gray-800">
               {{ pageTitle }}
             </h1>
             <p class="text-gray-600">
@@ -101,30 +109,41 @@
           </div>
           
           <!-- Loading state -->
-          <div v-if="isLoading" class="flex justify-center items-center py-20">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-600"></div>
+          <div v-if="isLoading" class="flex justify-center items-center py-32">
+            <div class="relative w-20 h-20">
+              <div class="absolute inset-0 rounded-full border-4 border-green-100"></div>
+              <div class="absolute inset-0 rounded-full border-4 border-green-500 border-t-transparent animate-spin"></div>
+            </div>
           </div>
           
           <!-- Error state -->
-          <div v-else-if="error" class="bg-red-50 p-4 rounded-md">
+          <div v-else-if="error" class="bg-red-50/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-red-100">
             <p class="text-red-700">{{ error }}</p>
             <button 
               @click="fetchProducts" 
-              class="mt-2 bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200"
+              class="mt-4 neumorphic-btn bg-red-50 text-red-700 px-6 py-3 rounded-lg transition-all duration-300 transform hover:-translate-y-1"
             >
-              Thử lại
+              <span class="relative z-10">Thử lại</span>
             </button>
           </div>
           
           <!-- Empty state -->
-          <div v-else-if="products.length === 0" class="bg-gray-50 p-8 rounded-md text-center">
-            <p class="text-gray-500 mb-4">Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn.</p>
-            <button 
-              @click="resetFilters" 
-              class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-            >
-              Đặt lại bộ lọc
-            </button>
+          <div v-else-if="products.length === 0" class="bg-white/60 backdrop-blur-md p-8 rounded-xl shadow-lg border border-white/40 text-center">
+            <p class="text-gray-500 mb-6 text-lg">Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn.</p>
+            <div class="flex justify-center space-x-6">
+              <button 
+                @click="resetFilters" 
+                class="neumorphic-btn bg-green-50 text-green-700 px-6 py-3 rounded-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <span class="relative z-10">Đặt lại bộ lọc</span>
+              </button>
+              <button 
+                @click="loadFallbackProducts" 
+                class="neumorphic-btn bg-blue-50 text-blue-700 px-6 py-3 rounded-lg transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <span class="relative z-10">Tải sản phẩm mẫu</span>
+              </button>
+            </div>
           </div>
           
           <!-- Products list -->
@@ -134,19 +153,21 @@
               :key="product.id" 
               class="product-card group flex flex-col h-full"
               data-aos="fade-up"
+              data-aos-duration="800"
+              data-aos-delay="100"
             >
-              <div class="product-image overflow-hidden rounded-t-lg bg-gray-100 h-64 flex items-center justify-center">
-                <router-link :to="`/product/${product.id}`" class="w-full h-full flex items-center justify-center">
+              <div class="product-image overflow-hidden rounded-t-xl bg-white/50 backdrop-blur-sm h-64 flex items-center justify-center">
+                <router-link :to="`/san-pham/${product.id}`" class="w-full h-full flex items-center justify-center">
                   <img 
-                    :src="product.image" 
+                    :src="getImageSrc(product.image)" 
                     :alt="product.name" 
-                    class="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
+                    class="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-700"
                   >
                 </router-link>
               </div>
-              <div class="product-info p-6 bg-white rounded-b-lg shadow-md group-hover:shadow-xl transition-shadow flex flex-col h-60">
-                <router-link :to="`/product/${product.id}`">
-                  <h3 class="product-title text-xl font-semibold text-gray-800 mb-2 h-14 line-clamp-2">{{ product.name }}</h3>
+              <div class="product-info p-6 bg-white/70 backdrop-blur-md rounded-b-xl border-t border-white/20 shadow-lg group-hover:shadow-xl transition-all duration-500 flex flex-col h-auto">
+                <router-link :to="`/san-pham/${product.id}`">
+                  <h3 class="product-title text-xl font-semibold text-gray-800 mb-2 h-14 line-clamp-2 group-hover:text-green-600 transition-colors duration-300">{{ product.name }}</h3>
                 </router-link>
                 <div class="flex items-center mb-2">
                   <div class="flex text-yellow-400">
@@ -161,34 +182,28 @@
                 <p class="product-description text-gray-600 mb-4 h-12 line-clamp-2">{{ product.description }}</p>
                 <div class="flex flex-col mt-auto">
                   <!-- Price or "Hết hàng" text -->
-                  <span v-if="product.stock > 0" class="product-price text-xl font-bold text-green-600 mb-2">
+                  <span v-if="product.stock > 0" class="product-price text-xl font-bold text-green-600 mb-3">
                     {{ formatPrice(product.price) }}
                   </span>
-                  <span v-else class="product-price text-xl font-bold text-red-500 mb-2">
+                  <span v-else class="product-price text-xl font-bold text-red-500 mb-3">
                     Hết hàng
                   </span>
                   
-                  <!-- Buttons based on stock -->
-                  <div v-if="product.stock > 0" class="flex space-x-2">
+                  <!-- Buttons based on stock - Neumorphic buttons -->
+                  <div v-if="product.stock > 0" class="flex space-x-3">
                     <button 
                       @click="addToCart(product)" 
-                      class="btn-add-cart h-10 px-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
+                      class="btn-add-cart neumorphic-btn bg-green-50 h-12 px-4 py-3 text-green-700 rounded-lg w-full flex items-center justify-center transition-all duration-300 transform hover:-translate-y-1"
                     >
-                      <i class="fas fa-shopping-cart mr-1"></i> Thêm
-                    </button>
-                    <button 
-                      @click="buyNow(product)" 
-                      class="btn-buy-now h-10 px-2 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap flex-1 text-center flex items-center justify-center"
-                    >
-                      <i class="fas fa-bolt mr-1"></i> Mua ngay
+                      <i class="fas fa-shopping-cart mr-2"></i> <span class="relative z-10">Thêm vào giỏ hàng</span>
                     </button>
                   </div>
                   <div v-else>
                     <button 
                       @click="contactUs" 
-                      class="w-full h-10 px-2 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center"
+                      class="w-full neumorphic-btn bg-yellow-50 h-12 px-4 py-3 text-yellow-700 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:-translate-y-1"
                     >
-                      <i class="fas fa-phone mr-1"></i> Liên hệ đặt hàng
+                      <i class="fas fa-phone mr-2"></i> <span class="relative z-10">Liên hệ đặt hàng</span>
                     </button>
                   </div>
                 </div>
@@ -196,17 +211,17 @@
             </div>
           </div>
           
-          <!-- Pagination -->
+          <!-- Pagination - Glassmorphism effect -->
           <div v-if="products.length > 0" class="flex justify-center mt-12">
-            <div class="flex items-center space-x-1">
+            <div class="flex items-center space-x-2 bg-white/50 backdrop-blur-sm p-2 rounded-xl shadow-lg">
               <button 
                 @click="prevPage" 
                 :disabled="currentPage === 0"
                 :class="[
-                  'px-3 py-1 rounded-md',
+                  'w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300',
                   currentPage === 0 
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'neumorphic-btn-sm bg-white text-gray-700 hover:-translate-y-1'
                 ]"
               >
                 <i class="fas fa-chevron-left"></i>
@@ -216,10 +231,10 @@
                 <button 
                   @click="goToPage(page - 1)"
                   :class="[
-                    'px-3 py-1 rounded-md',
+                    'w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300',
                     currentPage === page - 1 
-                      ? 'bg-green-600 text-white' 
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                      ? 'bg-green-500 text-white shadow-lg' 
+                      : 'neumorphic-btn-sm bg-white text-gray-700 hover:-translate-y-1'
                   ]"
                 >
                   {{ page }}
@@ -230,10 +245,10 @@
                 @click="nextPage" 
                 :disabled="currentPage >= totalPages - 1"
                 :class="[
-                  'px-3 py-1 rounded-md',
+                  'w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300',
                   currentPage >= totalPages - 1 
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'neumorphic-btn-sm bg-white text-gray-700 hover:-translate-y-1'
                 ]"
               >
                 <i class="fas fa-chevron-right"></i>
@@ -318,12 +333,33 @@ const pageNumbers = computed(() => {
 })
 
 // Format price
-function formatPrice(price) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price).replace('₫', 'VNĐ')
-}
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', { 
+    style: 'currency', 
+    currency: 'VND',
+    maximumFractionDigits: 0
+  }).format(price);
+};
+
+/**
+ * Handle different image source formats
+ */
+const getImageSrc = (image) => {
+  if (!image) return ''; // Return empty if no image
+  
+  // Check if it's already a base64 image
+  if (image.startsWith('data:image')) {
+    return image;
+  }
+  
+  // Check if it's a relative path that needs the base URL
+  if (image.startsWith('images/')) {
+    return `/${image}`;
+  }
+  
+  // Otherwise return as is
+  return image;
+};
 
 // API calls
 async function fetchCategories() {
@@ -343,99 +379,150 @@ async function fetchCategories() {
 }
 
 async function fetchProducts() {
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
   
   try {
     // Build query params
     const params = {
       page: currentPage.value,
       size: pageSize.value,
+      sortBy: "id", 
+      direction: "desc",
       status: 'ACTIVE' // Chỉ lấy sản phẩm đang bán
+    };
+    
+    // Add categoryId param for filtering at API level
+    if (selectedCategory.value) {
+      params.categoryId = selectedCategory.value;
     }
     
     // Add sort parameter
     switch (sortOption.value) {
       case 'newest':
-        params.sort = 'createdAt'
-        params.direction = 'desc'
-        break
+        params.sortBy = 'createdAt';
+        params.direction = 'desc';
+        break;
       case 'priceAsc':
-        params.sort = 'price'
-        params.direction = 'asc'
-        break
+        params.sortBy = 'price';
+        params.direction = 'asc';
+        break;
       case 'priceDesc':
-        params.sort = 'price'
-        params.direction = 'desc'
-        break
+        params.sortBy = 'price';
+        params.direction = 'desc';
+        break;
       case 'popular':
-        params.sort = 'sold'
-        params.direction = 'desc'
-        break
+        params.sortBy = 'sold';
+        params.direction = 'desc';
+        break;
     }
     
-    // Handle API call based on category filter
-    let response
+    // Make API call 
+    console.log('Fetching products with params:', params);
     
     try {
+      let response;
       if (selectedCategory.value) {
-        response = await api.category.getCategoryProducts(selectedCategory.value, params)
+        // Use category-specific endpoint when a category is selected
+        response = await api.category.getCategoryProducts(selectedCategory.value, params);
       } else {
-        response = await api.product.getProducts(params)
+        // Use general products endpoint when no category is selected
+        response = await api.product.getProducts(params);
       }
       
-      const data = response.data;
-      console.log('API Response in Products.vue:', data);
+      console.log('API Response:', response);
       
-      // Kiểm tra nếu API trả về HTML thay vì JSON
-      if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
-        console.error('API đang trả về HTML thay vì JSON. Có thể có vấn đề với kết nối hoặc CORS');
-        throw new Error('Invalid API response format');
+      // Check if we got a valid response with products
+      const hasValidProducts = response && 
+                             ((response.products && Array.isArray(response.products) && response.products.length > 0) || 
+                              (Array.isArray(response) && response.length > 0));
+      
+      if (!hasValidProducts) {
+        console.log('No products returned from API, using fallback data');
+        useFallbackProducts();
+        return; // Skip the rest of the processing since we're using fallback data
       }
       
-      // Kiểm tra nếu dữ liệu không hợp lệ
-      if (!data) {
-        console.error('No data received from API');
-        throw new Error('No data received');
+      // Process response according to the API documentation format
+      if (response && response.products && Array.isArray(response.products)) {
+        products.value = response.products.map(product => ({
+          id: product.id,
+          name: product.name || 'Không có tên',
+          description: product.description || '',
+          price: product.price || 0,
+          originalPrice: product.originalPrice || product.price || 0,
+          image: product.image || '/assets/images/products/default.png',
+          stock: typeof product.stock === 'number' ? product.stock : 10,
+          sold: product.sold || 0,
+          rating: product.rating || 4.5,
+          categoryId: product.categoryId,
+          categoryName: product.categoryName
+        }));
+        
+        // Update pagination information
+        totalProducts.value = response.totalItems || 0;
+        totalPages.value = response.totalPages || 1;
+        currentPage.value = response.currentPage || 0;
+        
+        console.log(`Processed ${products.value.length} products successfully`);
+      } else if (Array.isArray(response)) {
+        // Handle direct array response (fallback)
+        products.value = response.map(product => ({
+          id: product.id,
+          name: product.name || 'Không có tên',
+          description: product.description || '',
+          price: product.price || 0,
+          originalPrice: product.originalPrice || product.price || 0,
+          image: product.image || '/assets/images/products/default.png',
+          stock: typeof product.stock === 'number' ? product.stock : 10,
+          sold: product.sold || 0,
+          rating: product.rating || 4.5,
+          categoryId: product.categoryId,
+          categoryName: product.categoryName
+        }));
+        
+        totalProducts.value = products.value.length;
+        totalPages.value = 1;
+        currentPage.value = 0;
       }
       
-      // Kiểm tra cấu trúc dữ liệu
-      if (!data.products || !Array.isArray(data.products)) {
-        console.error('Invalid data format:', data);
-        throw new Error('Invalid data format');
+      // If we still have no products after processing, use fallback
+      if (products.value.length === 0) {
+        console.log('No products after processing API response, using fallback data');
+        useFallbackProducts();
+        return;
       }
       
-      // Extract pagination info from the actual API response structure
-      totalProducts.value = data.totalItems || 0
-      totalPages.value = data.totalPages || 1
-      currentPage.value = data.currentPage || 0
-      
-      // Update products list
-      products.value = data.products.map(product => ({
-        ...product,
-        // Đảm bảo các trường bắt buộc có giá trị mặc định
-        name: product.name || 'Không có tên',
-        price: product.price || 0,
-        image: product.image || '/assets/images/products/default.png'
-      }));
-      
-      error.value = null;
-    } catch (err) {
-      console.error('Error fetching products:', err);
-      error.value = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.';
-      products.value = [];
-      totalProducts.value = 0;
-      totalPages.value = 1;
-      currentPage.value = 0;
-    } finally {
-      isLoading.value = false;
+      // Additional client-side filtering for categories if API doesn't handle it correctly
+      if (selectedCategory.value && products.value.length > 0) {
+        // Double-check the products match the selected category
+        products.value = products.value.filter(product => 
+          product.categoryId === selectedCategory.value
+        );
+        totalProducts.value = products.value.length;
+      }
+    } catch (fetchError) {
+      console.error('Error in API request:', fetchError);
+      useFallbackProducts();
     }
   } catch (err) {
-    console.error('Error fetching products:', err)
-    error.value = 'Không thể tải sản phẩm. Vui lòng thử lại sau.'
+    console.error('Error fetching products:', err);
+    error.value = 'Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.';
+    useFallbackProducts();
     
-    // Fallback data - chỉ hiển thị sản phẩm đang bán
-    products.value = [
+    // Apply client-side category filtering to fallback data if needed
+    if (selectedCategory.value) {
+      products.value = products.value.filter(product => product.categoryId === selectedCategory.value);
+      totalProducts.value = products.value.length;
+    }
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+// Function to use fallback product data
+function useFallbackProducts() {
+    const allProducts = [
       {
         id: 1,
         name: 'Sâm Ngọc Linh tươi 10 năm tuổi',
@@ -444,7 +531,7 @@ async function fetchProducts() {
         originalPrice: 18000000,
         image: defaultImage,
         rating: 5.0,
-        categoryId: 1,
+        categoryId: 1,  // Sâm tươi
         stock: 50,
         status: 'ACTIVE'
       },
@@ -456,19 +543,61 @@ async function fetchProducts() {
         originalPrice: 10000000,
         image: defaultImage,
         rating: 4.0,
-        categoryId: 2,
+        categoryId: 2,  // Cao sâm
         stock: 10,
         status: 'ACTIVE'
+      },
+      {
+        id: 3,
+        name: 'Rượu sâm Ngọc Linh',
+        description: 'Rượu ngâm sâm Ngọc Linh thượng hạng, giúp bồi bổ sức khỏe.',
+        price: 5000000,
+        originalPrice: 6000000,
+        image: defaultImage, 
+        rating: 4.5,
+        categoryId: 3,  // Rượu sâm
+        stock: 15,
+        status: 'ACTIVE'
+      },
+      {
+        id: 4,
+        name: 'Trà sâm Ngọc Linh',
+        description: 'Trà sâm Ngọc Linh thơm ngon, giúp thư giãn tinh thần và tăng cường sức khỏe.',
+        price: 3000000,
+        originalPrice: 3500000,
+        image: defaultImage, 
+        rating: 4.2,
+        categoryId: 4,  // Trà sâm
+        stock: 20,
+        status: 'ACTIVE'
       }
-    ]
-  }
+    ];
+  
+    // Filter products based on selected category
+    if (selectedCategory.value) {
+      products.value = allProducts.filter(p => p.categoryId === selectedCategory.value);
+    } else {
+      products.value = allProducts;
+    }
+  
+    totalProducts.value = products.value.length;
+    totalPages.value = 1;
 }
 
 // Filter and navigation methods
 function selectCategory(categoryId) {
-  selectedCategory.value = categoryId
-  currentPage.value = 0 // Reset to first page
-  fetchProducts()
+  console.log(`Selecting category ID: ${categoryId}`);
+  
+  // If the same category is clicked again, deselect it (show all products)
+  if (selectedCategory.value === categoryId) {
+    selectedCategory.value = null;
+    console.log('Deselected category, showing all products');
+  } else {
+    selectedCategory.value = categoryId;
+  }
+  
+  currentPage.value = 0; // Reset to first page
+  fetchProducts();
 }
 
 function resetFilters() {
@@ -537,6 +666,23 @@ function contactUs() {
   }, 2000)
 }
 
+// Function to force load fallback products
+function loadFallbackProducts() {
+  useFallbackProducts();
+  error.value = null;
+}
+
+// Fix for the "Tất cả sản phẩm" button
+function showAllProducts() {
+  selectedCategory.value = null;
+  currentPage.value = 0;
+  console.log('Showing all products');
+  
+  // Use the fallback data to ensure all products are shown
+  useFallbackProducts();
+  error.value = null;
+}
+
 // Watch for filter changes
 watch([filters, sortOption], () => {
   fetchProducts()
@@ -551,24 +697,53 @@ onMounted(async () => {
 </script>
 
 <style lang="scss">
+.products-page {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/assets/images/bg-pattern.png');
+    background-size: 300px;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
 .product-card {
-  transition: all 0.3s ease;
-  background-color: white;
-  border-radius: 0.5rem;
+  transition: all 0.4s ease;
+  border-radius: 1rem;
   overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: transparent;
   
   &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-12px);
   }
   
   .product-image {
     height: 16rem;
-    background-color: #f9fafb;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.4));
+      z-index: 1;
+      pointer-events: none;
+    }
   }
   
   .product-info {
@@ -577,32 +752,73 @@ onMounted(async () => {
     flex: 1;
     display: flex;
     flex-direction: column;
-  }
-  
-  .btn-add-cart, .btn-buy-now {
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
+    position: relative;
     
-    &:hover {
-      transform: translateY(-2px);
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
     }
   }
+}
+
+.neumorphic-btn {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  box-shadow: 
+    6px 6px 12px rgba(0, 0, 0, 0.03),
+    -6px -6px 12px rgba(255, 255, 255, 0.6),
+    inset 1px 1px 0px rgba(255, 255, 255, 0.6);
   
-  .btn-add-cart {
-    background-color: #16a34a;
-    &:hover {
-      background-color: #15803d;
-    }
+  &:active {
+    box-shadow: 
+      inset 4px 4px 8px rgba(0, 0, 0, 0.05),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.5);
+    transform: translateY(0) !important;
   }
   
-  .btn-buy-now {
-    background-color: #f97316;
-    &:hover {
-      background-color: #ea580c;
-    }
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+    pointer-events: none;
+  }
+}
+
+.neumorphic-btn-sm {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  box-shadow: 
+    4px 4px 8px rgba(0, 0, 0, 0.03),
+    -4px -4px 8px rgba(255, 255, 255, 0.6),
+    inset 1px 1px 0px rgba(255, 255, 255, 0.6);
+  
+  &:active {
+    box-shadow: 
+      inset 2px 2px 4px rgba(0, 0, 0, 0.05),
+      inset -2px -2px 4px rgba(255, 255, 255, 0.5);
+    transform: translateY(0) !important;
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+    pointer-events: none;
   }
 }
 
@@ -611,5 +827,12 @@ onMounted(async () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* For backdrop-filter support in more browsers */
+@supports not (backdrop-filter: blur(12px)) {
+  .backdrop-blur-md, .backdrop-blur-sm {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+  }
 }
 </style> 

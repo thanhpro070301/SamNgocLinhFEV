@@ -2,7 +2,7 @@
   <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
     <!-- Discount Badge -->
     <div class="relative">
-      <img :src="product.image" :alt="product.name" class="w-full h-48 object-cover">
+      <img :src="getImageSrc(product.image)" :alt="product.name" class="w-full h-48 object-cover">
       <span v-if="product.discount" class="absolute top-3 left-3 bg-red-500 text-white text-sm font-medium px-2 py-1 rounded">
         -{{ product.discount }}%
       </span>
@@ -61,6 +61,23 @@ defineProps({
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN').format(price)
+}
+
+const getImageSrc = (image) => {
+  if (!image) return ''; // Return empty if no image
+  
+  // Check if it's already a base64 image
+  if (image.startsWith('data:image')) {
+    return image;
+  }
+  
+  // Check if it's a relative path that needs the base URL
+  if (image.startsWith('images/')) {
+    return `/${image}`;
+  }
+  
+  // Otherwise return as is
+  return image;
 }
 </script>
 

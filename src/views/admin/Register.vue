@@ -11,7 +11,7 @@
           <h2 class="text-3xl font-extrabold text-gray-900">Đăng ký tài khoản</h2>
           <p class="mt-2 text-sm text-gray-600">
             Hoặc
-            <router-link to="/admin/login" class="font-medium text-green-600 hover:text-green-500 transition-colors duration-200">
+            <router-link to="/auth/login" class="font-medium text-green-600 hover:text-green-500 transition-colors duration-200">
               đăng nhập nếu đã có tài khoản
             </router-link>
           </p>
@@ -225,6 +225,7 @@ const saveRegistrationData = () => {
   const registrationData = {
     name: form.value.name,
     email: form.value.email,
+    password: form.value.password,
     phone: form.value.phone,
     action: 'register'
   };
@@ -314,69 +315,100 @@ const handleSubmit = async () => {
     // Kiểm tra email hợp lệ trước khi gửi OTP
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.value.email)) {
       errorMessage.value = 'Email không hợp lệ. Vui lòng kiểm tra lại.';
+      isLoading.value = false;
       return;
     }
 
-    // Gửi OTP trước (nếu chưa có OTP)
-    if (!form.value.otp) {
-      try {
-        const response = await api.auth.sendOtp(form.value.email);
-        
-        if (response && response.success) {
-          // Lưu thông tin đăng ký vào sessionStorage (không bao gồm mật khẩu)
-          saveRegistrationData();
-          
-          // Chuyển đến trang xác minh OTP
-          router.push({
-            path: '/admin/verify-otp',
-            query: { 
-              email: form.value.email,
-              action: 'register'
-            }
-          });
-        } else {
-          errorMessage.value = response?.message || 'Không thể gửi mã OTP. Vui lòng thử lại sau.';
+    // Gửi OTP là bước đầu tiên luôn, không kiểm tra form.value.otp
+    console.log('Đang gửi OTP đến email:', form.value.email);
+    
+    try {
+      const otpResponse = await api.auth.sendOtp(form.value.email);
+      console.log('API Response for OTP:', otpResponse);
+      
+      // Lưu thông tin đăng ký vào sessionStorage (không bao gồm mật khẩu)
+      saveRegistrationData();
+      
+      console.log('Chuyển hướng đến trang xác thực OTP');
+      
+      // Chuyển hướng đến trang xác thực OTP
+      router.push({
+        path: '/admin/verify-otp',
+        query: {
+          email: form.value.email,
+          action: 'register'
         }
-      } catch (otpError) {
-        console.error('OTP sending error:', otpError);
-        if (otpError.response?.status === 429) {
-          errorMessage.value = 'Quá nhiều yêu cầu gửi OTP. Vui lòng thử lại sau 1 phút.';
-        } else if (otpError.response?.status === 400) {
-          errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.';
-        } else {
-          errorMessage.value = 'Không thể gửi mã OTP. Vui lòng kiểm tra kết nối mạng và thử lại.';
-        }
+      });
+    } catch (otpError) {
+      console.error('OTP sending error:', otpError);
+      if (otpError.response?.status === 429) {
+        errorMessage.value = 'Quá nhiều yêu cầu gửi OTP. Vui lòng thử lại sau 1 phút.';
+      } else if (otpError.response?.status === 400) {
+        errorMessage.value = 'Email không hợp lệ hoặc không thể gửi OTP.';
+      } else {
+        errorMessage.value = 'Không thể gửi mã OTP. Vui lòng kiểm tra kết nối mạng và thử lại.';
+      }
+    }
+  } catch (error) {
+    console.error('Error during registration process:', error);
+    errorMessage.value = error.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Hàm này sẽ được gọi khi OTP đã được xác thực và quay lại trang đăng ký
+const completeRegistration = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
+  
+  try {
+    // Lấy dữ liệu đã lưu từ sessionStorage
+    const savedData = getRegistrationData();
+    
+    // Nếu có dữ liệu đã lưu, ưu tiên sử dụng
+    if (savedData) {
+      form.value.name = savedData.name || form.value.name;
+      form.value.email = savedData.email || form.value.email;
+      form.value.phone = savedData.phone || form.value.phone;
+      
+      // Nếu có mật khẩu đã lưu và form chưa nhập mật khẩu
+      if (savedData.password && !form.value.password) {
+        form.value.password = savedData.password;
+        form.value.passwordConfirm = savedData.password;
+      }
+    }
+    
+    // Đăng ký tài khoản với thông tin đã điền
+    const registerData = {
+      name: form.value.name,
+      email: form.value.email,
+      password: form.value.password,
+      phone: form.value.phone
+    };
+    
+    const result = await api.auth.register(registerData);
+    
+    if (result.success) {
+      // Hiển thị thông báo thành công
+      alert('Đăng ký tài khoản thành công! Đang đăng nhập tự động...');
+      
+      // Xóa dữ liệu đăng ký tạm thời
+      clearRegistrationData();
+      
+      // Đăng nhập tự động sau khi đăng ký
+      const loginResult = await auth.login({
+        email: form.value.email,
+        password: form.value.password
+      });
+      
+      if (loginResult) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/auth/login');
       }
     } else {
-      // Nếu đã có OTP thì đăng ký
-      const registerData = {
-        name: form.value.name,
-        email: form.value.email,
-        password: form.value.password,
-        phone: form.value.phone,
-        otp: form.value.otp
-      };
-      
-      const result = await auth.register(registerData);
-      
-      if (result.success) {
-        // Xóa dữ liệu đăng ký tạm thời
-        clearRegistrationData();
-        
-        // Đăng nhập tự động sau khi đăng ký
-        const loginResult = await auth.login({
-          email: form.value.email,
-          password: form.value.password
-        });
-        
-        if (loginResult) {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/admin/login');
-        }
-      } else {
-        errorMessage.value = result.message || 'Đăng ký thất bại. Vui lòng thử lại sau.';
-      }
+      errorMessage.value = result.message || 'Đăng ký thất bại. Vui lòng thử lại sau.';
     }
   } catch (error) {
     console.error('Registration error:', error);
@@ -408,7 +440,8 @@ onMounted(() => {
   const route = router.currentRoute.value;
   if (route.query.verified === 'true' && route.query.email) {
     form.value.email = route.query.email;
-    form.value.otp = route.query.otp;
+    // Nếu được chuyển từ xác minh OTP với trạng thái đã xác thực, thực hiện đăng ký
+    completeRegistration();
   }
 });
 

@@ -4,13 +4,13 @@
   NODE_VERSION = "18"
 
 [context.production.environment]
-  VITE_API_URL = "http://localhost:8080/api/"
+  VITE_API_URL = "https://samngoclinh-back.onrender.com/api"
 
 [context.deploy-preview.environment]
-  VITE_API_URL = "http://localhost:8080/api/"
+  VITE_API_URL = "https://samngoclinh-back.onrender.com/api"
 
 [context.branch-deploy.environment]
-  VITE_API_URL = "http://localhost:8080/api/"
+  VITE_API_URL = "https://samngoclinh-back.onrender.com/api"
 
 [[redirects]]
   from = "/*"
